@@ -152,7 +152,6 @@ class ExportManager:
     def export(self, template_name=JAARREKENING, year=datetime.now().year) -> Result:
         self._template_name = template_name
         self._year = int(year)
-        self._out_path = f'{session.export_dir}{JAARREKENING} {year}{EXT_CSV}'
 
         # Process output template
         self._validate_template()
@@ -160,7 +159,8 @@ class ExportManager:
         # Merge generated realisation from db with annual budgets from 'Jaarrekening.csv'
         sorted_bookings = self._get_merged_bookings()
 
-        # Output ot CSV
+        # Output naar CSV
+        self._out_path = f'{session.export_dir}{JAARREKENING} {year} tm maand {self._transaction_io.month_max}{EXT_CSV}'
         self._construct(sorted_bookings)
         return Result(text=f'De {JAARREKENING} van {year} is geëxporteerd naar "{self._out_path}"')
 
@@ -389,10 +389,16 @@ class ExportManager:
             raise GeneralException(
                 f'{PGM}: Er is niets te doen. Er zijn geen transacties in de database gevonden.')
 
-        if len(sorted_bookings[0]) != len(self._row_fields):
-            raise GeneralException(
-                f'{PGM}: Aantal boeking kolommen ({len(sorted_bookings[0])}) '
-                f'is ongelijk aan template kolommen ({len(self._row_fields)})')
+        col_count = len(sorted_bookings[0])
+        if col_count != len(self._row_fields):
+            # Coulance. "Jaarrekening.csv" is leading in no. of amounts. Amounts start at column 4.
+            if col_count >= 4:
+                row_fields = {i: self._row_fields[i] for i in range(4)}
+                self._row_fields = row_fields
+            else:
+                raise GeneralException(
+                    f'{PGM}: Aantal boeking kolommen ({col_count}) '
+                    f'is ongelijk aan template kolommen ({len(self._row_fields)})')
 
         # Preparation
         self._total_amounts = {

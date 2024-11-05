@@ -13,8 +13,10 @@ from src.DL.Config import *
 from src.DL.Enums.Enums import Summary
 from src.DL.Model import FD, Model
 from src.DL.Table import Table
+from src.GL.BusinessLayer.ConfigManager import ConfigManager
 from tests.Functions import start_up, get_input_sub_dir
 
+CM = ConfigManager(unit_test=True)
 SummaryM = SummaryDriver()
 model = Model()
 
@@ -30,8 +32,9 @@ class SearchTestCase(unittest.TestCase):
         self.assertTrue(result.OK)
         te_rows = Session().db.select(Table.TransactionEnriched)
         year = model.get_value(Table.TransactionEnriched, FD.Year, te_rows[0])
+        CM.set_config_item(CF_SUMMARY_YEAR, year)
         for summary_type in Summary.values():
-            result = SummaryM.create_summary(te_rows)
+            result = SummaryM.create_summary(te_rows, summary_type)
             self.assertTrue(result.OK or result.WA, msg=f'Error at summary "{summary_type}" for year "{year}"')
 
 

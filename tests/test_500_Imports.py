@@ -48,8 +48,7 @@ class ImportTestCase(unittest.TestCase):
         # Double transactions - continue
         self._run_test(get_input_sub_dir(
             'Bankafschriften - dubbel'),
-            expected_import_result_OK=True,  # Warning but auto-confirm so result will be OK.
-            expected_transaction_count=6,
+            expected_import_result_OK=False,
             expected_accounts=1,
             auto_continue=True)
 

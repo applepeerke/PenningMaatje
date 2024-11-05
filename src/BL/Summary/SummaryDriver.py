@@ -6,6 +6,8 @@
 # ---------- --- ------------------------------------------------------------------------------------------------------
 # 2023-10-30 PHe First creation
 # ---------------------------------------------------------------------------------------------------------------------
+from datetime import datetime
+
 from src.BL.Managers.ExportManager import ExportManager
 from src.BL.Summary.SearchResults import SearchResults
 from src.DL.Config import CF_COMBO_SUMMARY, CF_SUMMARY_YEAR
@@ -38,4 +40,5 @@ class SummaryDriver:
         # B. Annual account
         elif summary_type == Summary.AnnualAccount:
             EM = ExportManager()
-            return EM.export(year=CM.get_config_item(CF_SUMMARY_YEAR))
+            year = CM.get_config_item(CF_SUMMARY_YEAR) or datetime.now().year
+            return EM.export(year=year)

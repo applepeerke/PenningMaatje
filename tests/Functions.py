@@ -4,7 +4,7 @@ from PenningMaatje import get_root_dir
 from src.BL.Managers.ImportManager import ImportManager
 from src.DL.Config import CF_IMPORT_PATH_BOOKINGS, CF_IMPORT_PATH_COUNTER_ACCOUNTS, \
     CF_IMPORT_PATH_SEARCH_TERMS, CF_INPUT_DIR, CF_OUTPUT_DIR, \
-    CF_IMPORT_PATH_PAYMENT_TRANSACTIONS, COUNTER_ACCOUNTS_CSV, BOOKINGS_CSV, SEARCH_TERMS_CSV
+    COUNTER_ACCOUNTS_CSV, BOOKINGS_CSV, SEARCH_TERMS_CSV
 from src.DL.DBInitialize import DBInitialize
 from src.VL.Controllers.MainController import MainController
 from src.VL.Models.MainModel import MainModel

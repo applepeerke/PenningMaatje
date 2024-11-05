@@ -24,7 +24,7 @@ DD = DataDriver()
 def ini_config():
     CM.config_dict[CF_SEARCH_YEAR] = EMPTY
     CM.config_dict[CF_SEARCH_MONTH] = EMPTY
-    CM.config_dict[CF_SEARCH_BOOKING] = EMPTY
+    CM.config_dict[CF_SEARCH_BOOKING_CODE] = EMPTY
     CM.config_dict[CF_SEARCH_COUNTER_ACCOUNT] = EMPTY
     CM.config_dict[CF_SEARCH_AMOUNT] = EMPTY
     CM.config_dict[CF_SEARCH_AMOUNT_TO] = EMPTY

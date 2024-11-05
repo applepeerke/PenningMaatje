@@ -24,6 +24,10 @@ class TransactionIO(BaseIO, ABC):
     def total_amount(self):
         return self._total_amount
 
+    @property
+    def month_max(self):
+        return self._month_max
+
     def __init__(self):
         super().__init__(TABLE)
         self._te_def = self._model.get_colno_per_att_name(TABLE, zero_based=False)
@@ -34,6 +38,7 @@ class TransactionIO(BaseIO, ABC):
         self._EOF = False
         self._completion_message = EMPTY
         self._total_amount = 0.0
+        self._month_max = 0
 
     def save_pending_remarks(self) -> bool:
         """
@@ -68,6 +73,7 @@ class TransactionIO(BaseIO, ABC):
         b_def = self._model.get_colno_per_att_name(Table.Booking, zero_based=False)
         mutations = self._db.select(TABLE, where=[Att(FD.Year, year)])
         for m_row in mutations:
+            self._month_max = max(self._month_max, m_row[self._te_def[FD.Month]])
             booking_id = m_row[self._te_def[FD.Booking_id]]
             if not booking_id:
                 booking_maingroup = OTHER_COSTS if m_row[self._te_def[FD.Amount_signed]] < 0 else OTHER_REVENUES
