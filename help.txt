@@ -1,0 +1,27 @@
+----------------------------------------------------------------------------------------
+PM - PenningMaatje
+----------------------------------------------------------------------------------------
+Author : Peter Heijligers
+Version: 1.0
+Python : >= 3.10
+----------------------------------------------------------------------------------------
+usage:
+1. cd to the PenningMaatje directory.
+2. python pm.py -i "myBankTransactionsPath"
+
+Output
+------
+All output is directed to PenningMaatje subfolder Output (by default).
+Also a logfile is created.
+
+
+Input parameters
+----------------
+To see the CLI input parameters, run "python pm -h".
+
+-i = input directory
+Bank transactions directory.
+
+-y = year to export (optional).
+Default is the current year.
+

@@ -1,0 +1,13 @@
+﻿"""Realisatie {jaar} wijkgemeente Leiden Zuidwest""";;;;;
+;;;"""Realisatie""";"""Begroting""";"""Begroting"""
+;;;{jaar};{vorig jaar};{jaar}
+;;;;;
+{typen};;;;;
+;{hoofdgroepen};;;;
+;;{subgroepen};{bedragen};{bedragen};{bedragen}
+;;;;;
+;;;{totaal hoofdgroepen};{totaal hoofdgroepen};{totaal hoofdgroepen}
+;;;;;
+;;;{totaal typen};{totaal typen};{totaal typen}
+;;;;;
+;;;{totaal generaal};{totaal generaal};{totaal generaal}

@@ -1,0 +1,45 @@
+Zoeken in {TRANSACTIONS}
+
+Het resultaat van de zoek actie wordt weergegeven in het {DASHBOARD}  in het paneel {TRANSACTIONS}.
+De inhoud van paneel {TRANSACTIONS} kun je vanuit het {DASHBOARD} exporteren naar een {CSV_FILE}.
+
+Zoekvelden
+----------
+
+    Naam
+    ----
+    Er wordt gezocht in zowel de naam als mededelingen. Er wordt geen onderscheid gemaakt tussen hoofdletters en kleine letters.
+    Achter de schermen wordt een wildcard "*" voor- en achter je tekst geplaatst.
+    Als je bijvoorbeeld "apple" invult vind je alle {TRANSACTIONS} die deze tekst in de naam of mededeling bevat.
+
+    Je kunt ook zelf een wildcard gebruiken.
+    Bijvoorbeeld apple* als je alleen namen en mededelingen wilt zien die met "apple" beginnen.
+    Een wildcard kun je alleen vooraan en/of achteraan gebruiken.
+
+    Bijzonderheden
+    --------------
+    Alle {TRANSACTIONS} waarin je bijzonderheden hebt ingevuld worden gezocht.
+
+    Bedrag
+    ------
+    Hiermee zoek je op het bedrag.
+    Als je ook een "Bedrag t/m" opgeeft is "Bedrag" het "Bedrag vanaf".
+    Geef een min-teken ("-") op als je zoekt naar uitgaven.
+
+    Totaal
+    ------
+    Dit is het totaalbedrag in het  .
+
+Knoppen
+-------
+
+    Zoeken
+    ------
+    Druk op het vergrootglas om het zoeken te starten.
+    De te zoeken {TRANSACTIONS} moeten aan alle opgegeven criteria voldoen.
+    De gevonden {TRANSACTIONS} verschijnen in het {TRANSACTION}-scherm.
+
+    Vernieuwen
+    ----------
+    Druk op de knop met de dubbele pijl om alle zoekvelden weer leeg te maken.
+
