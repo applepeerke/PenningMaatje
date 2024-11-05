@@ -1,0 +1,31 @@
+name: Build EXE on Push
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: windows-7
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Build application
+        run: pyinstaller PenningMaatje.py --onefile --windowed  --clean --noconfirm -i src\logo.ico --add-data resources:resources
+
+      - name: Upload EXE
+        uses: actions/upload-artifact@v2
+        with:
+          name: PenningMaatje-W7
+          path: dist/*.exe
