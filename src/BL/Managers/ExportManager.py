@@ -1,17 +1,16 @@
-import os
 from datetime import datetime
 
 from src.DL.Config import CF_COMMA_REPRESENTATION_DISPLAY
 from src.DL.IO.AnnualAccountIO import AnnualAccountIO
 from src.DL.IO.TransactionIO import TransactionIO
+from src.DL.Lexicon import CSV_FILE
+from src.DL.UserCsvFiles.Cache.BookingCache import Singleton as BookingCache
 from src.GL.BusinessLayer.ConfigManager import ConfigManager
 from src.GL.BusinessLayer.CsvManager import CsvManager
 from src.GL.BusinessLayer.SessionManager import Singleton as Session
 from src.GL.Const import EXT_CSV, JAARREKENING, EMPTY
 from src.GL.GeneralException import GeneralException
 from src.GL.Result import Result
-from src.DL.Lexicon import CSV_FILE
-from src.DL.UserCsvFiles.Cache.BookingCache import Singleton as BookingCache
 
 PGM = 'ExportManager'
 
@@ -158,7 +157,7 @@ class ExportManager:
         # Process output template
         self._validate_template()
         self._analyze_template()
-        # Merge generated realisation with annual budgets from 'Jaarrekening.csv'
+        # Merge generated realisation from db with annual budgets from 'Jaarrekening.csv'
         sorted_bookings = self._get_merged_bookings()
 
         # Output ot CSV
@@ -332,6 +331,9 @@ class ExportManager:
     def _get_merged_bookings(self) -> list:
         """ Add budget booking columns to realisation """
         realisation_rows = self._transaction_io.get_realisation_data(self._year)
+        if not realisation_rows:
+            return []
+
         total_amount = sum(row[3] for row in realisation_rows)
         self._x_check(self._transaction_io.total_amount, total_amount, 'Ophalen Realisatie data')
 
@@ -383,10 +385,14 @@ class ExportManager:
         N.B. Out rows are already been filled with title.
         fields = {seqNo: Field}
         """
+        if not sorted_bookings:
+            raise GeneralException(
+                f'{PGM}: Er is niets te doen. Er zijn geen transacties in de database gevonden.')
 
-        if not sorted_bookings or len(sorted_bookings[0]) != len(self._row_fields):
-            raise GeneralException(f'{PGM}: Aantal boeking kolommen ({len(sorted_bookings[0])}) '
-                                   f'is ongelijk aan template kolommen ({len(self._row_fields)})')
+        if len(sorted_bookings[0]) != len(self._row_fields):
+            raise GeneralException(
+                f'{PGM}: Aantal boeking kolommen ({len(sorted_bookings[0])}) '
+                f'is ongelijk aan template kolommen ({len(self._row_fields)})')
 
         # Preparation
         self._total_amounts = {

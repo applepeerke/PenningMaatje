@@ -33,7 +33,9 @@ class PMC:
 
         session.start(output_dir=output_dir, CLI_mode=True)
 
-        self._start_up(input_dir, output_dir, build)
+        result = self._start_up(input_dir, output_dir, build)
+        if not result.OK:
+            raise GeneralException(result.get_messages_as_message() or result.text)
 
         self._em = ExportManager()
         self._summary_driver = SummaryDriver()
@@ -42,10 +44,8 @@ class PMC:
         # Jaarrekening t/m maand x
         self._em.export(year=self._year)
 
-        # Kwartalen
+        # Kwartalen, maanden
         [self._export_transactions(q=i) for i in range(1, 5)]
-
-        # Maanden
         [self._export_transactions(i, i) for i in range(1, 13)]
 
     def _export_transactions(self, month_from=None, month_to=None, q=None):
@@ -65,9 +65,9 @@ class PMC:
             )
         te_rows = session.db.select(Table.TransactionEnriched, where=where)
         if te_rows:
-            self._result = self._summary_driver.create_summary(te_rows, Summary.SearchResult, title)
-            if not self._result.OK:
-                raise GeneralException(self._result.get_messages_as_message() or self._result.text)
+            result = self._summary_driver.create_summary(te_rows, Summary.SearchResult, title)
+            if not result.OK:
+                raise GeneralException(result.get_messages_as_message() or result.text)
 
     def _start_up(self, input_dir, output_dir, build) -> Result:
         """ Start without using GUI Controller """
@@ -77,12 +77,21 @@ class PMC:
 
         # DB
         result = self._start_db(build)
-        if (result.OK and build) or result.RT:
-            # Log
-            log.start_log(session.log_dir, level=LogLevel.Verbose)
-            # Populate DB
-            IM = ImportManager()
-            result = IM.start()
+
+        # Not consistent: Build
+        if result.RT and not build:
+            build = True
+            result = self._start_db(build)
+
+        # If db has been built, import the data.
+        if result.OK:
+            count = session.db.count(Table.TransactionEnriched)
+            if build or count == 0:  # Import may have failed
+                # Log
+                log.start_log(session.log_dir, level=LogLevel.Verbose)
+                # Populate DB
+                IM = ImportManager()
+                result = IM.start()
         return result
 
     @staticmethod
