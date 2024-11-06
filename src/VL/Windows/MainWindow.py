@@ -41,9 +41,10 @@ class MainWindow(BaseWindow):
             return
         super().display()
         # Close
-        if self._close_clicked or self._controller.result.EX:
+        result = self._controller.result
+        if self._close_clicked or result.EX or result.RT:
             self._controller.close()
-            self._result = self._controller.result
+            self._result = result if result.EX or result.RT else self._controller.result
 
     def _preparation(self):
         """ 1. Build the panes. """
