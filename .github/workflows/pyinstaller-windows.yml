@@ -25,7 +25,7 @@ jobs:
         run: pyinstaller PenningMaatje.py --onefile --windowed  --clean --noconfirm -i src\logo.ico --add-data resources:resources
 
       - name: Upload EXE
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v5
         with:
-          name: PenningMaatje-W7
+          name: PenningMaatje
           path: dist/*.exe
