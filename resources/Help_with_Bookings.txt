@@ -1,14 +1,17 @@
-Categoriseren is het koppelen van je {TRANSACTIONS} aan {BOOKING_CODES}.
-Dit doe je via het onderhouden van de {BOOKING_CODES} in de lijsten met {BOOKING_CODES} en {SEARCH_TERMS}.
+Categoriseren is het koppelen van {TRANSACTIONS} aan {BOOKING_CODES}.
+Dit doe je via het onderhouden van {BOOKING_CODES} in de lijsten met {BOOKING_CODES} en {SEARCH_TERMS}.
 
 Dit zijn de te volgen stappen:
-    1. Pas zonodig de voorgedefinieerde lijsten aan in {BOOKING_CODES} (zie hieronder).
-    2. Om {COUNTER_ACCOUNTS} aan {BOOKING_CODES} te koppelen:
+
+    1. Om {COUNTER_ACCOUNTS} aan {BOOKING_CODES} te koppelen:
         a. Druk in {DASHBOARD} de knop "{CMD_SEARCH_FOR_EMPTY_BOOKING}".
         b. Kies de {BOOKING} bij de {COUNTER_ACCOUNT} in het paneel "{TRANSACTION}".
 
-    3. Om {TRANSACTIONS} aan {SEARCH_TERMS} te koppelen:
-        Importeer je {TRANSACTIONS} opnieuw via de knop met de dubbele pijl.
+    2. Om {TRANSACTIONS} aan {BOOKING_CODES} te koppelen:
+            a. Ga naar de lijst met {SEARCH_TERMS}.
+            b. Koppel {SEARCH_TERMS} die in de Naam of Omschrijving van de {TRANSACTIONS} voorkomen aan {BOOKING_CODES}.
+
+    3. Importeer je {TRANSACTIONS} opnieuw via de knop met de dubbele pijl.
 
 
 Voorgedefinieerde lijsten onderhouden

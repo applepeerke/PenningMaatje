@@ -40,9 +40,9 @@ BOOKING = 'Boeking'
 BUDGET = 'Begroting'
 COMMENTS = 'Mededelingen'
 BOOKING_SEQNO = 'Volgnummer'
-BOOKING_CODE = 'Boeking code'
-BOOKING_CODES = 'Boeking codes'
-BOOKING_TYPE = 'Boeking type'
+BOOKING_CODE = 'Boeking-code'
+BOOKING_CODES = 'Boeking-codes'
+BOOKING_TYPE = 'Boeking-type'
 CONFIG = 'Configuratie'
 CORRECTION = 'Correctie'
 COSTS = 'Uitgaven'
@@ -102,7 +102,7 @@ var_names = {
     'ACCOUNT_NUMBER': ACCOUNT_NUMBER,
     'BASE_DIR': OUTPUT_DIR,
     'BOOKING': BOOKING,
-    'BOOKINGS': BOOKING_CODES,
+    'BOOKING_CODES': BOOKING_CODES,
     'CMD_IMPORT_TE': _to_cmd_key(CMD_IMPORT_TE),
     'CMD_WORK_WITH_BOOKING_CODES': _to_text_key(CMD_WORK_WITH_BOOKING_CODES),
     'CMD_WORK_WITH_SEARCH_TERMS': _to_text_key(CMD_WORK_WITH_SEARCH_TERMS),
