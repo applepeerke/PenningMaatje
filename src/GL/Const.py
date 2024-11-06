@@ -57,5 +57,3 @@ USER_MUTATIONS_FILE_NAME = 'User_mutations'
 MUTATION_PGM_TE = 'TransactionIO'
 MUTATION_PGM_BK = 'BookingIO'
 
-# Templates
-JAARREKENING = 'Jaarrekening'

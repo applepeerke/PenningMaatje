@@ -1,14 +1,15 @@
 from datetime import datetime
 
+from src.BL.Functions import get_annual_account_filename
 from src.DL.Config import CF_COMMA_REPRESENTATION_DISPLAY
 from src.DL.IO.AnnualAccountIO import AnnualAccountIO
 from src.DL.IO.TransactionIO import TransactionIO
-from src.DL.Lexicon import CSV_FILE
+from src.DL.Lexicon import CSV_FILE, ANNUAL_ACCOUNT
 from src.DL.UserCsvFiles.Cache.BookingCache import Singleton as BookingCache
 from src.GL.BusinessLayer.ConfigManager import ConfigManager
 from src.GL.BusinessLayer.CsvManager import CsvManager
 from src.GL.BusinessLayer.SessionManager import Singleton as Session
-from src.GL.Const import EXT_CSV, JAARREKENING, EMPTY
+from src.GL.Const import EXT_CSV, EMPTY
 from src.GL.GeneralException import GeneralException
 from src.GL.Result import Result
 
@@ -127,6 +128,7 @@ class ExportManager:
     def __init__(self):
         self._transaction_io = TransactionIO()
         self._template_name = str
+        self._template_var_names = set()
         self._year = 0
         self._cell_count = 0
         self._r = 0
@@ -149,7 +151,7 @@ class ExportManager:
         self._annual_budgets = {}
         self._budget_years = 0
 
-    def export(self, template_name=JAARREKENING, year=datetime.now().year) -> Result:
+    def export(self, template_name=ANNUAL_ACCOUNT, year=datetime.now().year) -> Result:
         self._template_name = template_name
         self._year = int(year)
 
@@ -159,10 +161,12 @@ class ExportManager:
         # Merge generated realisation from db with annual budgets from 'Jaarrekening.csv'
         sorted_bookings = self._get_merged_bookings()
 
-        # Output naar CSV
-        self._out_path = f'{session.export_dir}{JAARREKENING} {year} tm maand {self._transaction_io.month_max}{EXT_CSV}'
+        # Output naar CSV.
+        # Filename example: "Jaarrekening (templateX) 2024 tm maand 4.csv"
+        filename = get_annual_account_filename(year, self._transaction_io.month_max, title=template_name)
+        self._out_path = f'{session.export_dir}{filename}'
         self._construct(sorted_bookings)
-        return Result(text=f'De {JAARREKENING} van {year} is geëxporteerd naar "{self._out_path}"')
+        return Result(text=f'De {ANNUAL_ACCOUNT} van {year} is geëxporteerd naar "{self._out_path}"')
 
     """
     Validation
@@ -277,9 +281,12 @@ class ExportManager:
                     f'Fout in regel {self._r}: Gemengde meervoudige en enkelvoudige variabelen in een regel '
                     f'worden niet ondersteund.')
 
-    @staticmethod
-    def _var_to_upper(cell) -> str:
-        return cell.upper() if cell.startswith('{') else cell
+    def _var_to_upper(self, cell) -> str:
+        if cell.startswith('{') and cell.endswith('}'):
+            var_name = cell.upper()
+            self._template_var_names.add(var_name[1:-1])
+            return cell.upper()
+        return cell
 
     def _add_field(self, cell, column):
         """ 0-based row/col """
@@ -387,13 +394,14 @@ class ExportManager:
         """
         if not sorted_bookings:
             raise GeneralException(
-                f'{PGM}: Er is niets te doen. Er zijn geen transacties in de database gevonden.')
+                f'{PGM}: Er is niets te doen. Er zijn geen transacties in de database gevonden (voor jaar {self._year}).')
 
         col_count = len(sorted_bookings[0])
         if col_count != len(self._row_fields):
-            # Coulance. "Jaarrekening.csv" is leading in no. of amounts. Amounts start at column 4.
+            # Coulance. "Jaarrekening.csv" is leading in no. of amount columns. Amounts start at column 4.
             if col_count >= 4:
-                row_fields = {i: self._row_fields[i] for i in range(4)}
+                col_max = min(col_count, len(self._row_fields))
+                row_fields = {i: self._row_fields[i] for i in range(col_max)}
                 self._row_fields = row_fields
             else:
                 raise GeneralException(
@@ -430,8 +438,9 @@ class ExportManager:
         csvm.write_rows(self._out_rows, data_path=self._out_path, open_mode='w')
 
         # Check-check-double-check
-        total_general = round(self._total_amounts[GENERAL][0], 2)
-        self._x_check(self._transaction_io.total_amount, total_general, 'Export naar CSV')
+        if self._total_amounts[GENERAL]:
+            total_general = round(self._total_amounts[GENERAL][0], 2)
+            self._x_check(self._transaction_io.total_amount, total_general, 'Export naar CSV')
 
     @staticmethod
     def _x_check(total_amount_db, total_amount_processed, step_name):
@@ -485,8 +494,9 @@ class ExportManager:
             amount_db = data_row[i]
             j = i - self._c_first_amount
             # For this column i
-            for level_name, amounts in self._total_amounts.items():  # Per level (general, type, maingroup)
-                self._total_amounts[level_name][j] += amount_db  # Per amount (real., budget, ...)
+            for level_name, amounts in self._total_amounts.items():
+                if j in self._total_amounts[level_name]:  # Per level (general, type, maingroup)
+                    self._total_amounts[level_name][j] += amount_db  # Per amount (real., budget, ...)
 
         # Format and add the last columns (subgroup, amounts).
         [self._format_and_add_value(F.template_var_name, F.value)
@@ -529,22 +539,22 @@ class ExportManager:
         var_name = get_total_label(level_name)
         values = self._total_amounts[level_name]
 
-        # Output empty columns
-        [self._add_cell(EMPTY) for _ in range(self._r_c[AMOUNTS][1] - 1)]
+        if var_name in self._template_var_names:
 
-        # Output total label
-        self._add_cell(
-            TOTAL_GENERAL.title() if level_name == GENERAL
-            else total_label.title())
+            # Output empty columns
+            [self._add_cell(EMPTY) for _ in range(self._r_c[AMOUNTS][1] - 1)]
 
-        # Format and output the total values
-        [self._add_cell(self._format_amount(var_name, values[i])) for i in range(len(values))]
+            # Output total label
+            self._add_cell(TOTAL_GENERAL.title() if level_name == GENERAL else total_label.title())
 
-        # Output the total row
-        self._add_row(var_name)
-        level_no = self._level_no[level_name]
+            # Format and output the total values
+            [self._add_cell(self._format_amount(var_name, values[i])) for i in range(len(values))]
+
+            # Output the total row
+            self._add_row(var_name)
 
         # Initialize totals (real., budget, ...)
+        level_no = self._level_no[level_name]
         for name, no in self._level_no.items():
             if no >= max(level_no, 1):  # Do not clear General total
                 self._total_amounts[name] = self._initialize_totals()

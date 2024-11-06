@@ -3,11 +3,11 @@ import getopt
 import os
 import sys
 
-
+from src.DL.Lexicon import ANNUAL_ACCOUNT
 from src.GL.Const import QUIT, EMPTY
 from src.GL.Enums import Color
 from src.GL.GeneralException import GeneralException
-from src.GL.Validate import normalize_dir, isInt, toBool
+from src.GL.Validate import normalize_dir, isInt, toBool, isFilename
 from src.pmc import PMC
 
 
@@ -16,8 +16,9 @@ input_dir = EMPTY
 output_dir = EMPTY
 year = None
 build = False
+template_name = ANNUAL_ACCOUNT
 
-usage = 'usage: pm.py -i <inputdir> -o <outputdir> -y <year> -b <build> -h'
+usage = 'usage: pm.py -i <inputdir> -o <outputdir> -y <year> -b <build> -t <template> -h'
 errorText = Color.RED + "Error:" + Color.NC + " "
 
 
@@ -27,15 +28,16 @@ errorText = Color.RED + "Error:" + Color.NC + " "
 
 
 def main(argv):
-    global input_dir, output_dir, year, build
+    global input_dir, output_dir, year, build, template_name
 
     try:
         opts, args = getopt.getopt(
-            argv, "b:h:i:o:y:",
+            argv, "b:h:i:o:t:y:",
             [
                 "bbuild=",
                 "iinputdir=",
                 "ooutputdir=",
+                "ttemplate=",
                 "yyear="
              ])
     except getopt.GetoptError:
@@ -67,14 +69,20 @@ def main(argv):
             year = arg
             if not isInt(year) or not 1900 < int(year) < 2100:
                 exit_program('Parameter -y (year) is not valid.')
+
         elif opt in ("-b", "--build"):
             build = arg
             if not toBool(build) in (True, False):
                 exit_program('Parameter -b (build) is not valid.')
 
+        elif opt in ("-t", "--template"):
+            template_name = arg
+            if not isFilename(template_name):
+                exit_program('Parameter -t (template) is not valid.')
+
     try:
-        pmc = PMC(input_dir=input_dir, output_dir=output_dir, year=year, build=build)
-        pmc.produce_csv_files()
+        pmc = PMC(output_dir=output_dir, year=year, build=build, input_dir=input_dir)
+        pmc.produce_csv_files(template_name)
 
     except GeneralException as e:
         exit_program(e.message)

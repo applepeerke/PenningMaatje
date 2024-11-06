@@ -231,9 +231,10 @@ configDef = {
             '  Bestanden die ouder zijn worden automatisch verwijderd bij het sluiten van de app.'
         ), isInt),
     CF_AMOUNT_THRESHOLD_TO_OTHER: ConfigItem(
-        'Drempelbedrag om in de "overige" post geboekt te worden', 0,
+        'Drempelbedrag om bij import in de "overige" post geboekt te worden', 0,
         _border(
-            f'Drempelbedrag. Als het bedrag lager is wordt het bij {OTHER_COSTS} of {OTHER_REVENUES} geboekt.'
+            f'Drempelbedrag. Als een bedrag tijdens de import lager is wordt het bij {OTHER_COSTS} '
+            f'of {OTHER_REVENUES} geboekt.'
         ), isInt),
     # Not user visible
     CF_COMMA_REPRESENTATION_DB: ConfigItem(

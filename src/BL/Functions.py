@@ -1,8 +1,9 @@
 import base64
 import re
 
+from src.DL.Lexicon import ANNUAL_ACCOUNT
 from src.DL.Model import EMPTY
-from src.GL.Const import BLANK
+from src.GL.Const import BLANK, EXT_CSV
 from src.GL.Functions import is_valid_file
 from src.GL.Validate import isInt
 
@@ -57,3 +58,7 @@ def sophisticate_account_number(value):
         names = [name for name in names if not re.search(r'^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?', name)]
     return EMPTY.join(names)
 
+
+def get_annual_account_filename(year, max_month, title=None):
+    title = ANNUAL_ACCOUNT if not title else title
+    return f'{title} {year} tm maand {max_month}{EXT_CSV}'

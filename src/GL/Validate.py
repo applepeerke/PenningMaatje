@@ -236,7 +236,7 @@ def isDirname(value, maxLen=0):
     return all(dir_name.match(x) for x in value)
 
 
-def isFilename(value, maxLen=0):
+def isFilename(value, maxLen=512):
     value = make_string(value)
     if not value or 0 < maxLen < len(value):
         return False

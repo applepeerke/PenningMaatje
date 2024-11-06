@@ -176,8 +176,8 @@ class Singleton:
             self._root_dir = get_root_dir()
             self._app_src_dir = get_app_root_dir()
             self._resources_dir = normalize_dir(f'{self._app_src_dir}{RESOURCES}')
-            self._images_dir = normalize_dir(f'{self._resources_dir}{IMAGES}')
             self._templates_dir = normalize_dir(f'{self._resources_dir}{TEMPLATES}')
+            self._images_dir = normalize_dir(f'{self._resources_dir}{IMAGES}')
 
             self._app_initialized = True
 
@@ -195,6 +195,7 @@ class Singleton:
             if self._unit_test:
                 self._output_dir = normalize_dir(f'{self._root_dir}{UT}') if not output_dir else output_dir
                 self._resources_dir = normalize_dir(f'{self._output_dir}{RESOURCES}')
+                self._templates_dir = normalize_dir(f'{self._resources_dir}{TEMPLATES}')
 
             if self._output_dir:
                 self.set_suffix()

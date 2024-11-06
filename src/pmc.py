@@ -14,11 +14,11 @@ from src.DL.Model import FD
 from src.DL.Table import Table
 from src.GL.BusinessLayer.ConfigManager import ConfigManager
 from src.GL.BusinessLayer.LogManager import Singleton as Log
+from src.GL.BusinessLayer.SessionManager import Singleton as Session
 from src.GL.Enums import LogLevel
 from src.GL.GeneralException import GeneralException
 from src.GL.Result import Result
 from src.GL.Validate import normalize_dir
-from src.GL.BusinessLayer.SessionManager import Singleton as Session
 
 CM = ConfigManager()
 log = Log()
@@ -26,7 +26,7 @@ session = Session()
 
 
 class PMC:
-    def __init__(self, input_dir, output_dir, year=None, build=False):
+    def __init__(self, output_dir, year=None, build=False, input_dir=None):
         input_dir = normalize_dir(f'{session.root_dir}Input', create=True) if not input_dir else input_dir
         output_dir = normalize_dir(f'{session.root_dir}Output', create=True) if not output_dir else output_dir
         self._year = year or datetime.now().year
@@ -40,13 +40,17 @@ class PMC:
         self._em = ExportManager()
         self._summary_driver = SummaryDriver()
 
-    def produce_csv_files(self):
+    def produce_csv_files(
+            self, template_name=None, monthly=True, quarterly=True):
         # Jaarrekening t/m maand x
-        self._em.export(year=self._year)
+        if template_name:
+            result = self._em.export(template_name=template_name, year=self._year)
+            if not result.OK:
+                raise GeneralException(result.get_messages_as_message() or result.text)
 
         # Kwartalen, maanden
-        [self._export_transactions(q=i) for i in range(1, 5)]
-        [self._export_transactions(i, i) for i in range(1, 13)]
+        [self._export_transactions(q=i) for i in range(1, 5) if monthly]
+        [self._export_transactions(i, i) for i in range(1, 13) if quarterly]
 
     def _export_transactions(self, month_from=None, month_to=None, q=None):
         if q:
