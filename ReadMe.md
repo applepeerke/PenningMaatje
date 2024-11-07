@@ -1,6 +1,6 @@
 # Introductie
 PenningMaatje is een boeking dashboard voor bankafschriften. Je kunt ze van boekingscodes voorzien en er in zoeken. 
-De jaarrekening en zoekresultaten kun je exporteren naar CSV bestanden. Deze kun je in Excel verder verwerken.
+De jaarrekening en zoekresultaten kun je exporteren naar csv bestanden. Deze kun je in Excel verder verwerken.
 
 PenningMaatje werkt lokaal en is daardoor privé en veilig.
 
@@ -11,19 +11,18 @@ De bankafschriften van de volgende banken worden ondersteund.
 * Rabobank
 * Triodos
 
-De bankafschriften moeten in csv formaat zijn gedownload en in een input folder staan. 
+De bankafschriften moeten in csv formaat zijn gedownload en in een input folder staan. Deze mag geen andere bestanden bevatten.
 
-PenningMaatje is getest op MacOS en Windows 10/11. Het zou ook op linux en Windows 7 moeten werken.
+PenningMaatje is getest op MacOs en Windows 10/11. Het zou ook op Linux en Windows 7 moeten werken.
 
 # Vereisten
 - Python 3.8
 - Als je de app in Python wilt starten heb je ook nodig:
   - pysimplegui
-  - dateutil
 
 # Start de app
 ## a. Als App
-De app, dat wil zeggen het dashboard met alle mogelijkheden, kun je starten met 
+De app, dat is het dashboard met alle mogelijkheden, start je met 
 - PenningMaatje.app (Mac)
 - PenningMaatje.exe (Windows) 
 
@@ -38,16 +37,16 @@ De eerste keer toont de app een popup om de input en output folders vast te stel
 ### Maak de Jaarrekening
 Typ `python pm.py` en druk op `Enter`.
 
-Typ `python pm.py -h` en druk op `Enter` voor hulp bij de parameters. Met parameters kun je het jaar, 
+Typ `python pm.py -h` en druk op `Enter` voor hulp bij de parameters. Met parameters kun je o.a. het jaar, 
 en de invoer- en uitvoerfolders wijzigen. 
 
+Als je niets opgeeft worden de bankafschriften geïmporteerd uit folder `..PenningMaatje/Input`. 
+De overzichten worden dan gemaakt in `../PenningMaatje/Output`.
 
-Er wordt een jaarrekening gemaakt in een csv bestand. Standaard is dat het huidige jaar. Hierin komt de realisatie te staan over de maanden die in de bankafschriften aanwezig zijn. 
-Als er in input bestand resources/Jaarrekening.csv ook begrotingen staan worden deze geïntegreerd. 
+Er wordt een jaarrekening gemaakt in een csv bestand. Hierin komt de realisatie te staan over de maanden die in de bankafschriften aanwezig zijn. 
+Als er in input bestand `resources/Jaarrekening.csv` ook begrotingen staan worden deze geïntegreerd. 
 
-Ook worden de bankafschriften per maand en per kwartaal geëxporteerd in csv bestanden. 
+Daarnaast worden de bankafschriften per maand en per kwartaal geëxporteerd in csv bestanden. 
 
-De bankafschriften worden standaard geïmporteerd uit folder `..PenningMaatje/Input`. 
-De overzichten worden gemaakt in `../PenningMaatje/Output`.
 
 

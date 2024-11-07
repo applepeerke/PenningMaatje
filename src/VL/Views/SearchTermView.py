@@ -1,9 +1,9 @@
 import PySimpleGUI as sg
 
+from src.DL.Lexicon import SEARCH_TERM
 from src.DL.Model import FD
 from src.VL.Data.Constants.Color import STATUSBAR_COLOR_ERROR, COLOR_BACKGROUND_DISABLED
-from src.VL.Data.Constants.Const import CMD_OK, STATUS_MESSAGE, CMD_CANCEL, \
-    SEARCH_TERM, SEARCH_TERM_BOOKING_DESCRIPTION
+from src.VL.Data.Constants.Const import CMD_OK, STATUS_MESSAGE, CMD_CANCEL, SEARCH_TERM_BOOKING_DESCRIPTION
 from src.VL.Data.Constants.Enums import BoxCommand
 from src.VL.Models.SearchTermModel import SearchTermModel
 from src.VL.Views.BaseView import BaseView

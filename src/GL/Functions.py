@@ -11,7 +11,6 @@ import os
 import platform
 import time
 from datetime import datetime, date
-from dateutil.relativedelta import relativedelta
 
 from src.GL.GeneralException import GeneralException
 from src.GL.Validate import format_os, normalize_dir, isInt, make_string
@@ -482,12 +481,6 @@ def is_formatted_ymd(input_date) -> bool:
         and 1 <= int(input_date[8:]) <= 31 \
         and input_date[4] == '-' and input_date[7] == '-' \
         else False
-
-
-def add_months(input_date: int, months: int) -> int:
-    """ Add a number of months to a date in db representation (yyyymmdd) """
-    start_date = datetime.strptime(str(input_date), '%Y%m%d')
-    return int(datetime.strftime(start_date + relativedelta(months=months), '%Y%m%d'))
 
 
 def timestamp_from_string(date_Y_m_d, time_H_M_S=None):
