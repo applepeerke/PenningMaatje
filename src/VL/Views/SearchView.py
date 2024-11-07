@@ -4,10 +4,10 @@ from src.DL.Config import (
     CF_SEARCH_YEAR, CF_SEARCH_MONTH, CF_SEARCH_COUNTER_ACCOUNT, CF_SEARCH_AMOUNT, CF_SEARCH_AMOUNT_TO,
     CF_SEARCH_TRANSACTION_CODE, CF_SEARCH_TEXT, CF_SEARCH_AMOUNT_TOTAL, FRAME_SEARCH_DISPLAY, CMD_SEARCH,
     CMD_SEARCH_RESET, FRAME_SEARCH_TOTAL, EXPAND, FRAME_SEARCH_REFRESH_BUTTON, STATUS_MESSAGE, CMD_HELP_WITH_SEARCH,
-    CF_SEARCH_REMARKS, CF_SEARCH_BOOKING_CODE)
+    CF_SEARCH_REMARKS, CF_SEARCH_BOOKING_CODE, CF_IMAGE_SUBSAMPLE)
 from src.VL.Data.Constants.Color import TOTAL_COLOR
 from src.VL.Data.Constants.Const import FRAME_SEARCH_BOOKING_CODE
-from src.VL.Views.BaseView import BaseView
+from src.VL.Views.BaseView import BaseView, CM
 from src.GL.Const import EMPTY
 
 amount_width = 12
@@ -54,11 +54,13 @@ class SearchView(BaseView):
                 self.multi_frame('Search_buttons', [
                     self.frame('Zoek_button', [[self.button(
                         CMD_SEARCH, button_text=EMPTY,
-                        image_filename=self._model.image_magnifying_glass, transparent=True, p=0
+                        image_filename=self._model.image_magnifying_glass, transparent=True, p=0,
+                        image_subsample=CM.get_config_item(CF_IMAGE_SUBSAMPLE)
                     )]], border_width=1, p=2, relief=sg.RELIEF_RAISED),
                     self.frame(FRAME_SEARCH_REFRESH_BUTTON, [[self.button(
                         CMD_SEARCH_RESET, button_text=EMPTY,
-                        image_filename=self._model.image_refresh, transparent=True, p=0
+                        image_filename=self._model.image_refresh, transparent=True, p=0,
+                        image_subsample=CM.get_config_item(CF_IMAGE_SUBSAMPLE)
                     )]], border_width=1, p=2, relief=sg.RELIEF_RAISED),
                     self.frame('Help', [[self.button(
                         CMD_HELP_WITH_SEARCH, button_text='?', transparent=True, p=5, font=self.get_font(addition=8)

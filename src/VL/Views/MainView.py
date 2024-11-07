@@ -8,7 +8,7 @@ from src.DL.UserCsvFiles.UserCsvFileManager import get_backup_dirs
 from src.VL.Data.Constants.Color import *
 from src.DL.Lexicon import ACCOUNT_NUMBER, LOG, DASHBOARD
 from src.VL.Models.MainModel import MainModel
-from src.VL.Views.BaseView import BaseView, get_tooltip
+from src.VL.Views.BaseView import BaseView, get_tooltip, CM
 from src.DL.UserCsvFiles.Cache.BookingCache import Singleton as BookingCache
 
 BKM = BookingCache()
@@ -52,20 +52,26 @@ class MainView(BaseView):
                                border_width=3, p=2, relief=sg.RELIEF_RAISED),
                     [self.button(
                         CMD_SUMMARY, button_text=EMPTY, tip=True,
-                        image_filename=f'{get_image_path("summary.png")}', transparent=True, p=0)],
+                        image_filename=f'{get_image_path("summary.png")}', transparent=True, p=0,
+                        image_subsample=CM.get_config_item(CF_IMAGE_SUBSAMPLE))],
                     [self.button(
                         CMD_SEARCH, button_text=EMPTY, tip=True,
-                        image_filename=f'{get_image_path("magnifying_glass.png")}', transparent=True, p=0)],
+                        image_filename=f'{get_image_path("magnifying_glass.png")}', transparent=True, p=0,
+                        image_subsample=CM.get_config_item(CF_IMAGE_SUBSAMPLE))],
                     [self.button(
                         CMD_UNDO, button_text=EMPTY, tip=True,
-                        image_filename=f'{get_image_path("undo.png")}', transparent=True, p=0)],
+                        image_filename=f'{get_image_path("undo.png")}', transparent=True, p=0,
+                        image_subsample=CM.get_config_item(CF_IMAGE_SUBSAMPLE)
+                    )],
                 ], p=2),
                 [self.button(
-                    CMD_IMPORT_TE, button_text=EMPTY, tip=True,
-                    image_filename=f'{get_image_path("refresh.png")}', transparent=True, p=0)],
-                [self.button(
                     CMD_CONFIG, button_text=EMPTY, tip=True,
-                    image_filename=f'{get_image_path("settings.png")}', transparent=True, p=0)],
+                    image_filename=f'{get_image_path("settings.png")}', transparent=True, p=0,
+                    image_subsample=CM.get_config_item(CF_IMAGE_SUBSAMPLE))],
+                [self.button(
+                    CMD_IMPORT_TE, button_text=EMPTY, tip=True,
+                    image_filename=f'{get_image_path("refresh.png")}', transparent=True, p=0,
+                    image_subsample=CM.get_config_item(CF_IMAGE_SUBSAMPLE))],
                 self.frame(FRAME_TOP_RIGHT, [
                     self.frame(FRAME_IBAN, [
                         self.combo(CF_IBAN, [x for x in self._model.DD.get_combo_items(FD.Iban)],

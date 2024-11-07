@@ -37,6 +37,7 @@ CF_FONT_SIZE = 'CF_FONT_SIZE'
 CF_FONT_TABLE = 'CF_FONT_TABLE'
 CF_FONT_TABLE_SIZE = 'CF_FONT_TABLE_SIZE'
 CF_TOOL_TIP = 'CF_TOOL_TIP'
+CF_IMAGE_SUBSAMPLE = 'CF_IMAGE_SUBSAMPLE'
 CF_COL_OVERBOOKING = 'CF_COL_OVERBOOKING'
 CF_COL_COSTS = 'CF_COL_COSTS'
 CF_COL_REVENUES = 'CF_COL_REVENUES'
@@ -186,6 +187,9 @@ configDef = {
     CF_FONT_TABLE_SIZE: ConfigItem(
         'Font grootte voor gegevens', DEFAULT_FONT_SIZE,
         _border('Font grootte voor tabel gegevens'), isInt),
+    CF_IMAGE_SUBSAMPLE: ConfigItem(
+        'Knop grootte (hoger is kleiner)', 10,
+        _border('Knop grootte'), isInt),
     # Layout extra columns
     CF_COL_OVERBOOKING: ConfigItem(
         f'Toon kolom {OVERBOOKING}', False,

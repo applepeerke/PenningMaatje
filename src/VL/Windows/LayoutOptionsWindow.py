@@ -10,7 +10,7 @@ import PySimpleGUI as sg
 
 from src.DL.Config import CF_ROWS_YEAR, \
     CF_ROWS_MONTH, CF_ROWS_TRANSACTION, CF_TOOL_TIP, CF_ROWS_BOOKING, CF_ROWS_SEARCH_TERM, CF_THEME, CF_FONT, \
-    CF_FONT_SIZE, CF_COL_OVERBOOKING, CF_COL_SALDO_MINUS_CORRECTION, CF_ROWS_COMBO_MAX
+    CF_FONT_SIZE, CF_COL_OVERBOOKING, CF_COL_SALDO_MINUS_CORRECTION, CF_ROWS_COMBO_MAX, CF_IMAGE_SUBSAMPLE
 from src.VL.Data.Constants.Color import DEFAULT_THEME
 from src.VL.Data.Constants.Enums import WindowType, Pane
 from src.VL.Functions import get_name_from_key
@@ -57,7 +57,7 @@ class LayoutOptionsWindow(BaseWindow):
     def _event_handler(self, event, values):
         self._result = Result()
         event_key = get_name_from_key(event)
-        if event_key not in (CF_THEME, CF_FONT, CF_FONT_SIZE):
+        if event_key not in (CF_THEME, CF_FONT, CF_FONT_SIZE, CF_IMAGE_SUBSAMPLE):
             return
 
         value = values.get(event)

@@ -13,7 +13,7 @@ from src.BL.Validator import Validator
 from src.DL.Config import OUTPUT_DIR, CF_INPUT_DIR, CF_OUTPUT_DIR, \
     CF_SHOW_ALL_POPUPS, CF_HIDDEN_POPUPS, CF_THEME, CF_FONT, CF_FONT_SIZE, CF_FONT_TABLE, CF_FONT_TABLE_SIZE, \
     CMD_FACTORY_RESET, \
-    CMD_LAYOUT_OPTIONS
+    CMD_LAYOUT_OPTIONS, CF_IMAGE_SUBSAMPLE
 from src.VL.Controllers.BaseController import BaseController
 from src.VL.Functions import get_name_from_text, help_message
 from src.VL.Windows.General.Boxes import info_box
@@ -76,7 +76,8 @@ class ConfigController(BaseController):
                 CF_FONT: CM.get_config_item(CF_FONT),
                 CF_FONT_SIZE: CM.get_config_item(CF_FONT_SIZE),
                 CF_FONT_TABLE: CM.get_config_item(CF_FONT_TABLE),
-                CF_FONT_TABLE_SIZE: CM.get_config_item(CF_FONT_TABLE_SIZE)}
+                CF_FONT_TABLE_SIZE: CM.get_config_item(CF_FONT_TABLE_SIZE),
+                CF_IMAGE_SUBSAMPLE: CM.get_config_item(CF_IMAGE_SUBSAMPLE)}
         prv = save.copy()
         new = {}
         self._result = Result(action_code=ActionCode.Retry)
@@ -88,7 +89,8 @@ class ConfigController(BaseController):
                    CF_FONT: CM.get_config_item(CF_FONT),
                    CF_FONT_SIZE: CM.get_config_item(CF_FONT_SIZE),
                    CF_FONT_TABLE: CM.get_config_item(CF_FONT_TABLE),
-                   CF_FONT_TABLE_SIZE: CM.get_config_item(CF_FONT_TABLE_SIZE)}
+                   CF_FONT_TABLE_SIZE: CM.get_config_item(CF_FONT_TABLE_SIZE),
+                   CF_IMAGE_SUBSAMPLE: CM.get_config_item(CF_IMAGE_SUBSAMPLE)}
 
         self._restart_app = W.restart_app()
         if not self._restart_app:

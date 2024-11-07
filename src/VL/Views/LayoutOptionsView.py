@@ -6,7 +6,8 @@ from src.DL.Config import EXPAND, \
     FRAME_LAYOUT, CF_SHOW_ALL_POPUPS, CF_ROWS_BOOKING, CF_ROWS_SEARCH_TERM, CF_THEME, CF_FONT, CF_FONT_SIZE, \
     CF_FONT_TABLE, CF_FONT_TABLE_SIZE, FRAME_LAYOUT_OPTIONAL_COLUMNS, CF_COL_OVERBOOKING, \
     CF_COL_SALDO_MINUS_CORRECTION, CF_ROWS_COMBO_MAX, CF_COL_COSTS, \
-    CF_COL_REVENUES
+    CF_COL_REVENUES, CF_IMAGE_SUBSAMPLE
+from src.VL.Data.Constants.Const import FRAME_LAYOUT_IMAGE, CMD_SEARCH
 from src.VL.Models.LayoutOptionsModel import LayoutOptionsModel
 from src.VL.Views.BaseView import BaseView, CM
 from src.GL.Const import EMPTY
@@ -63,9 +64,18 @@ class LayoutOptionsView(BaseView):
                 self.combo(CF_FONT_TABLE, self._model.fonts, x=x_CX,
                            font=CM.get_config_item(CF_FONT_TABLE)),
                 self.combo(CF_FONT_TABLE_SIZE, [x for x in range(9, 21, 1)], x=x_CX,
-                           font=CM.get_config_item(CF_FONT_TABLE_SIZE))
+                           font=CM.get_config_item(CF_FONT_TABLE_SIZE)),
+                # Image size
+                self.multi_frame(FRAME_LAYOUT_IMAGE, [
+                    self.combo(CF_IMAGE_SUBSAMPLE, [x for x in range(1, 20, 1)], x=x_CX),
+                    self.frame('Zoek_button', [[self.button(
+                        CMD_SEARCH, button_text=EMPTY,
+                        image_filename=self._model.image_magnifying_glass, transparent=True, p=0,
+                        image_subsample=CM.get_config_item(CF_IMAGE_SUBSAMPLE)
+                    )]], border_width=1, p=2, relief=sg.RELIEF_RAISED),
+                ], border_width=1, expand_x=True),
             ], border_width=1, expand_x=True),
-            ]
+        ]
 
         # The window layout - defines the entire window
         layout = [
