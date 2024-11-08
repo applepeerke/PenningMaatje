@@ -19,7 +19,7 @@ from src.DL.UserCsvFiles.Cache.BookingCache import Singleton as BookingCache
 from src.DL.UserCsvFiles.Cache.CounterAccountCache import Singleton as CounterAccountCache
 from src.DL.UserCsvFiles.Cache.SearchTermCache import Singleton as SearchTermCache
 from src.DL.UserCsvFiles.Cache.UserMutationsCache import Singleton as UserMutationsCache
-from src.DL.Lexicon import TRANSACTIONS, COUNTER_ACCOUNTS, BOOKING_CODE
+from src.DL.Lexicon import TRANSACTIONS, COUNTER_ACCOUNTS, BOOKING_CODE, SEARCH_TERMS
 from src.VL.Functions import progress_meter
 from src.GL.BusinessLayer.ConfigManager import ConfigManager
 from src.GL.BusinessLayer.CsvManager import CsvManager
@@ -126,7 +126,7 @@ class ConsistencyManager(BaseManager):
                 mm = 1
                 yy += 1
         # Remarks
-        self._booking_message(Table.CounterAccount, f'{COUNTER_ACCOUNTS} (iban en bban)')
+        self._booking_message(Table.CounterAccount, COUNTER_ACCOUNTS)
 
         # Completion
         count = to_year - from_year + 1 if transaction_enriched_count > 0 else 0
@@ -151,14 +151,14 @@ class ConsistencyManager(BaseManager):
         # Gevulde Tegenrekening-boeking-code moet bestaan in Boeking
         [self._validate_booking(k, booking_code, COUNTER_ACCOUNTS_CSV, FD.Counter_account_number)
          for k, booking_code in ACM.booking_codes.items()]
-        self._completion_message(f'Er zijn {len(ACM.booking_codes.items())} tegenrekeningen gecontroleerd.')
+        self._completion_message(f'Er zijn {len(ACM.booking_codes.items())} {COUNTER_ACCOUNTS} gecontroleerd.')
         # Gevulde Zoekterm-boeking-code moet bestaan in Boeking
         [self._validate_booking(k, booking_code, SEARCH_TERMS_CSV, FD.SearchTerm)
          for k, booking_code in STM.search_terms.items()]
         # Gevulde UserMutations-boeking-code moet bestaan in Boeking
         [self._validate_booking(EMPTY, booking_code, f'{USER_MUTATIONS_FILE_NAME}{EXT_CSV}', FD.Booking_code)
          for booking_code in UMC.booking_codes]
-        self._completion_message(f'Er zijn {len(STM.search_terms.items())} zoektermen gecontroleerd.')
+        self._completion_message(f'Er zijn {len(STM.search_terms.items())} {SEARCH_TERMS} gecontroleerd.')
 
     def _validate_booking(self, key, booking_code, table_name, key_name):
         """ Save booking names that don't exist in Bookings. """

@@ -171,7 +171,7 @@ configDef = {
         ), isDirname),
     CF_RESTORE_BOOKING_DATA: ConfigItem(
         f'Backup datum', EMPTY,
-        _border(f'Je kunt hier een backup kiezen om {BOOKING} gerelateerde gegevens terug te zetten.'), isDirname),
+        _border(f'Je kunt hier een backup kiezen om {BOOKING_CODE} gerelateerde gegevens terug te zetten.'), isDirname),
     CF_THEME: ConfigItem(
         'Kleuren thema', False,
         _border('Kleuren thema'), isAlphaNumeric),
@@ -340,7 +340,7 @@ configDef = {
     )),
 
     CMD_FACTORY_RESET: ConfigItem(tooltip=_border(
-        f'{CMD_FACTORY_RESET}.\n\n'
+        f'{to_text_key(CMD_FACTORY_RESET)}.\n\n'
         f'  Alle configuratie- en database gegevens worden verwijderd.\n'
         f'  Je {TRANSACTIONS} blijven gewoon staan. Importeer ze dan opnieuw.'
     )),
@@ -349,7 +349,7 @@ configDef = {
     CMD_SUMMARY: ConfigItem(tooltip=f'Maak een {SUMMARY}.'),
     CMD_SEARCH_RESET: ConfigItem(tooltip='Maak je zoek-criteria weer leeg.'),
     CMD_EXPORT: ConfigItem(tooltip=f'Exporteer de zoekresultaten naar een {CSV_FILE}.'),
-    CMD_UNDO: ConfigItem(tooltip=f'Maak laatste {BOOKING} wijziging ongedaan.'),
+    CMD_UNDO: ConfigItem(tooltip=f'Maak laatste {BOOKING_CODE} wijziging ongedaan.'),
     CMD_HELP_WITH_OUTPUT_DIR: ConfigItem(),
     CMD_HELP_WITH_INPUT_DIR: ConfigItem(),
     CMD_HELP_WITH_BOOKING: ConfigItem(tooltip=get_text_file('Help_with_Bookings')),

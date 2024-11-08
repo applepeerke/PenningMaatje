@@ -22,8 +22,9 @@ from src.VL.Data.Constants.Const import CMD_CONSISTENCY, CMD_HELP_WITH_INPUT_DIR
     CMD_CONFIG, CMD_SUMMARY
 from src.VL.Data.Constants.Enums import Pane
 from src.DL.Lexicon import (
-    OUTPUT_DIR, TRANSACTIONS, CMD_SEARCH_FOR_EMPTY_BOOKING_CODE, COUNTER_ACCOUNTS, BOOKING_CODES)
+    OUTPUT_DIR, TRANSACTIONS, CMD_SEARCH_FOR_EMPTY_BOOKING_CODE, COUNTER_ACCOUNTS, BOOKING_CODES, to_text_key)
 from src.VL.Functions import help_message, get_name_from_text
+from src.VL.Views.PopUps.Info import Info
 from src.VL.Views.PopUps.Input import Input
 from src.VL.Views.PopUps.PopUp import PopUp
 from src.VL.Windows.ConfigWindow import ConfigWindow
@@ -461,7 +462,7 @@ class MainController(BaseController):
             if result.OK:
                 # Force restart after new import. Accounts and layout may be changed.
                 self._restart_app = True
-                self._result = Result(action_code=ActionCode.Retry)
+                self._result = Result(action_code=ActionCode.Retry, text=f'Import is gedaan.')
                 return
 
             action = 'geannuleerd' if result.ER else 'gedaan met waarschuwingen'
@@ -494,7 +495,8 @@ class MainController(BaseController):
         CM.set_search_for_empty_booking_codes()
         self._result = self._transactions_io.search(dialog_mode=False)
         if not self._transactions_io.rows:
-            message_box(f'Gefeliciteerd!\nAlle {TRANSACTIONS} met {COUNTER_ACCOUNTS} zijn al gecategoriseerd.')
+            message_box(f'Gefeliciteerd!\nAlle {TRANSACTIONS} met {COUNTER_ACCOUNTS} zijn al gecategoriseerd.',
+                        key='all_booking_codes_set')
             return
         # Update Transactions pane: set header, formatted rows
         rows = [Model().get_report_colhdg_names(Table.TransactionEnriched)]
@@ -533,7 +535,7 @@ class MainController(BaseController):
         self._config_window.display()
         self._result = self._config_window.result
         if self._config_window.model.do_factory_reset:
-            self._factory_reset(CMD_FACTORY_RESET)
+            self._factory_reset(to_text_key(CMD_FACTORY_RESET))
         if self._result.OK and self._config_window.model.do_import:
             self.import_transactions(import_user_csv_files=False)
 
@@ -583,7 +585,7 @@ class MainController(BaseController):
         Log().start_log(Session().log_dir, level=LogLevel.Verbose)
 
         log(STRIPE, GREEN)
-        log(f"Financiële administratie ({APP_NAME})", GREEN)
+        log(f"Applicatie {APP_NAME}", GREEN)
         log(STRIPE, GREEN)
 
         log(get_log_line('Datum en tijd'), BLUE, new_line=False)
@@ -625,15 +627,17 @@ class MainController(BaseController):
     """
 
     def close(self):
+        # Main display is to be closed, so a separate messagebox (if any messages)
+        message_box(self._result.get_messages_as_message(), severity=self._result.severity, key='before_close')
         self._result = Result()
         try:
-            CM.write_config()
             self._save_and_backup()
             self._delete_stale_files()
+            # Display message(s)
+            message_box(self._result.get_messages_as_message(), severity=self._result.severity, key='after_close')
+            CM.write_config()
         except GeneralException as ge:
             message_box(ge.message, severity=MessageSeverity.Error)
-        # Main display is to be closed, so a separate messagebox (if any messages)
-        message_box(self._result.get_messages_as_message(), severity=self._result.severity)
 
     def _delete_stale_files(self):
         DD.delete_stale_files()
@@ -723,7 +727,7 @@ class MainController(BaseController):
                         if message else 'De gegevens zijn verwijderd.'
             # Exit
             if message:
-                info_box(message)
+                Info().info('factory_reset_message', text=message)
                 self._result = Result(ResultCode.Exit)
             if self._unit_test:
                 raise GeneralException('Unit test exception')

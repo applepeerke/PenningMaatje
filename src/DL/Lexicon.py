@@ -1,11 +1,11 @@
 from src.GL.Const import APP_NAME, BLANK
 
 
-def _to_cmd_key(value):
+def to_cmd_key(value):
     return value.upper().replace(BLANK, '_')
 
 
-def _to_text_key(value):
+def to_text_key(value):
     return value.capitalize().replace('_', BLANK)
 
 
@@ -36,12 +36,11 @@ ANNUAL_BUDGET = 'Jaarbegroting'
 ANNUAL_TREND = 'Trend'
 BALANCE = 'Inkomsten min uitgaven min overboekingen'
 BIRTHDAY = 'Geboortedatum'
-BOOKING = 'Boeking'
 BUDGET = 'Begroting'
 COMMENTS = 'Mededelingen'
 BOOKING_SEQNO = 'Volgnummer'
-BOOKING_CODE = 'Boeking-code'
-BOOKING_CODES = 'Boeking-codes'
+BOOKING_CODE = 'BoekingCode'
+BOOKING_CODES = 'BoekingCodes'
 BOOKING_TYPE = 'Boeking-type'
 CONFIG = 'Configuratie'
 CORRECTION = 'Correctie'
@@ -90,24 +89,24 @@ YEARS = 'Jaren'
 # Compound
 SALDO_MINUS_CORRECTION = f'Saldo min {CORRECTION}'
 
-CMD_IMPORT_TE = _to_cmd_key(f'IMPORTEER_{TRANSACTIONS}')
-CMD_WORK_WITH_BOOKING_CODES = _to_cmd_key(BOOKING_CODES)
-CMD_WORK_WITH_SEARCH_TERMS = _to_cmd_key(SEARCH_TERMS)
-CMD_RESTORE_BOOKING_RELATED_DATA = _to_cmd_key(f'TERUGZETTEN_{BOOKING_CODES}')
-CMD_SEARCH_FOR_EMPTY_BOOKING_CODE = _to_cmd_key(f'ONTBREKENDE_{BOOKING_CODES}')
+CMD_IMPORT_TE = to_cmd_key(f'IMPORTEER_{TRANSACTIONS}')
+CMD_WORK_WITH_BOOKING_CODES = to_cmd_key(BOOKING_CODES)
+CMD_WORK_WITH_SEARCH_TERMS = to_cmd_key(SEARCH_TERMS)
+CMD_RESTORE_BOOKING_RELATED_DATA = to_cmd_key(f'TERUGZETTEN_{BOOKING_CODES}')
+CMD_SEARCH_FOR_EMPTY_BOOKING_CODE = to_cmd_key(f'ONTBREKENDE_{BOOKING_CODES}')
 
 # Help text
 var_names = {
     'APP': APP_NAME,
     'ACCOUNT_NUMBER': ACCOUNT_NUMBER,
     'BASE_DIR': OUTPUT_DIR,
-    'BOOKING': BOOKING,
+    'BOOKING_CODE': BOOKING_CODE,
     'BOOKING_CODES': BOOKING_CODES,
-    'CMD_IMPORT_TE': _to_cmd_key(CMD_IMPORT_TE),
-    'CMD_WORK_WITH_BOOKING_CODES': _to_text_key(CMD_WORK_WITH_BOOKING_CODES),
-    'CMD_WORK_WITH_SEARCH_TERMS': _to_text_key(CMD_WORK_WITH_SEARCH_TERMS),
-    'CMD_RESTORE_BOOKING_RELATED_DATA': _to_text_key(CMD_RESTORE_BOOKING_RELATED_DATA),
-    'CMD_SEARCH_FOR_EMPTY_BOOKING': _to_text_key(CMD_SEARCH_FOR_EMPTY_BOOKING_CODE),
+    'CMD_IMPORT_TE': to_cmd_key(CMD_IMPORT_TE),
+    'CMD_WORK_WITH_BOOKING_CODES': to_text_key(CMD_WORK_WITH_BOOKING_CODES),
+    'CMD_WORK_WITH_SEARCH_TERMS': to_text_key(CMD_WORK_WITH_SEARCH_TERMS),
+    'CMD_RESTORE_BOOKING_RELATED_DATA': to_text_key(CMD_RESTORE_BOOKING_RELATED_DATA),
+    'CMD_SEARCH_FOR_EMPTY_BOOKING': to_text_key(CMD_SEARCH_FOR_EMPTY_BOOKING_CODE),
     'CONFIG': CONFIG,
     'COUNTER_ACCOUNT': COUNTER_ACCOUNT,
     'COUNTER_ACCOUNTS': COUNTER_ACCOUNTS,

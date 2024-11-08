@@ -9,7 +9,7 @@
 
 import datetime
 
-from PenningMaatje import get_root_dir, get_app_root_dir
+from PenningMaatje import get_root_dir, get_app_root_dir, slash
 from src.DL.Model import Model
 from src.DL.Lexicon import OUTPUT_DIR, LOG
 from src.GL.Const import APP_NAME, EMPTY
@@ -22,6 +22,7 @@ BACKUP = 'Backup'
 EXPORT = 'Export'
 DATA = 'Data'
 INPUT = 'Input'
+OUTPUT = 'Output'
 IMAGES = 'images'
 RESOURCES = 'resources'
 TEMPLATES = 'templates'
@@ -193,8 +194,9 @@ class Singleton:
 
             # Unit test - Input override
             if self._unit_test:
-                self._output_dir = normalize_dir(f'{self._root_dir}{UT}') if not output_dir else output_dir
-                self._resources_dir = normalize_dir(f'{self._output_dir}{RESOURCES}')
+                self._output_dir = normalize_dir(f'{self._root_dir}{UT}{slash()}{OUTPUT}') \
+                    if not output_dir else output_dir
+                self._resources_dir = normalize_dir(f'{self._root_dir}{UT}{slash()}{RESOURCES}')
                 self._templates_dir = normalize_dir(f'{self._resources_dir}{TEMPLATES}')
 
             if self._output_dir:

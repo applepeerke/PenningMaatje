@@ -11,16 +11,16 @@ import PySimpleGUI as sg
 from src.DL.Config import CF_ROWS_YEAR, \
     CF_ROWS_MONTH, CF_ROWS_TRANSACTION, CF_TOOL_TIP, CF_ROWS_BOOKING, CF_ROWS_SEARCH_TERM, CF_THEME, CF_FONT, \
     CF_FONT_SIZE, CF_COL_OVERBOOKING, CF_COL_SALDO_MINUS_CORRECTION, CF_ROWS_COMBO_MAX, CF_IMAGE_SUBSAMPLE
+from src.GL.Const import EMPTY
+from src.GL.Enums import ActionCode
+from src.GL.Result import Result
 from src.VL.Data.Constants.Color import DEFAULT_THEME
 from src.VL.Data.Constants.Enums import WindowType, Pane
 from src.VL.Functions import get_name_from_key
 from src.VL.Models.LayoutOptionsModel import LayoutOptionsModel
 from src.VL.Views.LayoutOptionsView import LayoutOptionsView
+from src.VL.Views.PopUps.Info import Info
 from src.VL.Windows.BaseWindow import BaseWindow
-from src.VL.Windows.General.Boxes import info_box
-from src.GL.Const import EMPTY
-from src.GL.Enums import ActionCode
-from src.GL.Result import Result
 
 RQD = 'RQD'
 OPT = 'OPT'
@@ -84,7 +84,7 @@ class LayoutOptionsWindow(BaseWindow):
         if self._has_a_value_changed(RQD):
             return True
         elif self._has_a_value_changed(OPT):
-            info_box('Om de wijzigingen te zien moet de app opnieuw gestart worden.')
+            Info().info('restart_app', text='Om de wijzigingen te zien moet de app opnieuw gestart worden.')
             return False
         else:
             return False

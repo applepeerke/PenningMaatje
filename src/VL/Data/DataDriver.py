@@ -169,7 +169,7 @@ class Singleton:
             elif table_name == Table.TransactionEnriched:
                 order_by = [[Att(FD.Date), 'DESC']]
             elif table_name == Table.Booking:
-                order_by = [[Att(FD.Booking_code), 'ASC']]
+                order_by = [[Att(FD.SeqNo), 'ASC'], [Att(FD.Booking_code), 'ASC']]
             elif table_name == Table.SearchTerm:
                 order_by = [[Att(FD.Booking_code), 'ASC']]
             rows.extend(self._db.fetch(

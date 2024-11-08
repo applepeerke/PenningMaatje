@@ -31,6 +31,7 @@ class TemplateTestCase(unittest.TestCase):
         self._run_test('Jaarrekening - 1 realisation 0 budget', exp_tg=-103.49, exp_cols=4, exp_rows=19)
         self._run_test('Jaarrekening - 0 amounts', exp_tg=0.0, exp_cols=3, exp_rows=11)
         self._run_test('Jaarrekening - wrong format', exp_result=False)
+        self._run_test('Jaarrekening - invalid tokens', exp_result=False)
 
     def _run_test(
             self,

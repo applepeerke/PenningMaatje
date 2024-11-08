@@ -35,7 +35,7 @@ class PMC:
 
         result = self._start_up(input_dir, output_dir, build)
         if not result.OK:
-            raise GeneralException(result.get_messages_as_message() or result.text)
+            raise GeneralException(result.get_messages_as_message())
 
         self._em = ExportManager()
         self._summary_driver = SummaryDriver()
@@ -46,7 +46,7 @@ class PMC:
         if template_name:
             result = self._em.export(template_name=template_name, year=self._year)
             if not result.OK:
-                raise GeneralException(result.get_messages_as_message() or result.text)
+                raise GeneralException(result.get_messages_as_message())
 
         # Kwartalen, maanden
         [self._export_transactions(q=i) for i in range(1, 5) if monthly]
@@ -71,7 +71,7 @@ class PMC:
         if te_rows:
             result = self._summary_driver.create_summary(te_rows, Summary.SearchResult, title)
             if not result.OK:
-                raise GeneralException(result.get_messages_as_message() or result.text)
+                raise GeneralException(result.get_messages_as_message())
 
     def _start_up(self, input_dir, output_dir, build) -> Result:
         """ Start without using GUI Controller """

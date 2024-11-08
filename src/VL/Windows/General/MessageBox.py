@@ -10,11 +10,14 @@ from src.GL.Const import EMPTY
 from src.GL.Enums import MessageSeverity
 from src.GL.Functions import remove_color_code
 from src.GL.Validate import toBool, isInt
+from src.VL.Views.PopUps.Info import Info
 
 CM = ConfigManager()
 
 
-def message_box(message, cont_text=False, title=None, severity=MessageSeverity.Info, auto_close_duration=None) -> bool:
+def message_box(
+        message, cont_text=False, title=None, severity=MessageSeverity.Info, auto_close_duration=None,
+        key=None) -> bool:
     """
     Returns confirmation on a message
     """
@@ -83,7 +86,10 @@ def message_box(message, cont_text=False, title=None, severity=MessageSeverity.I
         return answer
     # Not a question
     else:
-        sg.Popup(message, title=title, button_color=button_color, font=CM.get_font(),
-                 background_color=POPUP_COLOR_BACKGROUND, text_color=TEXT_COLOR, keep_on_top=True,
-                 auto_close=auto_close, auto_close_duration=auto_close_duration, line_width=width, icon=get_icon())
+        if key and severity == MessageSeverity.Info:
+            Info().info(key, title=title, text=message)
+        else:
+            sg.Popup(message, title=title, button_color=button_color, font=CM.get_font(),
+                     background_color=POPUP_COLOR_BACKGROUND, text_color=TEXT_COLOR, keep_on_top=True,
+                     auto_close=auto_close, auto_close_duration=auto_close_duration, line_width=width, icon=get_icon())
         return False  # Do not confirm

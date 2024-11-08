@@ -14,7 +14,7 @@ from src.DL.Table import Table
 from src.DL.UserCsvFiles.UserCsvFileManager import UserCsvFileManager
 from src.VL.Controllers.ListItemController import ListItemController
 from src.VL.Data.Constants.Enums import BoxCommand
-from src.DL.Lexicon import BOOKING
+from src.DL.Lexicon import BOOKING_CODE
 from src.VL.Models.BookingModel import BookingModel
 from src.GL.Const import EMPTY
 
@@ -23,7 +23,7 @@ class BookingController(ListItemController):
 
     def __init__(self, model: BookingModel):
         super().__init__(
-            obj_name=BOOKING,
+            obj_name=BOOKING_CODE,
             model=model,
             table_name=Table.Booking,
             io=BookingIO,

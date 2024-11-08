@@ -10,10 +10,12 @@ from src.GL.BusinessLayer.ConfigManager import ConfigManager
 from src.GL.BusinessLayer.CsvManager import CsvManager
 from src.GL.BusinessLayer.SessionManager import Singleton as Session
 from src.GL.Const import EXT_CSV, EMPTY
+from src.GL.Enums import MessageSeverity
 from src.GL.GeneralException import GeneralException
 from src.GL.Result import Result
 
 PGM = 'ExportManager'
+loop_count = 100
 
 # noinspection SpellCheckingInspection
 """
@@ -126,6 +128,7 @@ def get_total_label(var_name):
 
 class ExportManager:
     def __init__(self):
+        self._result = Result()
         self._transaction_io = TransactionIO()
         self._template_name = str
         self._template_var_names = set()
@@ -166,7 +169,8 @@ class ExportManager:
         filename = get_annual_account_filename(year, self._transaction_io.month_max, title=template_name)
         self._out_path = f'{session.export_dir}{filename}'
         self._construct(sorted_bookings)
-        return Result(text=f'De {ANNUAL_ACCOUNT} van {year} is geëxporteerd naar "{self._out_path}"')
+        return Result(text=f'De {ANNUAL_ACCOUNT} van {year} is geëxporteerd naar "{self._out_path}"') \
+            if self._result.OK else self._result
 
     """
     Validation
@@ -197,27 +201,34 @@ class ExportManager:
                 self._blank_lines = 0
         self._r += 1
 
-        # Convert pure variables to uppercase
-        self._template_rows = [[self._var_to_upper(cell) for cell in row] for row in self._template_rows]
+        if self._result.OK:
+            # Convert pure variables to uppercase
+            self._template_rows = [[self._var_to_upper(cell) for cell in row] for row in self._template_rows]
+        else:
+            raise GeneralException(self._result.get_messages_as_message())
 
     def _check_cell(self, cell):
         # Syntax check
         if not cell:
             return
+        # - Comment
         if '"' in cell:
             if not cell.startswith('"') or not cell.endswith('"'):
-                raise GeneralException(f'{self._get_prefix()}Waarde "{cell}" begint of eindigt niet met een """ ')
+                self._add_error(f'{self._get_prefix()}Waarde "{cell}" begint of eindigt niet met een """ ')
+        # - Variable
         elif not cell.startswith('{'):
-            raise GeneralException(f'{self._get_prefix()}Waarde "{cell}" begint  niet met een "{{".')
+            self._add_error(f'{self._get_prefix()}Waarde "{cell}" begint  niet met een "{{".')
         elif not cell.endswith('}'):
-            raise GeneralException(f'{self._get_prefix()}Waarde "{cell}" eindigt niet met een "}}".')
-        # Comment
+            self._add_error(f'{self._get_prefix()}Waarde "{cell}" eindigt niet met een "}}".')
+
+        # Comment without variables
         s = cell.find('{')
         if s == -1:
             return
+
         # Do the variable names exist?
         count = 0
-        while count < 100 and cell.find('{', s) > -1:
+        while count < loop_count and cell.find('{', s) > -1:
             count += 1
             s += 1
             e = cell.find('}', s)
@@ -228,15 +239,20 @@ class ExportManager:
                 continue
             # New var_name
             if var_name_uc not in (VAR_NAMES_SINGULAR + VAR_NAMES_PLURAL + VAR_NAMES_TOTAL):
-                raise GeneralException(f'{self._get_prefix()}Variabele "{var_name}" wordt niet ondersteund.')
+                self._add_error(f'{self._get_prefix()}Variabele "{var_name}" wordt niet ondersteund.')
             if cell.startswith('"') and var_name_uc not in VAR_NAMES_SINGULAR:
-                raise GeneralException(
+                self._add_error(
                     f'{self._get_prefix()}Plural variabele "{var_name}" wordt niet ondersteund in een tekst.')
             self._r_c[var_name_uc] = (self._r, self._c, self._blank_lines)
             s = e + 1
+        if count >= loop_count:
+            self._add_error(f'{self._get_prefix()}Too many (>{loop_count}) variable names found in "{cell}"')
 
     def _get_prefix(self):
-        return f'Fout in regel {self._r + 1} kolom {self._c + 1}: '
+        return f'Fout in template "{self._template_name}" regel {self._r + 1} kolom {self._c + 1}: '
+
+    def _add_error(self, message):
+        self._result.add_message(message, severity=MessageSeverity.Error)
 
     """
     Definition

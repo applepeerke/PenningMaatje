@@ -231,7 +231,7 @@ class MainView(BaseView):
         # The TabGroup layout - WTyp.IN must contain only Tabs
         tab_group_layout = [[
             sg.Tab(DASHBOARD, layout_dashboard, key=DASHBOARD),
-            sg.Tab(BOOKING, layout_bookings, key=BOOKING),
+            sg.Tab(BOOKING_CODE, layout_bookings, key=BOOKING_CODE),
             sg.Tab(TAB_LOG, layout_log, key=TAB_LOG),
         ]]
 

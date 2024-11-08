@@ -28,7 +28,7 @@ Zoekvelden
 
     Totaal
     ------
-    Dit is het totaalbedrag in het  .
+    Dit is het totaalbedrag in het {TRANSACTIONS} paneel.
 
 Knoppen
 -------

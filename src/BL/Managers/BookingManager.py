@@ -292,7 +292,7 @@ class BookingManager(BaseManager):
         if self._restore_paths.get(Table.Booking, EMPTY):
             rows = CsvM.get_rows(data_path=self._restore_paths.get(Table.Booking), include_header_row=True)
             header = rows[0]
-            c_booking_code = header.indexof(FD.Booking_code)
+            c_booking_code = header.index(FD.Booking_code.title())
             for row in rows[1:]:
                 booking_codes.add(row[c_booking_code])
         else:

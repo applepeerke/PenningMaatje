@@ -14,16 +14,16 @@ from src.DL.Config import OUTPUT_DIR, CF_INPUT_DIR, CF_OUTPUT_DIR, \
     CF_SHOW_ALL_POPUPS, CF_HIDDEN_POPUPS, CF_THEME, CF_FONT, CF_FONT_SIZE, CF_FONT_TABLE, CF_FONT_TABLE_SIZE, \
     CMD_FACTORY_RESET, \
     CMD_LAYOUT_OPTIONS, CF_IMAGE_SUBSAMPLE
-from src.VL.Controllers.BaseController import BaseController
-from src.VL.Functions import get_name_from_text, help_message
-from src.VL.Windows.General.Boxes import info_box
-from src.VL.Windows.LayoutOptionsWindow import LayoutOptionsWindow
 from src.GL.BusinessLayer.ConfigManager import ConfigManager, CMD_HELP_WITH_INPUT_DIR, CMD_HELP_WITH_OUTPUT_DIR
 from src.GL.BusinessLayer.SessionManager import APP_OUTPUT_DIR
 from src.GL.Const import EMPTY
 from src.GL.Enums import ActionCode, ResultCode
 from src.GL.Result import Result
 from src.GL.Validate import normalize_dir
+from src.VL.Controllers.BaseController import BaseController
+from src.VL.Functions import get_name_from_text, help_message
+from src.VL.Views.PopUps.Info import Info
+from src.VL.Windows.LayoutOptionsWindow import LayoutOptionsWindow
 
 CM = ConfigManager()
 
@@ -145,9 +145,9 @@ class ConfigController(BaseController):
         CM.write_config()
 
     def _cancel_smoothly(self, cf_item):
-        text = self._result.get_messages_as_message() or self._result.text
+        text = self._result.get_messages_as_message()
         if text:
-            info_box(title='Geannuleerd', text=text)
+            Info().info('config_canceled_smoothly', title='Geannuleerd', text=text)
         # Reset
         CM.set_config_item(cf_item, self._prv_values[cf_item])
         self._result = Result()

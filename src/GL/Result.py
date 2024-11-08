@@ -210,7 +210,7 @@ class Result(object):
         messages may start with mnemonic ("C ", "E ", "I " or "W" ).
         """
         if not self._messages or max_lines < 1:
-            return EMPTY
+            return self._text
         suffix = '\n...' if len(self._messages) > max_lines else EMPTY
         sophisticate = False if not self._text else sophisticate
 
