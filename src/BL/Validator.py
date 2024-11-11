@@ -14,7 +14,7 @@ from src.DL.Report import *
 from src.DL.Lexicon import TRANSACTION, TRANSACTIONS, CSV_FILE, INPUT_DIR, OUTPUT_DIR
 from src.GL.BusinessLayer.ConfigManager import ConfigManager, get_label
 from src.GL.BusinessLayer.CsvManager import CsvManager
-from src.GL.BusinessLayer.SessionManager import APP_OUTPUT_DIR
+from src.GL.BusinessLayer.SessionManager import APP_OUTPUT_DIR, OUTPUT_SUBDIRS
 from src.GL.Const import APP_NAME
 from src.GL.Enums import MessageSeverity as Sev, ResultCode
 from src.GL.Result import Result
@@ -120,6 +120,13 @@ class Validator:
             solution = f'\n\nOplossing:\n{solution}'
         result.add_message(f'{title}{problem}{solution}', Sev.Error)
         return result
+
+    @staticmethod
+    def is_update_output_dir(from_dir, to_dir) -> bool:
+        if not from_dir or from_dir == to_dir:
+            return False
+        subdirs = [os.path.basename(p) for p in listdir(to_dir)]
+        return OUTPUT_SUBDIRS and all([dirname in subdirs for dirname in OUTPUT_SUBDIRS])
 
     @staticmethod
     def validate_move_output_dir(from_dir, to_dir) -> Result:

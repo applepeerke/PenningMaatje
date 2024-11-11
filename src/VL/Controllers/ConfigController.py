@@ -112,24 +112,35 @@ class ConfigController(BaseController):
         if CM.get_config_item(cf_item) == self._prv_values.get(cf_item, EMPTY):
             self._result.code = ResultCode.Canceled
             return
-        # Validate the new folder.
-        self._result = self._validation_manager.validate_config_dir(cf_item)
-        if not self._result.OK:
-            self._cancel_smoothly(cf_item)
-            return
+
         # Process
         if cf_item == CF_OUTPUT_DIR:
             # Main output location has been changed. This also contains the database (in subfolder Data).
-            # Ask to move output folder.
             from_dir = self._prv_values[cf_item]
             to_dir = CM.get_config_item(cf_item)
-            self._result = self._validation_manager.validate_move_output_dir(from_dir=from_dir, to_dir=to_dir)
-            if self._result.OK:
-                self._create_output_dir(to_dir)
-            if not self._result.OK:
-                self._cancel_smoothly(cf_item)
-                return
-            self._move_output_dir(from_dir=from_dir, to_dir=to_dir)
+            # a. An update to another valid output dir.
+            if self._validation_manager.is_update_output_dir(from_dir, to_dir):
+                self._result = Result()
+            # b. Ask to move output folder.
+            else:
+                # Validate the new folder.
+                self._result = self._validation_manager.validate_config_dir(cf_item)
+                if not self._result.OK:
+                    self._cancel_smoothly(cf_item)
+                    return
+                self._result = self._validation_manager.validate_move_output_dir(from_dir=from_dir, to_dir=to_dir)
+                if self._result.OK:
+                    self._create_output_dir(to_dir)
+                if not self._result.OK:
+                    self._cancel_smoothly(cf_item)
+                    return
+                # Move
+                self._move_output_dir(from_dir=from_dir, to_dir=to_dir)
+
+            # Restart session. Database location has changed.
+            basename = os.path.basename(from_dir[:-1])
+            to_dir = normalize_dir(os.path.join(to_dir, basename))  # Past 'Output' to to_dir
+            self._session.start(output_dir=to_dir, force=True)
             if not self._session.started:
                 self._model.do_factory_reset = True
                 return
@@ -138,9 +149,16 @@ class ConfigController(BaseController):
                 return
             # Set previous config value to current
             self._prv_values[cf_item] = to_dir
+
         elif cf_item == CF_INPUT_DIR:
+            # Validate the new folder.
+            self._result = self._validation_manager.validate_config_dir(cf_item)
+            if not self._result.OK:
+                self._cancel_smoothly(cf_item)
+                return
             self._prv_values[cf_item] = CM.get_config_item(cf_item)
             self._model.do_import = True
+
         # Write the config to disk
         CM.write_config()
 
@@ -163,8 +181,6 @@ class ConfigController(BaseController):
     def _move_output_dir(self, from_dir, to_dir):
         self._result = Result()
         shutil.move(from_dir, f'{to_dir}{APP_OUTPUT_DIR}')
-        # Restart session. Database location has changed.
-        self._session.start(output_dir=to_dir, force=True)
 
     """
     Messages
