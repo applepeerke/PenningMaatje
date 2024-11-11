@@ -162,7 +162,7 @@ class ConfigController(BaseController):
 
     def _move_output_dir(self, from_dir, to_dir):
         self._result = Result()
-        shutil.move(f'{from_dir}{APP_OUTPUT_DIR}', f'{to_dir}{APP_OUTPUT_DIR}')
+        shutil.move(from_dir, f'{to_dir}{APP_OUTPUT_DIR}')
         # Restart session. Database location has changed.
         self._session.start(output_dir=to_dir, force=True)
 
