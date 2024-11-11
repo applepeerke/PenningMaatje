@@ -154,9 +154,9 @@ class ExportManager:
         self._annual_budgets = {}
         self._budget_years = 0
 
-    def export(self, template_name=ANNUAL_ACCOUNT, year=datetime.now().year) -> Result:
+    def export(self, template_name=ANNUAL_ACCOUNT, year=None) -> Result:
         self._template_name = template_name
-        self._year = int(year)
+        self._year = int(year) if year else int(datetime.now().year)
 
         # Process output template
         self._validate_template()
@@ -166,10 +166,10 @@ class ExportManager:
 
         # Output naar CSV.
         # Filename example: "Jaarrekening (templateX) 2024 tm maand 4.csv"
-        filename = get_annual_account_filename(year, self._transaction_io.month_max, title=template_name)
+        filename = get_annual_account_filename(self._year, self._transaction_io.month_max, title=template_name)
         self._out_path = f'{session.export_dir}{filename}'
         self._construct(sorted_bookings)
-        return Result(text=f'De {ANNUAL_ACCOUNT} van {year} is geëxporteerd naar "{self._out_path}"') \
+        return Result(text=f'De {ANNUAL_ACCOUNT} van {self._year} is geëxporteerd naar "{self._out_path}"') \
             if self._result.OK else self._result
 
     """

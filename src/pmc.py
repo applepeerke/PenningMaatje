@@ -1,16 +1,11 @@
 
 from datetime import datetime
 
-from src.BL.Managers.ExportManager import ExportManager
 from src.BL.Managers.ImportManager import ImportManager
 from src.BL.Summary.SummaryDriver import SummaryDriver
 from src.DL.Config import CF_OUTPUT_DIR, CF_INPUT_DIR, CF_IMPORT_PATH_BOOKINGS, CF_IMPORT_PATH_COUNTER_ACCOUNTS, \
     CF_IMPORT_PATH_SEARCH_TERMS, BOOKINGS_CSV, COUNTER_ACCOUNTS_CSV, SEARCH_TERMS_CSV
-from src.DL.DBDriver.Att import Att
-from src.DL.DBDriver.SQLOperator import SQLOperator
 from src.DL.DBInitialize import DBInitialize
-from src.DL.Enums.Enums import Summary
-from src.DL.Model import FD
 from src.DL.Table import Table
 from src.GL.BusinessLayer.ConfigManager import ConfigManager
 from src.GL.BusinessLayer.LogManager import Singleton as Log
@@ -37,41 +32,10 @@ class PMC:
         if not result.OK:
             raise GeneralException(result.get_messages_as_message())
 
-        self._em = ExportManager()
         self._summary_driver = SummaryDriver()
 
-    def produce_csv_files(
-            self, template_name=None, monthly=True, quarterly=True):
-        # Jaarrekening t/m maand x
-        if template_name:
-            result = self._em.export(template_name=template_name, year=self._year)
-            if not result.OK:
-                raise GeneralException(result.get_messages_as_message())
-
-        # Kwartalen, maanden
-        [self._export_transactions(q=i) for i in range(1, 5) if monthly]
-        [self._export_transactions(i, i) for i in range(1, 13) if quarterly]
-
-    def _export_transactions(self, month_from=None, month_to=None, q=None):
-        if q:
-            month_from = ((q - 1) * 3) + 1
-            month_to = month_from + 2
-
-        where = [Att(FD.Year, self._year)]
-        if month_from == month_to:
-            title = f'{self._year} maand {month_from} transacties'
-            where.extend([Att(FD.Month, month_from)])
-        else:
-            title = f'{self._year} Q{q} transacties'
-            where.extend([
-                Att(FD.Month, month_from, relation=SQLOperator().GE),
-                Att(FD.Month, month_to, relation=SQLOperator().LE)]
-            )
-        te_rows = session.db.select(Table.TransactionEnriched, where=where)
-        if te_rows:
-            result = self._summary_driver.create_summary(te_rows, Summary.SearchResult, title)
-            if not result.OK:
-                raise GeneralException(result.get_messages_as_message())
+    def produce_csv_files(self, template_name=None, year=None):
+        self._summary_driver.produce_csv_files(template_name, year)
 
     def _start_up(self, input_dir, output_dir, build) -> Result:
         """ Start without using GUI Controller """

@@ -40,7 +40,7 @@ class SummaryWindow(BaseWindow):
             if not summary_type:
                 self._result = Result(ResultCode.Warning, f'Kies een soort {SUMMARY}.')
                 return
-            if (summary_type == Summary.AnnualAccount and
+            if (summary_type in (Summary.AnnualAccount, Summary.AnnualAccountPlus) and
                     not self._CM.get_config_item(CF_SUMMARY_YEAR)):
                 self._result = Result(ResultCode.Warning, 'Kies een jaar.')
                 return

@@ -17,7 +17,6 @@ from src.GL.BusinessLayer.ConfigManager import ConfigManager
 from tests.Functions import start_up, get_input_sub_dir
 
 CM = ConfigManager(unit_test=True)
-SummaryM = SummaryDriver()
 model = Model()
 
 
@@ -34,7 +33,7 @@ class SearchTestCase(unittest.TestCase):
         year = model.get_value(Table.TransactionEnriched, FD.Year, te_rows[0])
         CM.set_config_item(CF_SUMMARY_YEAR, year)
         for summary_type in Summary.values():
-            result = SummaryM.create_summary(te_rows, summary_type)
+            result = SummaryDriver().create_summary(te_rows, summary_type, year)
             self.assertTrue(result.OK or result.WA, msg=f'Error at summary "{summary_type}" for year "{year}"')
 
 

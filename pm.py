@@ -82,7 +82,7 @@ def main(argv):
 
     try:
         pmc = PMC(output_dir=output_dir, year=year, build=build, input_dir=input_dir)
-        pmc.produce_csv_files(template_name)
+        pmc.produce_csv_files(template_name, year)
 
     except GeneralException as e:
         exit_program(e.message)

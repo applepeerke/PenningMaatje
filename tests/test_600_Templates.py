@@ -53,7 +53,7 @@ class TemplateTestCase(unittest.TestCase):
             filename = get_annual_account_filename(year, 12, title=template_name)
             path = f'{export_dir}{filename}'
             pmc = PMC(export_dir, year, build=False)
-            pmc.produce_csv_files(template_name, monthly=False, quarterly=False)
+            pmc.produce_csv_files(template_name, year)
         except GeneralException:
             self.assertTrue(exp_result is False)
             return

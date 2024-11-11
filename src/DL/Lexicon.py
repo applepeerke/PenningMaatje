@@ -25,6 +25,7 @@ CYAN = 'Cyaan'
 # Words
 ACCOUNT_NUMBER = 'Rekening'
 ANNUAL_ACCOUNT = 'Jaarrekening'
+ANNUAL_ACCOUNT_PLUS = 'Jaarrekening plus maand- en kwartaal overzichten'
 AGE_MONTHS = 'Leeftijd (maanden)'
 AGE_YEARS = 'Leeftijd (jaren)'
 AMOUNT = 'Bedrag'

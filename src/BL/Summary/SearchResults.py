@@ -41,13 +41,12 @@ class SearchResults(SummaryBase):
 
         self._report = Report(Report.CsvExport)
 
-        # CLI mode
-        if self._session.CLI_mode:
-            file_name = f'{datetime.now().strftime("%Y-%m-%d")} - {title}' if title else \
-                f'{datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]} - *NO TITLE'
-        else:
+        # Get file name
+        file_name = f'{datetime.now().strftime("%Y-%m-%d")} - {title}' if title else \
+            f'{datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]} - *NO TITLE'
+        # - CLI mode
+        if not self._session.CLI_mode:
             from src.VL.Views.PopUps.Input import Input
-            file_name = f'{datetime.now().strftime("%Y-%m-%d")} - Zoek resultaat'
             file_name = Input((200, 200)).get_input(
                 label='Naam bestand', title='Specificeer',
                 dft=file_name,
