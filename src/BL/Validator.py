@@ -129,9 +129,10 @@ class Validator:
         cancel_reason = None
         prefix = f'Subfolder "{APP_OUTPUT_DIR}" moet hierbij verplaatst worden\n'\
                  f'  van  "{from_dir}"\n  naar "{to_dir}".\n\n'
+        path_parts = to_dir.split(f'{slash()}')
         if to_dir.startswith(from_dir) or from_dir.startswith(to_dir):
             cancel_reason = f'{prefix}Verplaatsen is niet mogelijk binnen het eigen folder pad.'
-        elif APP_OUTPUT_DIR in to_dir:
+        elif APP_OUTPUT_DIR in path_parts:
             cancel_reason = f'{prefix}Folder "{APP_OUTPUT_DIR}" bestaat echter al in "{to_dir}".'
 
         if cancel_reason:

@@ -6,9 +6,10 @@
 # ---------- --- ------------------------------------------------------------------------------------------------------
 # 2022-06-06 PHe First creation
 # ---------------------------------------------------------------------------------------------------------------------
-from src.DL.Config import CF_TOOL_TIP
+from src.DL.Config import CF_TOOL_TIP, CF_INPUT_DIR, CF_OUTPUT_DIR
 from src.VL.Controllers.ConfigController import ConfigController
 from src.VL.Data.Constants.Enums import WindowType
+from src.VL.Data.WTyp import WTyp
 from src.VL.Models.ConfigModel import ConfigModel
 from src.VL.Views.ConfigView import ConfigView
 from src.VL.Windows.BaseWindow import BaseWindow
@@ -40,3 +41,6 @@ class ConfigWindow(BaseWindow):
         if not self._result.OK:
             return
 
+        # Set GUI
+        self._window[self._view.gui_key(CF_OUTPUT_DIR, WTyp.IN)].update(value=self._CM.get_config_item(CF_OUTPUT_DIR))
+        self._window[self._view.gui_key(CF_INPUT_DIR, WTyp.IN)].update(value=self._CM.get_config_item(CF_INPUT_DIR))
