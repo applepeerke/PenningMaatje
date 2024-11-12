@@ -20,7 +20,7 @@ from src.VL.Views.SearchTermView import SearchTermView
 from src.VL.Windows.ListItemWindow import ListItemWindow
 from src.DL.UserCsvFiles.Cache.BookingCache import Singleton as BookingCache
 
-BKM = BookingCache()
+BCM = BookingCache()
 
 
 class SearchTermWindow(ListItemWindow):
@@ -47,7 +47,7 @@ class SearchTermWindow(ListItemWindow):
         if event == self.gui_key(CMD_OK, WTyp.BT):
             self._model.object = SearchTerm(
                 search_term=values.get(self.gui_key(SEARCH_TERM, WTyp.IN)),
-                booking_code=BKM.get_booking_code_from_desc(
+                booking_code=BCM.get_booking_code_from_desc(
                     values.get(self.gui_key(SEARCH_TERM_BOOKING_DESCRIPTION, WTyp.CO))),
             )
         # Handle event

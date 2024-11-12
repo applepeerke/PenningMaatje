@@ -11,7 +11,7 @@ from src.VL.Models.MainModel import MainModel
 from src.VL.Views.BaseView import BaseView, get_tooltip, CM
 from src.DL.UserCsvFiles.Cache.BookingCache import Singleton as BookingCache
 
-BKM = BookingCache()
+BCM = BookingCache()
 
 
 class MainView(BaseView):
@@ -132,7 +132,7 @@ class MainView(BaseView):
                             # - Boeking
                             self.frame(FRAME_TRANSACTION_BOOKING, [
                                 self.combo(CF_COUNTER_ACCOUNT_BOOKING_DESCRIPTION,
-                                           [x for x in BKM.get_booking_code_descriptions(include_protected=True)],
+                                           [x for x in BCM.get_booking_code_descriptions(include_protected=True)],
                                            dft=VM_TX.booking_description, x=x_TX,
                                            background_color=COLOR_BACKGROUND_DISABLED),
                             ], p=0, border_width=0),

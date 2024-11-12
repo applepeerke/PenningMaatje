@@ -34,7 +34,7 @@ PGM = 'YearMonthIO'
 error_prefix = f'{PGM} {Color.RED}Error{Color.NC}:'
 
 model = Model()
-BKM = BookingCache()
+BCM = BookingCache()
 ACM = AccountCache()
 CM = ConfigManager()
 TE_dict = model.get_colno_per_att_name(Table.TransactionEnriched, zero_based=False)
@@ -189,7 +189,7 @@ class YearMonthIO:
                 M.costs += bedrag_signed
 
             # Boeking-gerelateerd: Inkomsten/uitgaven/overboeking
-            bk_type = BKM.get_value_from_id(te_row[TE_dict[FD.Booking_id]], FD.Booking_type)
+            bk_type = BCM.get_value_from_id(te_row[TE_dict[FD.Booking_id]], FD.Booking_type)
             if not bk_type or bk_type in (COSTS, REVENUES):
                 pass
             elif bk_type == OVERBOOKINGS:

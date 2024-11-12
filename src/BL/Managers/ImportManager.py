@@ -54,7 +54,7 @@ model = Model()
 csvm = CsvManager()
 CM = ConfigManager()
 
-BKM = BookingCache()
+BCM = BookingCache()
 ACM = CounterAccountCache()
 STM = SearchTermCache()
 UMC = UserMutationsCache()
@@ -62,7 +62,7 @@ UMC = UserMutationsCache()
 TE_dict = model.get_colno_per_att_name(Table.TransactionEnriched)
 TE_dict_1 = model.get_colno_per_att_name(Table.TransactionEnriched, zero_based=False)
 TX_dict = model.get_att_name_per_colno(Table.Transaction)
-bk_dict = model.get_colno_per_att_name(Table.Booking, zero_based=False)
+bk_dict = model.get_colno_per_att_name(Table.BookingCode, zero_based=False)
 
 comma_source = CM.get_config_item(CF_COMMA_REPRESENTATION_DISPLAY, ',')
 threshold_to_other_pos = CM.get_config_item(CF_AMOUNT_THRESHOLD_TO_OTHER, 0)
@@ -119,7 +119,7 @@ class ImportManager(BaseManager):
                 return self._result
 
         # Validate bookings paths to csv files (warning only)
-        result = BKM.is_valid_config()
+        result = BCM.is_valid_config()
         if not result.OK:
             self._result.messages.extend(result.messages)
             if not result.get_box_message(min_severity=MessageSeverity.Warning, cont_text=True):
@@ -329,7 +329,7 @@ class ImportManager(BaseManager):
         [self._db.insert(FF, [FD.Transaction_type, value], pgm=PGM) for value in self._unique_mutation_type if value]
 
         # Booking type
-        [self._unique_booking_types.add(r[bk_dict[FD.Booking_type]]) for r in self._db.fetch(Table.Booking)]
+        [self._unique_booking_types.add(r[bk_dict[FD.Booking_type]]) for r in self._db.fetch(Table.BookingCode)]
         [self._db.insert(FF, [FD.Booking_type, value], pgm=PGM) for value in self._unique_booking_types if value]
 
     def create_enriched_mutations(self, db):
@@ -423,7 +423,7 @@ class ImportManager(BaseManager):
             # - Bedrag lager dan drempel
             if threshold_to_other_min < out_row[c_amount] < threshold_to_other_pos:
                 protected_maingroup = OTHER_COSTS if sign else OTHER_REVENUES
-                booking_code = BKM.get_protected_booking_code(protected_maingroup)
+                booking_code = BCM.get_protected_booking_code(protected_maingroup)
             else:
                 # - Initialiseer eerst vanuit UserMutations, dan CounterAccount, dan SearchTerms, dan BookingCode
                 booking_code = UMC.get_booking_code(bban, str(date_target), counter_account_number, comments)
@@ -432,14 +432,14 @@ class ImportManager(BaseManager):
                 if not booking_code:
                     booking_code = STM.get_booking_code(row[TX_dict_1[FD.Name]], row[TX_dict_1[FD.Comments]])
                 if not booking_code:
-                    booking_code = BKM.get_booking_code(row[TX_dict_1[FD.Name]], row[TX_dict_1[FD.Comments]])
+                    booking_code = BCM.get_booking_code(row[TX_dict_1[FD.Name]], row[TX_dict_1[FD.Comments]])
 
                 # - Nog geen boeking en ook geen tegenrekening, dan "Overige uitgaven"/"Overige inkomsten".
                 if not booking_code and not counter_account_number:
                     protected_maingroup = OTHER_COSTS if sign else OTHER_REVENUES
-                    booking_code = BKM.get_protected_booking_code(protected_maingroup)
+                    booking_code = BCM.get_protected_booking_code(protected_maingroup)
 
-            booking_id = db.fetch_id(Table.Booking, where=[Att(FD.Booking_code, booking_code)]) \
+            booking_id = db.fetch_id(Table.BookingCode, where=[Att(FD.Booking_code, booking_code)]) \
                 if booking_code else 0
 
             out_row[c_booking_code] = booking_code  # derived

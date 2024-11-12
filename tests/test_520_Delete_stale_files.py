@@ -40,7 +40,7 @@ class DeleteStaleFilesTestCase(unittest.TestCase):
         # Dir of today is overwritten
         count = count_dirs(session, including_today=False)  # count backup dirs except of today
 
-        session.set_user_table_changed(Table.Booking)
+        session.set_user_table_changed(Table.BookingCode)
         session.set_user_table_changed(Table.SearchTerm)
 
         DD.export_user_tables()

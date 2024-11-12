@@ -39,7 +39,7 @@ EXAMPLE:
 csvm = CsvManager()
 CM = ConfigManager()
 session = Session()
-BKM = BookingCache()
+BCM = BookingCache()
 
 comma_target = CM.get_config_item(CF_COMMA_REPRESENTATION_DISPLAY)
 
@@ -364,8 +364,8 @@ class ExportManager:
         self._budget_years = max(len(budget_rows[0]) - self._c_first_amount, 0) if budget_rows else 0
 
         # Merge on type, maingroup, subgroup.
-        amounts_realisation = {BKM.get_lk(r[0], r[1], r[2]): r for r in realisation_rows}
-        amounts_budget = {BKM.get_lk(r[0], r[1], r[2]): r for r in budget_rows}
+        amounts_realisation = {BCM.get_lk(r[0], r[1], r[2]): r for r in realisation_rows}
+        amounts_budget = {BCM.get_lk(r[0], r[1], r[2]): r for r in budget_rows}
         amounts = {}
 
         # If realisation booking has budget amount(s): Add budget amount(s) next to realisation amount
@@ -381,7 +381,7 @@ class ExportManager:
 
         # Sort bookings by booking seqno
         lk_by_seqno = [item[0] for item in sorted(
-            {lk: BKM.get_seqno_from_lk(lk) for lk in amounts}.items(), key=lambda x: x[1])]
+            {lk: BCM.get_seqno_from_lk(lk) for lk in amounts}.items(), key=lambda x: x[1])]
         sorted_bookings = [self._get_booking_row(lk, amounts[lk]) for lk in lk_by_seqno]
 
         # X-check

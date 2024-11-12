@@ -6,7 +6,7 @@ from src.VL.Models.ListItemModel import ListItemModel
 
 TABLE = Table.SearchTerm
 DD = DataDriver()
-BKM = BookingCache()
+BCM = BookingCache()
 
 
 class SearchTermModel(ListItemModel):
@@ -22,5 +22,5 @@ class SearchTermModel(ListItemModel):
     def __init__(self, command: BoxCommand, obj):
         super().__init__(TABLE, command, obj)
         # Populate model attributes
-        self._booking_descriptions = BKM.booking_descriptions
-        self._transaction_count = DD.get_transaction_count(TABLE, BKM.get_id_from_code(self._object.booking_code))
+        self._booking_descriptions = BCM.booking_descriptions
+        self._transaction_count = DD.get_transaction_count(TABLE, BCM.get_id_from_code(self._object.booking_code))

@@ -70,18 +70,18 @@ class TransactionIO(BaseIO, ABC):
         """ @return: [type, maingroup, subgroup, amount]"""
         self._total_amount = 0.0
         d = {}
-        b_def = self._model.get_colno_per_att_name(Table.Booking, zero_based=False)
+        b_def = self._model.get_colno_per_att_name(Table.BookingCode, zero_based=False)
         mutations = self._db.select(TABLE, where=[Att(FD.Year, year)])
         for m_row in mutations:
             self._month_max = max(self._month_max, m_row[self._te_def[FD.Month]])
             booking_id = m_row[self._te_def[FD.Booking_id]]
             if not booking_id:
                 booking_maingroup = OTHER_COSTS if m_row[self._te_def[FD.Amount_signed]] < 0 else OTHER_REVENUES
-                booking_id = self._db.fetch_id(Table.Booking, where=[Att(FD.Booking_maingroup, booking_maingroup)])
+                booking_id = self._db.fetch_id(Table.BookingCode, where=[Att(FD.Booking_maingroup, booking_maingroup)])
                 if not booking_id:
                     raise GeneralException(
-                        f'{PGM}: Gereserveerde boeking {booking_maingroup} is niet gevonden in tabel {Table.Booking}.')
-            b_row = self._db.fetch_one(Table.Booking, where=[Att(FD.ID, booking_id)])
+                        f'{PGM}: Gereserveerde boeking {booking_maingroup} is niet gevonden in tabel {Table.BookingCode}.')
+            b_row = self._db.fetch_one(Table.BookingCode, where=[Att(FD.ID, booking_id)])
             amount = m_row[self._te_def[FD.Amount_signed]]
             self._total_amount += amount
             key = (f'{b_row[b_def[FD.Booking_type]]}|'

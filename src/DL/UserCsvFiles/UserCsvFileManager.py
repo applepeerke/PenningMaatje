@@ -16,6 +16,7 @@ from src.DL.DBDriver.Audit import Program_mutation
 from src.DL.IO.AnnualAccountIO import AnnualAccountIO
 from src.DL.IO.BookingIO import BookingIO
 from src.DL.IO.CounterAccountIO import CounterAccountIO
+from src.DL.IO.OpeningBalanceIO import OpeningBalanceIO
 from src.DL.IO.SearchTermIO import SearchTermIO
 from src.DL.Objects.Booking import Booking
 from src.DL.Objects.CounterAccount import CounterAccount
@@ -28,7 +29,7 @@ from src.GL.BusinessLayer.ConfigManager import ConfigManager, get_label
 from src.GL.BusinessLayer.CsvManager import CsvManager
 from src.GL.BusinessLayer.SessionManager import Singleton as Session
 from src.GL.Const import RESOURCES, USER_MUTATIONS_FILE_NAME, EXT_CSV, MUTATION_PGM_TE, \
-    MUTATION_PGM_BK
+    MUTATION_PGM_BC
 from src.GL.Enums import Color, MessageSeverity, ResultCode
 from src.GL.Functions import is_valid_file
 from src.GL.Result import Result
@@ -41,7 +42,7 @@ PGM = 'UserCsvFileManager'
 model = Model()
 CM = ConfigManager()
 csvm = CsvManager()
-BKM = BookingCache()
+BCM = BookingCache()
 
 c_booking_id = model.get_column_number(Table.TransactionEnriched, FD.Booking_id)
 c_booking_code = model.get_column_number(Table.TransactionEnriched, FD.Booking_code)
@@ -84,14 +85,16 @@ class UserCsvFileManager(object):
         self._booking_io = BookingIO()
         self._search_term_io = SearchTermIO()
         self._annual_account_io = AnnualAccountIO()
+        self._opening_balance_io = OpeningBalanceIO()
 
     def validate_resource_files(self, full_check=False) -> Result:
         """
         Validate resource .csv files.
-            "Boekingen.csv",
+            "Boekingscodes.csv",
             "Tegenrekeningen.csv",
             "Zoektermen.csv",
-            "Jaarrekening.csv"
+            "Jaarrekening.csv",
+            "Beginsaldi.csv"
         They are not required to exist, ask paths via dialogue.
         Coulance when starting the app Strict when importing the files.
         Strict mode: Detail rows are validated too.
@@ -102,17 +105,17 @@ class UserCsvFileManager(object):
 
         # A. Shallow check.
         # Check/set config. If user csv file exists, always check the headers (even if not working with bookings).
-        for table_name in model.DB_base_tables:
+        for table_name in model.csv_tables:
             if not self.set_csv_path_in_config(table_name):
                 return self._result
 
         # B. Deep check on booking related csv files.
         # If no valid file exists (in backup folder), copy it from "<app_dir>/resources" to user Data folder.
         # First bookings, they occur in the other files.
-        self.validate_csv_file(Table.Booking, full_check)
+        self.validate_csv_file(Table.BookingCode, full_check)
         if self._result.OK:
             self._bookings_ok = True
-            [self.validate_csv_file(t, full_check) for t in model.DB_base_tables if t != Table.Booking]
+            [self.validate_csv_file(t, full_check) for t in model.booking_code_related_tables]
 
         # C. Delete rows with non-existent booking codes in user csv files
         if self._result.OK:
@@ -173,14 +176,14 @@ class UserCsvFileManager(object):
         for i in range(len(rows)):
             booking_code = rows[i][model.get_column_number(table_name, FD.Booking_code, zero_based=True)]
             if booking_code:
-                if table_name == Table.Booking and booking_code in self._existing_booking_codes:
+                if table_name == Table.BookingCode and booking_code in self._existing_booking_codes:
                     raise GeneralException(
                         f'Bestand {os.path.basename(path)} kan niet geimporteerd worden.\n'
                         f'De {BOOKING_CODE} moet uniek zijn. "{booking_code}" in regel {i + 2} is een dubbel.\n'
                         f'De folder is "{os.path.dirname(path)}".')
                 self._existing_booking_codes.add(booking_code)
             # Booking
-            if table_name == Table.Booking:
+            if table_name == Table.BookingCode:
                 pass
             # Counter account, SearchTerm
             elif table_name in (Table.CounterAccount, Table.SearchTerm):
@@ -224,7 +227,7 @@ class UserCsvFileManager(object):
         return True
 
     def _validate_booking_code(self, path, booking_code, row_no):
-        maingroup = BKM.get_value_from_booking_code(booking_code, FD.Booking_maingroup)
+        maingroup = BCM.get_value_from_booking_code(booking_code, FD.Booking_maingroup)
         if booking_code and booking_code not in self._existing_booking_codes \
                 and maingroup not in PROTECTED_BOOKINGS:
             self._result.add_message(
@@ -280,7 +283,7 @@ class UserCsvFileManager(object):
         # A. Booking.csv, SearchTerm.csv, ...
         #   Get most recent restore folder
         restore_dir = normalize_dir(f'{Session().backup_dir}{self._backup_sub_dirs[0]}')
-        for table_name in model.DB_base_tables:
+        for table_name in model.csv_tables:
             self._rename_and_clean_booking_code_in_user_csv_file(
                 table_name,
                 path=f'{restore_dir}{table_name}{EXT_CSV}',
@@ -331,18 +334,18 @@ class UserCsvFileManager(object):
         """
         Import the user definition files 1:1 to the database (only if they exist).
         Not UserMutations.csv! This is only loaded in UserMutationsCache.
-        - Bookings,
+        - BookingCodes,
         - CounterAccounts,
-        - Search terms,
+        - Search terms
         @param restore_paths: Validated restore paths from BookingManager.
         """
         # Import and cache.
         # A. first booking...
-        self._import_rows(Table.Booking, restore_paths)
-        BKM.initialize(force=True)
+        self._import_rows(Table.BookingCode, restore_paths)
+        BCM.initialize(force=True)
         # B. then booking dependent ones.
         [self._import_rows(table_name, restore_paths)
-         for table_name in model.DB_base_tables if table_name != Table.Booking]
+         for table_name in model.csv_tables if table_name != Table.BookingCode]
         CounterAccountCache().initialize(force=True)  # CounterAccounts
         SearchTermCache().initialize(force=True)  # SearchTerms
 
@@ -383,7 +386,7 @@ class UserCsvFileManager(object):
                                 search_term=d[FD.SearchTerm.title()],
                                 booking_code=d[FD.Booking_code.title()])
                         )
-                    elif table_name == Table.Booking:
+                    elif table_name == Table.BookingCode:
                         self._booking_io.insert(
                             Booking(
                                 booking_type=d[FD.Booking_type.title()],
@@ -397,7 +400,7 @@ class UserCsvFileManager(object):
                     raise GeneralException(f'{PGM} key error in csv file for table "{table_name}": {e}')
 
             # Booking: Also add protected bookings
-            if table_name == Table.Booking:
+            if table_name == Table.BookingCode:
                 # Get last seqno of existing type + 1
                 seqnos = {type: self._booking_io.get_last_seqno_for_type(type) + 1
                           for type in PROTECTED_BOOKINGS.values()}
@@ -405,7 +408,7 @@ class UserCsvFileManager(object):
                     booking_type=type,
                     booking_maingroup=maingroup,
                     booking_subgroup=EMPTY,
-                    booking_code=BKM.get_protected_booking_code(maingroup),
+                    booking_code=BCM.get_protected_booking_code(maingroup),
                     seqno=seqnos[type],
                     protected=True
                 ))
@@ -477,7 +480,7 @@ class UserCsvFileManager(object):
         # - Get rows with direct user mutations (Booking, Remarks)
         db_rows = self._session.db.select(table_name, where=[Att(Program_mutation, MUTATION_PGM_TE)])
         # - Get rows with indirect user mutations (Booking table maintenance)
-        db_rows.extend(self._session.db.select(table_name, where=[Att(Program_mutation, MUTATION_PGM_BK)]))
+        db_rows.extend(self._session.db.select(table_name, where=[Att(Program_mutation, MUTATION_PGM_BC)]))
         if not db_rows \
                 or not self.is_valid_csv_header(table_name, path=self._user_mutations_path, has_id=True):
             return False
@@ -522,5 +525,5 @@ class UserCsvFileManager(object):
         """
         cell = row[c_booking_id]
         if cell and isInt(cell):
-            row[c_booking_id] = BKM.get_value_from_id(cell, FD.Booking_code)
+            row[c_booking_id] = BCM.get_value_from_id(cell, FD.Booking_code)
         return row

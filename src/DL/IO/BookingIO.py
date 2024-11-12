@@ -7,17 +7,17 @@ from src.VL.Data.Constants.Const import PROTECTED_BOOKINGS
 from src.VL.Data.Constants.Enums import BoxCommand
 from src.DL.Lexicon import TRANSACTIONS, BOOKING_CODE
 from src.VL.Models.BookingModel import BookingModel
-from src.GL.Const import EMPTY, MUTATION_PGM_BK
+from src.GL.Const import EMPTY, MUTATION_PGM_BC
 from src.GL.Enums import ActionCode, Mutation, ResultCode
 from src.GL.Result import Result
 from src.GL.Validate import toBool
 from src.DL.UserCsvFiles.Cache.BookingCache import Singleton as BookingCache
 
-TABLE = Table.Booking
+TABLE = Table.BookingCode
 d = Model().get_colno_per_att_name(TABLE, zero_based=False)
-PGM = MUTATION_PGM_BK
+PGM = MUTATION_PGM_BC
 
-BKM = BookingCache()
+BCM = BookingCache()
 
 
 class BookingIO(BaseIO):
@@ -145,7 +145,7 @@ class BookingIO(BaseIO):
                                       f'{command} is niet mogelijk.')
         if command in (BoxCommand.Update, BoxCommand.Add):
             if (self._object_old.booking_code != self._object.booking_code and
-                    self._object.booking_code in BKM.booking_codes):
+                    self._object.booking_code in BCM.booking_codes):
                 result = Result(
                     ResultCode.Error, f'Nieuwe {BOOKING_CODE} bestaat al. {command} is niet mogelijk.')
         return result

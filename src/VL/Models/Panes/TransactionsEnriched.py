@@ -5,7 +5,7 @@ from src.VL.Models.BaseModelTable import BaseModelTable, CM
 from src.DL.UserCsvFiles.Cache.BookingCache import Singleton as BookingCache
 
 TE_dict = Model().get_colno_per_att_name(Table.TransactionEnriched, zero_based=False)
-BKM = BookingCache()
+BCM = BookingCache()
 
 PGM = 'TransactionsEnriched'
 
@@ -25,6 +25,6 @@ class TransactionsEnriched(BaseModelTable):
 
         # Get Booking code from Id
         if att.name == FD.Booking_code:
-            return BKM.get_value_from_id(db_row[TE_dict[FD.Booking_id]], FD.Booking_code)
+            return BCM.get_value_from_id(db_row[TE_dict[FD.Booking_id]], FD.Booking_code)
         else:
             raise NotImplementedError(f'{PGM}: Attribute "{att.name}" is not supported.')

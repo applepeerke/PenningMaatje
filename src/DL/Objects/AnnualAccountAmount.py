@@ -4,7 +4,7 @@ from src.DL.Table import Table
 from src.GL.Const import EMPTY
 from src.DL.UserCsvFiles.Cache.BookingCache import Singleton as BookingCache
 
-BKM = BookingCache()
+BCM = BookingCache()
 
 
 class AnnualAccountAmount(BaseObject):
@@ -53,7 +53,7 @@ class AnnualAccountAmount(BaseObject):
         self._booking_type = booking_type
         self._booking_maingroup = booking_maingroup
         self._booking_subgroup = booking_subgroup
-        self._booking_code = BKM.get_booking_code_from_lk(
+        self._booking_code = BCM.get_booking_code_from_lk(
             booking_type, booking_maingroup, booking_subgroup)
 
         self._amount_realisation = amount_realisation

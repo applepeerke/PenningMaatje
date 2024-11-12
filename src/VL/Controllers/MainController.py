@@ -30,7 +30,7 @@ from src.VL.Views.PopUps.PopUp import PopUp
 from src.VL.Windows.ConfigWindow import ConfigWindow
 from src.VL.Windows.General.Boxes import confirm_factory_reset, info_box
 from src.VL.Windows.General.MessageBox import message_box
-from src.VL.Windows.ListWindow import BookingsWindow
+from src.VL.Windows.ListWindow import BookingCodesWindow
 from src.VL.Windows.ListWindow import SearchTermsWindow
 from src.VL.Windows.SearchWindow import SearchWindow
 from src.VL.Windows.SummaryWindow import SummaryWindow
@@ -46,7 +46,7 @@ from src.GL.Result import Result, log
 from src.GL.Validate import toBool, isInt
 from src.DL.UserCsvFiles.Cache.BookingCache import Singleton as BookingCache
 
-BKM = BookingCache()
+BCM = BookingCache()
 
 model = Model()
 
@@ -303,7 +303,7 @@ class MainController(BaseController):
             self._diag_message(f'{diag_prefix}Counter account number selected')
             self._set_counter_account_booking_code(
                 self._main_model.models[Pane.TX].counter_account,
-                BKM.get_booking_code_from_desc(CM.get_config_item(CF_COUNTER_ACCOUNT_BOOKING_DESCRIPTION)))
+                BCM.get_booking_code_from_desc(CM.get_config_item(CF_COUNTER_ACCOUNT_BOOKING_DESCRIPTION)))
             if self._result.OK:
                 self._result = self._main_model.refresh_dashboard(
                     Pane.TE, CM.get_config_item(f'CF_ROW_NO_{Pane.TE}'), search_mode=self._search_mode)
@@ -319,7 +319,7 @@ class MainController(BaseController):
         # Work with bookings
         elif self._event_key == CMD_WORK_WITH_BOOKING_CODES:
             self._diag_message(f'{diag_prefix}Work with booking codes button pressed')
-            self._maintain_list(BookingsWindow)
+            self._maintain_list(BookingCodesWindow)
         elif self._event_key == CMD_WORK_WITH_SEARCH_TERMS:
             self._diag_message(f'{diag_prefix}Work with search terms button pressed')
             self._maintain_list(SearchTermsWindow)
@@ -547,7 +547,7 @@ class MainController(BaseController):
             self._search_mode = True
 
     """
-    Tab Bookings
+    Tab BookingCodes
     """
 
     def _restore_booking_related_data(self):

@@ -6,7 +6,7 @@ from src.VL.Models.ListItemModel import ListItemModel
 from src.GL.BusinessLayer.SessionManager import Singleton as Session
 from src.VL.Data.DataDriver import Singleton as DataDriver
 
-TABLE = Table.Booking
+TABLE = Table.BookingCode
 DD = DataDriver()
 
 

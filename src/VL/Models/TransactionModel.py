@@ -9,7 +9,7 @@ from src.GL.Const import EMPTY, BLANK
 from src.GL.Functions import FloatToStr
 
 TE_dict = model.get_colno_per_att_name(Table.TransactionEnriched, zero_based=False)  # Skip Id
-BKM = BookingCache()
+BCM = BookingCache()
 ACM = AccountCache()
 TABLE = Table.TransactionEnriched
 
@@ -107,7 +107,7 @@ class TransactionModel(BaseModelTable):
 
         self._amount = FloatToStr(
             str(self._amount_signed), comma_source=self._comma_db, comma_target=self._display, justify='R')
-        self._booking_description = BKM.get_value_from_id(row[TE_dict[FD.Booking_id]], FD.Booking_description)
+        self._booking_description = BCM.get_value_from_id(row[TE_dict[FD.Booking_id]], FD.Booking_description)
 
         self._comments = self.format_mededelingen(row[TE_dict[FD.Comments]])
         self._counter_account = ACM.get_iban_from_id(row[TE_dict[FD.Counter_account_id]])

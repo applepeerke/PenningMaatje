@@ -31,9 +31,9 @@ class IndexDef(object):
     CA_IX_on_CounterAccount_name = 'CA_IX_on_CounterAccount_name'
     TX_IX_on_Transaction_name = 'TX_IX_on_Transaction_name'
     TT_IX_on_Transaction_type = 'TT_IX_on_Transaction_type'
-    BK_IX_on_Booking_type = 'BK_IX_on_Booking_type'
-    BK_IX_on_Booking_code = 'BK_IX_on_Booking_code'
-    BK_IX_on_Booking_protected = 'BK_IX_on_Booking_protected'
+    BC_IX_on_Booking_type = 'BC_IX_on_Booking_type'
+    BC_IX_on_Booking_code = 'BC_IX_on_Booking_code'
+    BC_IX_on_Booking_protected = 'BC_IX_on_Booking_protected'
     ST_IX_on_Booking_code = 'ST_IX_on_Booking_code'
     ST_IX_on_Search_term = 'ST_IX_on_Search_term'
 
@@ -64,7 +64,7 @@ class FD(object):
     FF_AttLength = 'AttributeLength'
     FF_Derived = 'Derived'
 
-    # Booking
+    # BookingsCode
     Booking_id = 'BoekingID'
     Booking_type = 'BoekingsType'
     Booking_maingroup = 'Hoofdgroep'
@@ -102,6 +102,9 @@ class FD(object):
     Revenues = 'Inkomsten'
     Balance = 'Saldo'
     Balance_corrected = 'SaldoGecorrigeerd'
+
+    # BeginSaldi
+    Opening_balance = 'BeginSaldo'
 
     # Searchterm
     SearchTerm = 'Zoekterm'
@@ -163,12 +166,16 @@ class Model(object):
         return self._DB_tables
 
     @property
-    def DB_base_tables(self):
-        return self._DB_base_tables
+    def csv_tables(self):
+        return self._csv_tables
 
     @property
     def user_maintainable_tables(self):
         return self._user_maintainable_tables
+
+    @property
+    def booking_code_related_tables(self):
+        return [t for t in self._user_maintainable_tables if t != Table.BookingCode]
 
     def __init__(self):
         self._table = Table
@@ -177,25 +184,27 @@ class Model(object):
         self._DB_tables = [
             Table.Account,
             Table.AnnualAccount,
-            Table.Booking,
+            Table.BookingCode,
             Table.CounterAccount,
             Table.FlatFiles,  # Retrieved kv-pairs from TransactionEnriched
             Table.Log,
             Table.Month,
+            Table.OpeningBalance,
             Table.SearchTerm,
             Table.Transaction,
             Table.TransactionEnriched,
             Table.Year,
         ]
 
-        self._DB_base_tables = [
-            Table.Booking,
+        self._csv_tables = [
+            Table.AnnualAccount,
+            Table.BookingCode,
             Table.CounterAccount,
+            Table.OpeningBalance,
             Table.SearchTerm,
-            Table.AnnualAccount
         ]
         self._user_maintainable_tables = [
-            Table.Booking,
+            Table.BookingCode,
             Table.CounterAccount,
             Table.SearchTerm
         ]
@@ -282,7 +291,17 @@ class Model(object):
         """ 
         User import 
         """
-        self._Booking = OrderedDict({
+        self._AnnualAccount = OrderedDict({
+            1: Att(FD.Year, type=AttType.Int),
+            2: Att(FD.Booking_type),
+            3: Att(FD.Booking_maingroup),
+            4: Att(FD.Booking_subgroup),
+            5: Att(FD.Booking_code),
+            6: Att(FD.Amount_realisation, type=AttType.Float),
+            7: Att(FD.Amount_budget_this_year, type=AttType.Float),
+            8: Att(FD.Amount_budget_previous_year, type=AttType.Float),
+        })
+        self._BookingCode = OrderedDict({
             1: Att(FD.Booking_type),
             2: Att(FD.Booking_maingroup),
             3: Att(FD.Booking_subgroup),
@@ -297,23 +316,17 @@ class Model(object):
             3: Att(FD.FirstComment),
             4: Att(FD.Booking_code)
         })
-        self._SearchTerms = OrderedDict({
+        self._Log = OrderedDict({
+            1: Att(FD.Log_entry),
+        })
+        self._OpeningBalance = OrderedDict({
+            1: Att(FD.Year, type=AttType.Int),
+            2: Att(FD.Opening_balance, type=AttType.Float)
+        })
+        self._SearchTerm = OrderedDict({
             1: Att(FD.SearchTerm, col_width=20),
             2: Att(FD.Booking_code, visible=False),
             3: Att(FD.Booking_description, in_db=False, col_width=60)
-        })
-        self._AnnualAccount = OrderedDict({
-            1: Att(FD.Year, type=AttType.Int),
-            2: Att(FD.Booking_type),
-            3: Att(FD.Booking_maingroup),
-            4: Att(FD.Booking_subgroup),
-            5: Att(FD.Booking_code),
-            6: Att(FD.Amount_realisation, type=AttType.Float),
-            7: Att(FD.Amount_budget_this_year, type=AttType.Float),
-            8: Att(FD.Amount_budget_previous_year, type=AttType.Float),
-        })
-        self._Log = OrderedDict({
-            1: Att(FD.Log_entry),
         })
 
         """
@@ -322,13 +335,13 @@ class Model(object):
         self._FFD = {
             Table.Account: self._Account,
             Table.AnnualAccount: self._AnnualAccount,
-            Table.Booking: self._Booking,
+            Table.BookingCode: self._BookingCode,
             Table.CounterAccount: self._CounterAccount,
-
             Table.FlatFiles: self._FlatFiles,
             Table.Log: self._Log,
             Table.Month: self._Month,
-            Table.SearchTerm: self._SearchTerms,
+            Table.OpeningBalance: self._OpeningBalance,
+            Table.SearchTerm: self._SearchTerm,
             Table.Transaction: self._Transaction,
             Table.TransactionEnriched: self._TransactionEnriched,
             Table.Year: self._Year,
@@ -347,17 +360,17 @@ class Model(object):
                      FD.Booking_maingroup,
                      FD.Booking_subgroup]
             },
-            Table.Booking: {
+            Table.BookingCode: {
                 PK: [FD.Booking_type,
                      FD.Booking_maingroup,
                      FD.Booking_subgroup],
-                IndexDef.BK_IX_on_Booking_type:
+                IndexDef.BC_IX_on_Booking_type:
                     [FD.Booking_type,
                      FD.ID],
-                IndexDef.BK_IX_on_Booking_code:
+                IndexDef.BC_IX_on_Booking_code:
                     [FD.Booking_code,
                      FD.ID],
-                IndexDef.BK_IX_on_Booking_protected:
+                IndexDef.BC_IX_on_Booking_protected:
                     [FD.Booking_maingroup,
                      FD.Protected],
             },
@@ -374,7 +387,7 @@ class Model(object):
                      FD.ID],
             },
             Table.Month: {PK: [FD.Year, FD.Month]},
-
+            Table.OpeningBalance: {PK: [FD.Year]},
             Table.SearchTerm: {
                 PK: [FD.SearchTerm],
                 IndexDef.ST_IX_on_Search_term:

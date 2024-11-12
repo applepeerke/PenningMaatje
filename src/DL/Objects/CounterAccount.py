@@ -1,7 +1,7 @@
 from src.GL.Const import EMPTY
 from src.DL.UserCsvFiles.Cache.BookingCache import Singleton as BookingCache
 
-BKM = BookingCache()
+BCM = BookingCache()
 
 
 class CounterAccount(object):
@@ -31,4 +31,4 @@ class CounterAccount(object):
         self._account_name = account_name
         self._first_comment = first_comment
         self._booking_code = booking_code
-        self._booking_id = BKM.get_id_from_code(booking_code) if booking_id == 0 else booking_id
+        self._booking_id = BCM.get_id_from_code(booking_code) if booking_id == 0 else booking_id

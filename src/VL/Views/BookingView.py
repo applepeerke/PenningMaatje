@@ -10,7 +10,7 @@ from src.VL.Models.BookingModel import BookingModel
 from src.VL.Views.BaseView import BaseView, CM
 from src.GL.Const import EMPTY
 
-TABLE = Table.Booking
+TABLE = Table.BookingCode
 
 
 class BookingView(BaseView):

@@ -4,7 +4,8 @@ from datetime import datetime
 from src.BL.Managers.ImportManager import ImportManager
 from src.BL.Summary.SummaryDriver import SummaryDriver
 from src.DL.Config import CF_OUTPUT_DIR, CF_INPUT_DIR, CF_IMPORT_PATH_BOOKINGS, CF_IMPORT_PATH_COUNTER_ACCOUNTS, \
-    CF_IMPORT_PATH_SEARCH_TERMS, BOOKINGS_CSV, COUNTER_ACCOUNTS_CSV, SEARCH_TERMS_CSV
+    CF_IMPORT_PATH_SEARCH_TERMS, BOOKING_CODES_CSV, COUNTER_ACCOUNTS_CSV, SEARCH_TERMS_CSV, \
+    CF_IMPORT_PATH_OPENING_BALANCE, OPENING_BALANCE_CSV
 from src.DL.DBInitialize import DBInitialize
 from src.DL.Table import Table
 from src.GL.BusinessLayer.ConfigManager import ConfigManager
@@ -77,8 +78,9 @@ class PMC:
         CM.set_config_item(CF_OUTPUT_DIR, output_dir)
 
         resources_dir = session.resources_dir
-        CM.set_config_item(CF_IMPORT_PATH_BOOKINGS, f'{resources_dir}{BOOKINGS_CSV}')
+        CM.set_config_item(CF_IMPORT_PATH_BOOKINGS, f'{resources_dir}{BOOKING_CODES_CSV}')
         CM.set_config_item(CF_IMPORT_PATH_COUNTER_ACCOUNTS, f'{resources_dir}{COUNTER_ACCOUNTS_CSV}')
+        CM.set_config_item(CF_IMPORT_PATH_OPENING_BALANCE, f'{resources_dir}{OPENING_BALANCE_CSV}')
         CM.set_config_item(CF_IMPORT_PATH_SEARCH_TERMS, f'{resources_dir}{SEARCH_TERMS_CSV}')
 
         # Write the json config

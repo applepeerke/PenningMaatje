@@ -23,7 +23,7 @@ from src.GL.BusinessLayer.SessionManager import BACKUP
 from src.VL.Data.Constants.Const import LEEG
 from src.VL.Data.Constants.Enums import Pane
 from src.DL.Lexicon import SEARCH_TERMS, TRANSACTIONS, COUNTER_ACCOUNTS, BOOKING_CODES, \
-    BOOKING_CODE
+    BOOKING_CODE, COUNTER_ACCOUNT
 from src.VL.Views.PopUps.Dialog_with_transactions import DialogWithTransactions
 from src.VL.Views.PopUps.PopUp import PopUp
 from src.GL.BusinessLayer.ConfigManager import ConfigManager
@@ -38,11 +38,11 @@ from src.GL.Validate import normalize_dir
 PGM = 'BookingManager'
 
 model = Model()
-bk_dict = model.get_colno_per_att_name(Table.Booking, zero_based=False)
+bk_dict = model.get_colno_per_att_name(Table.BookingCode, zero_based=False)
 
 CM = ConfigManager()
 CsvM = CsvManager()
-BKM = BookingCache()
+BCM = BookingCache()
 ACM = CounterAccountCache()
 STM = SearchTermCache()
 UM = UserCsvFileManager()
@@ -74,19 +74,16 @@ class BookingManager(BaseManager):
         # Validatie
         warning = ResultCode.Warning
         if not counter_account_number:
-            return Result(warning, f'Tegenrekening {counter_account_number} is verplicht.')
+            return Result(warning, f'{COUNTER_ACCOUNT} {counter_account_number} is verplicht.')
 
-        booking_new_id = BKM.get_id_from_code(booking_code)
+        booking_new_id = BCM.get_id_from_code(booking_code)
         if booking_new_id == 0 and booking_code:
-            return Result(warning, f'Boeking "{booking_code}" is niet gevonden.')
+            return Result(warning, f'{BOOKING_CODE} "{booking_code}" is niet gevonden.')
 
         counter_account_id = ACM.get_id_from_iban(counter_account_number)
         if not counter_account_id:
-            return Result(warning, f'Tegenrekening {counter_account_number} is niet gevonden.')
+            return Result(warning, f'{COUNTER_ACCOUNT} {counter_account_number} is niet gevonden.')
 
-        # Get all TE booking-ids belonging to the specified counter_account.
-        # relation = SQLOperator().GT if BKM.is_add(booking_code) == TRUE else SQLOperator().LE
-        # where = [Att(FD.Counter_account_id, counter_account_id), Att(FD.Amount_signed, 0, relation=relation)]
         where = [Att(FD.Counter_account_id, counter_account_id)]
         booking_old_ids = self._db.select(Table.TransactionEnriched, name=FD.Booking_id, where=where)
         booking_old_ids_unique = {Id for Id in booking_old_ids}
@@ -98,13 +95,14 @@ class BookingManager(BaseManager):
         booking_old_id = list(booking_old_ids_unique)[0]
         if bookings_count_incl_empty == 1 and booking_old_id == booking_new_id:
             return Result(warning,
-                          f'Boeking "{booking_code}" is al gekoppeld aan tegenrekening "{counter_account_number}".')
+                          f'{BOOKING_CODE} "{booking_code}" is al gekoppeld aan {COUNTER_ACCOUNT} '
+                          f'"{counter_account_number}".')
 
         # B. Multiple transactions for the specified counter_account: Ask confirmation.
         update_all = True
         # if existing_bookings_count > 1:
         if transactions_count > 1:
-            booking_codes = BKM.get_codes_from_ids(booking_old_ids_unique)
+            booking_codes = BCM.get_codes_from_ids(booking_old_ids_unique)
             if bookings_count_incl_empty > 1:
                 booking_code_bullets = "\n  o  ".join(booking_codes)
                 booking_text = f' met {BOOKING_CODES}:\n  o  {booking_code_bullets}'
@@ -146,7 +144,8 @@ class BookingManager(BaseManager):
             Table.TransactionEnriched, where=[Att(FD.ID, transaction_id)],
             values=[Att(FD.Booking_id, booking_id)], pgm=PGM)
         return Result(
-            text=f'Boeking "{BKM.get_value_from_id(booking_id, FD.Booking_code)}" is toegekend aan de transactie.')
+            text=f'{BOOKING_CODE} "{BCM.get_value_from_id(booking_id, FD.Booking_code)}" '
+                 f'is toegekend aan de transactie.')
 
     def _update_all_transactions(self, counter_account_id, booking_id) -> Result:
         """
@@ -154,7 +153,7 @@ class BookingManager(BaseManager):
         for all transactions.
         """
         # A. CounterAccount
-        booking_code = BKM.get_value_from_id(booking_id, FD.Booking_code)
+        booking_code = BCM.get_value_from_id(booking_id, FD.Booking_code)
         self._db.update(
             Table.CounterAccount, where=[Att(FD.ID, counter_account_id)],
             values=[Att(FD.Booking_code, booking_code)], pgm=PGM)
@@ -167,7 +166,7 @@ class BookingManager(BaseManager):
         self._session.set_user_table_changed(Table.CounterAccount)
         # - Output
         result = Result(
-            text=f'Boeking "{booking_code}" is toegekend aan {count} transacties van rekening '
+            text=f'{BOOKING_CODE} "{booking_code}" is toegekend aan {count} transacties van rekening '
                  f'{ACM.get_iban_from_id(counter_account_id)}.')
         return result
 
@@ -223,7 +222,7 @@ class BookingManager(BaseManager):
         PopUp().display(
                 title=f'Backup maken van {BOOKING_CODES}',
                 text=f'Backup van je {BOOKING_CODES} is niet mogelijk.'
-                     f'\n\nDe volgende {BOOKING_CODES} bestaan niet in tabel {Table.Booking}:{self._reason}.'
+                     f'\n\nDe volgende {BOOKING_CODES} bestaan niet in tabel {Table.BookingCode}:{self._reason}.'
                      f'\n\nRemedie:\nVerwijder de {BOOKING_CODES} referenties uit bovengenoemde tabel(len).'
                      f'\nDit kun je bijvoorbeeld doen door de backups van deze bestanden uit de "{BACKUP}" folder '
                      f'te verwijderen.\nCheck eventueel of deze bestanden in folder "{RESOURCES}" bestaande'
@@ -235,12 +234,12 @@ class BookingManager(BaseManager):
         self._non_existent_booking_codes = {}
         self._reason = EMPTY
         where = [Att(FD.Booking_code, EMPTY, relation=SQLOperator().NE)]
-        self._booking_codes_db = set(self._db.select(Table.Booking, name=FD.Booking_code, where=where))
+        self._booking_codes_db = set(self._db.select(Table.BookingCode, name=FD.Booking_code, where=where))
         self._validate_booking_codes_in_table(Table.CounterAccount, where, COUNTER_ACCOUNTS)
         self._validate_booking_codes_in_table(Table.SearchTerm, where, SEARCH_TERMS)
 
     def _validate_booking_codes_in_table(self, table_name, where, descriptive_name):
-        """ Save booking codes that don't exist in Bookings. """
+        """ Save booking codes that don't exist in BookingCodes. """
         # Get all table booking names
         booking_codes = set(self._db.select(table_name, name=FD.Booking_code, where=where))
         # Check if they exist in table Booking
@@ -285,20 +284,20 @@ class BookingManager(BaseManager):
         if not self._result.OK:
             return
 
-        # Validate: bookings in csv files (except in Bookings.csv) must exist
-        # a. in the Bookings.csv (if present in the backup), or else
+        # Validate: bookings in csv files (except in BookingCodes.csv) must exist
+        # a. in the BookingCodes.csv (if present in the backup), or else
         # b. in the database.
         booking_codes = set()
-        if self._restore_paths.get(Table.Booking, EMPTY):
-            rows = CsvM.get_rows(data_path=self._restore_paths.get(Table.Booking), include_header_row=True)
+        if self._restore_paths.get(Table.BookingCode, EMPTY):
+            rows = CsvM.get_rows(data_path=self._restore_paths.get(Table.BookingCode), include_header_row=True)
             header = rows[0]
             c_booking_code = header.index(FD.Booking_code.title())
             for row in rows[1:]:
                 booking_codes.add(row[c_booking_code])
         else:
-            # Populate booking cache with tabel Bookings
-            BKM.initialize(force=True)
-            booking_codes = BKM.booking_codes
+            # Populate booking cache with tabel BookingCodes
+            BCM.initialize(force=True)
+            booking_codes = BCM.booking_codes
         self._validate_other_csv_file_bookings(booking_codes)
 
         # Completion
@@ -313,7 +312,7 @@ class BookingManager(BaseManager):
 
     def _get_restore_paths(self, dirname, subdir):
         self._restore_paths = {}
-        for table_name in model.DB_base_tables:
+        for table_name in model.csv_tables:
             filename = TABLE_PROPERTIES.get(table_name, {}).get(FILE_NAME, EMPTY)
             path = f'{dirname}{filename}'
             if is_valid_file(path):
@@ -343,5 +342,5 @@ class BookingManager(BaseManager):
         # Check if other files match with the Booking cache.
         # (Booking cache is populated from either Booking.csv or else Booking table).
         for table_name, path in self._restore_paths.items():
-            if table_name != Table.Booking:
+            if table_name in model.booking_code_related_tables:
                 UM.validate_csv_file(table_name, full_check=True, existing_booking_codes=booking_codes)

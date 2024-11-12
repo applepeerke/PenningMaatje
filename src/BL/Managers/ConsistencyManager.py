@@ -36,7 +36,7 @@ model = Model()
 
 CM = ConfigManager()
 CsvM = CsvManager()
-BKM = BookingCache()
+BCM = BookingCache()
 ACM = CounterAccountCache()
 STM = SearchTermCache()
 UMC = UserMutationsCache()
@@ -91,7 +91,7 @@ class ConsistencyManager(BaseManager):
             f'------------------\n', MessageSeverity.Info)
 
         # Validate booking-related csv files (cache)
-        self._progress(1, f'Boeking in "{CM.get_config_item(CF_IMPORT_PATH_COUNTER_ACCOUNTS)}"')
+        self._progress(1, f'{BOOKING_CODE} in "{CM.get_config_item(CF_IMPORT_PATH_COUNTER_ACCOUNTS)}"')
         self._validate_bookings_imported_from_csv_files()
 
         # Validate ME
@@ -135,8 +135,8 @@ class ConsistencyManager(BaseManager):
         suffix = f'Deze {zijn} consistent.' if self._is_consistent else 'Er zijn waarschuwingen.'
         self._completion_message(f'Er {zijn} {count} {jaren} gecontroleerd. {suffix}')
 
-        # Bookings
-        result: Result = BKM.is_valid_config()
+        # BookingCodes
+        result: Result = BCM.is_valid_config()
         if not result.OK:
             self._result.messages.extend(result.messages)
 
@@ -145,27 +145,27 @@ class ConsistencyManager(BaseManager):
     def _validate_bookings_imported_from_csv_files(self):
         """ Validate booking-related csv files (before import) """
         ACM.initialize(force=self._initialize_singletons)
-        BKM.initialize(force=self._initialize_singletons)
+        BCM.initialize(force=self._initialize_singletons)
         STM.initialize(force=self._initialize_singletons)
         UMC.initialize(force=self._initialize_singletons)
-        # Gevulde Tegenrekening-boeking-code moet bestaan in Boeking
+        # Gevulde Tegenrekening-boeking-code moet bestaan in BoekingsCode
         [self._validate_booking(k, booking_code, COUNTER_ACCOUNTS_CSV, FD.Counter_account_number)
          for k, booking_code in ACM.booking_codes.items()]
         self._completion_message(f'Er zijn {len(ACM.booking_codes.items())} {COUNTER_ACCOUNTS} gecontroleerd.')
-        # Gevulde Zoekterm-boeking-code moet bestaan in Boeking
+        # Gevulde Zoekterm-boeking-code moet bestaan in BoekingsCode
         [self._validate_booking(k, booking_code, SEARCH_TERMS_CSV, FD.SearchTerm)
          for k, booking_code in STM.search_terms.items()]
-        # Gevulde UserMutations-boeking-code moet bestaan in Boeking
+        # Gevulde UserMutations-boeking-code moet bestaan in BoekingsCode
         [self._validate_booking(EMPTY, booking_code, f'{USER_MUTATIONS_FILE_NAME}{EXT_CSV}', FD.Booking_code)
          for booking_code in UMC.booking_codes]
         self._completion_message(f'Er zijn {len(STM.search_terms.items())} {SEARCH_TERMS} gecontroleerd.')
 
     def _validate_booking(self, key, booking_code, table_name, key_name):
-        """ Save booking names that don't exist in Bookings. """
+        """ Save booking names that don't exist in BookingCode. """
         if table_name not in self._non_existent_bookings:
             self._non_existent_bookings[table_name] = set()
         if (not booking_code or
-                booking_code in BKM.booking_codes or
+                booking_code in BCM.booking_codes or
                 booking_code in self._non_existent_bookings[table_name]
         ):
             return
@@ -200,7 +200,7 @@ class ConsistencyManager(BaseManager):
             name = month_row[TE_dict[FD.Name]]
             comments = month_row[TE_dict[FD.Comments]]
             # Booking
-            booking_code = BKM.get_value_from_id(month_row[TE_dict[FD.Booking_id]], FD.Booking_code)
+            booking_code = BCM.get_value_from_id(month_row[TE_dict[FD.Booking_id]], FD.Booking_code)
             counter_account_id = month_row[TE_dict[FD.Counter_account_id]]
             counter_account_number = self._db.fetch_value(
                 Table.CounterAccount, name=FD.Counter_account_number, where=[Att(FD.ID, counter_account_id)])

@@ -10,7 +10,7 @@ from src.VL.Views.BaseView import BaseView
 from src.GL.Const import EMPTY
 from src.DL.UserCsvFiles.Cache.BookingCache import Singleton as BookingCache
 
-BKM = BookingCache()
+BCM = BookingCache()
 
 PGM = 'SearchTermView'
 
@@ -22,7 +22,7 @@ class SearchTermView(BaseView):
         self._model = model
 
     def get_view(self) -> list:
-        booking_descriptions = [x for x in BKM.get_booking_code_descriptions(include_protected=True)]
+        booking_descriptions = [x for x in BCM.get_booking_code_descriptions(include_protected=True)]
         x_desc = max(len(d) for d in booking_descriptions)
         x = max(
             len(SEARCH_TERM),
@@ -35,7 +35,7 @@ class SearchTermView(BaseView):
                        disabled=self._model.command not in (BoxCommand.Rename, BoxCommand.Add)),
             # In sg, booking must be a unique name, so CAT can not be used.
             self.combo(SEARCH_TERM_BOOKING_DESCRIPTION, sorted(booking_descriptions),
-                       dft=BKM.get_value_from_booking_code(self._model.object.booking_code, FD.Booking_description),
+                       dft=BCM.get_value_from_booking_code(self._model.object.booking_code, FD.Booking_description),
                        x=x, background_color=COLOR_BACKGROUND_DISABLED,
                        disabled=self._model.command not in (BoxCommand.Update, BoxCommand.Add)),
             [sg.StatusBar(EMPTY, key=STATUS_MESSAGE, size=(

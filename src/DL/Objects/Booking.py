@@ -5,7 +5,7 @@ from src.DL.Table import Table
 from src.GL.Const import EMPTY
 from src.DL.UserCsvFiles.Cache.BookingCache import Singleton as BookingCache
 
-BKM = BookingCache()
+BCM = BookingCache()
 
 
 class Booking(BaseObject):
@@ -60,8 +60,8 @@ class Booking(BaseObject):
         self._booking_code = booking_code
         self._seqno = seqno
         self._protected = protected
-        self._booking_id = BKM.get_id_from_code(booking_code) if not booking_id else booking_id
-        super().__init__(Table.Booking)
+        self._booking_id = BCM.get_id_from_code(booking_code) if not booking_id else booking_id
+        super().__init__(Table.BookingCode)
 
     def _set_attributes(self):
         self._attributes = {

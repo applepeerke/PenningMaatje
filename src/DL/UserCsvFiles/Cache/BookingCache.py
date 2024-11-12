@@ -65,8 +65,8 @@ class Singleton:
             if self._initialized and not force:
                 return
 
-            d = model.get_colno_per_att_name(Table.Booking, zero_based=False)
-            rows = Session().db.fetch(Table.Booking, mode=FetchMode.WholeTable)
+            d = model.get_colno_per_att_name(Table.BookingCode, zero_based=False)
+            rows = Session().db.fetch(Table.BookingCode, mode=FetchMode.WholeTable)
             if not rows:
                 return
 

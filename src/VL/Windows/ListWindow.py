@@ -80,11 +80,11 @@ Sub classes
 """
 
 
-class BookingsWindow(ListWindow):
+class BookingCodesWindow(ListWindow):
 
     def __init__(self):
         super().__init__(
-            view=ListView(Pane.BS, ListModel(Table.Booking, f'{MAINTAIN} {BOOKING_CODES}')),
+            view=ListView(Pane.BS, ListModel(Table.BookingCode, f'{MAINTAIN} {BOOKING_CODES}')),
             controller=ListController(BookingWindow)
         )
 

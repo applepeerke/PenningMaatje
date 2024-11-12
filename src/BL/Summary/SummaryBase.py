@@ -20,7 +20,7 @@ from src.GL.Validate import isInt
 
 session = Session()
 csvm = CsvManager()
-BKM = BookingCache()
+BCM = BookingCache()
 
 PGM = 'SummaryBase'
 
@@ -94,8 +94,8 @@ class SummaryBase:
         for row in self._formatted_rows[1:]:  # details
             # Booking code /type
             booking_id = row[self._c_booking_id]
-            booking_code = BKM.get_value_from_id(booking_id, FD.Booking_code)
-            booking_type = BKM.get_value_from_id(booking_id, FD.Booking_type)
+            booking_code = BCM.get_value_from_id(booking_id, FD.Booking_code)
+            booking_type = BCM.get_value_from_id(booking_id, FD.Booking_type)
             row[self._c_booking_code] = booking_code
             row[self._c_booking_type] = booking_type
             # Period

@@ -135,7 +135,7 @@ class MainWindow(BaseWindow):
         model = self._model.models[Pane.TX]
         self._window[self.gui_key(ACCOUNT_NUMBER, WTyp.IN)].update(value=model.account_number)
         self._window[self.gui_key(DATE, WTyp.IN)].update(value=model.date)
-        # Bookings
+        # BookingCodes
         # - values
         self._window[self.gui_key(CF_COUNTER_ACCOUNT_BOOKING_DESCRIPTION, WTyp.CO)].update(
             values=model.booking_descriptions)

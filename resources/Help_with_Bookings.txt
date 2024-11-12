@@ -5,7 +5,7 @@ Dit zijn de te volgen stappen:
 
     1. Om {COUNTER_ACCOUNTS} aan {BOOKING_CODES} te koppelen:
         a. Druk in {DASHBOARD} de knop "{CMD_SEARCH_FOR_EMPTY_BOOKING}".
-        b. Kies de {BOOKING} bij de {COUNTER_ACCOUNT} in het paneel "{TRANSACTION}".
+        b. Kies de {BOOKING_CODE} bij de {COUNTER_ACCOUNT} in het paneel "{TRANSACTION}".
 
     2. Om {TRANSACTIONS} aan {BOOKING_CODES} te koppelen:
             a. Ga naar de lijst met {SEARCH_TERMS}.

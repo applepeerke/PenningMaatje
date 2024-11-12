@@ -1,0 +1,11 @@
+Release notes
+-------------
+
+                  Ini
+Date       Type   Rpt Description
+---------- ------ --- ---------------------------------------------------------------------------------------
+1.0 --- Demo Jan
+2024-09-11        PH  First EXE version distributed Windows 7 (Python 3.8)
+
+1.1 --- Monthly surveys via new template Hans
+2024-09-12 Impr   PH   -

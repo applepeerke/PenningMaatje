@@ -25,7 +25,7 @@ class BookingController(ListItemController):
         super().__init__(
             obj_name=BOOKING_CODE,
             model=model,
-            table_name=Table.Booking,
+            table_name=Table.BookingCode,
             io=BookingIO,
             required=[
                 Att(FD.Booking_type, model.object.booking_type),

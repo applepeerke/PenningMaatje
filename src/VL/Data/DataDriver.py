@@ -20,7 +20,7 @@ from src.GL.Validate import normalize_dir
 
 PGM = 'Data_Driver'
 
-BKM = BookingCache()
+BCM = BookingCache()
 CM = ConfigManager()
 csvm = CsvManager()
 
@@ -90,14 +90,14 @@ class Singleton:
             if combo_name == FD.Month:
                 items = [x for x in range(1, 13, 1)]
             elif combo_name == FD.Booking_code:
-                items = [x for x in BKM.get_booking_code_descriptions(include_protected=False)]
+                items = [x for x in BCM.get_booking_code_descriptions(include_protected=False)]
             elif combo_name == FD.Booking_description_searchable:
                 # Only booking descriptions that are present in TransactionEnriched
                 booking_ids = [
-                    row[0] for row in self._db.select(Table.Booking)
+                    row[0] for row in self._db.select(Table.BookingCode)
                     if self._db.count(Table.TransactionEnriched, where=[Att(FD.Booking_id, row[0])]) > 0
                 ]
-                items = sorted([BKM.get_value_from_id(Id, FD.Booking_description) for Id in booking_ids])
+                items = sorted([BCM.get_value_from_id(Id, FD.Booking_description) for Id in booking_ids])
             # Set combo
             self._combos[combo_name] = [EMPTY]
             if items:
@@ -168,7 +168,7 @@ class Singleton:
                 order_by = [[Att(FD.Year), 'DESC']]
             elif table_name == Table.TransactionEnriched:
                 order_by = [[Att(FD.Date), 'DESC']]
-            elif table_name == Table.Booking:
+            elif table_name == Table.BookingCode:
                 order_by = [[Att(FD.SeqNo), 'ASC'], [Att(FD.Booking_code), 'ASC']]
             elif table_name == Table.SearchTerm:
                 order_by = [[Att(FD.Booking_code), 'ASC']]
@@ -183,7 +183,7 @@ class Singleton:
                 d = model.get_colno_per_att_name(table_name, zero_based=False, include_not_in_db=True)
                 s = 1 if header else 0
                 for row in rows[s:]:
-                    row[d[FD.Booking_description]] = BKM.get_value_from_booking_code(
+                    row[d[FD.Booking_description]] = BCM.get_value_from_booking_code(
                         row[d[FD.Booking_code]], FD.Booking_description)
             return rows
 
@@ -271,7 +271,7 @@ class Singleton:
                 return
 
     """ 
-    Bookings 
+    BookingCodes 
     """
 
     def get_transaction_count(self, table_name, booking_code) -> int:

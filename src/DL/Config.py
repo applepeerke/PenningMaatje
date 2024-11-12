@@ -28,6 +28,7 @@ CF_RESTORE_BOOKING_DATA = 'CF_RESTORE_BOOKING_DATA'
 
 CF_IMPORT_PATH_BOOKINGS = 'CF_IMPORT_PATH_BOOKINGS'
 CF_IMPORT_PATH_COUNTER_ACCOUNTS = 'CF_IMPORT_PATH_COUNTER_ACCOUNTS'
+CF_IMPORT_PATH_OPENING_BALANCE = 'CF_IMPORT_PATH_OPENING_BALANCE'
 CF_IMPORT_PATH_SEARCH_TERMS = 'CF_IMPORT_PATH_SEARCH_TERMS'
 CF_IMPORT_PATH_ANNUAL_ACCOUNT = 'CF_IMPORT_PATH_ANNUAL_ACCOUNT'
 
@@ -103,8 +104,9 @@ CF_BOOKING_PROTECTED = 'CF_BOOKING_PROTECTED'
 CF_BOOKING_COUNT = 'CF_BOOKING_COUNT'
 
 # csv
-BOOKINGS_CSV = 'Boekingsposten.csv'
+BOOKING_CODES_CSV = 'Boekingscodes.csv'
 COUNTER_ACCOUNTS_CSV = 'Tegenrekeningen.csv'
+OPENING_BALANCE_CSV = 'Beginsaldi.csv'
 SEARCH_TERMS_CSV = 'Zoektermen.csv'
 ANNUAL_ACCOUNT_CSV = 'Jaarrekening.csv'
 
@@ -122,18 +124,22 @@ LAYOUT_EXTRA_COLUMNS = {
 }
 
 TABLE_PROPERTIES = {
-    Table.Booking: {
+    Table.AnnualAccount: {
+        CF_IMPORT_PATH: CF_IMPORT_PATH_ANNUAL_ACCOUNT,
+        FILE_NAME: ANNUAL_ACCOUNT_CSV},
+    Table.BookingCode: {
         CF_IMPORT_PATH: CF_IMPORT_PATH_BOOKINGS,
-        FILE_NAME: BOOKINGS_CSV},
+        FILE_NAME: BOOKING_CODES_CSV},
     Table.CounterAccount: {
         CF_IMPORT_PATH: CF_IMPORT_PATH_COUNTER_ACCOUNTS,
         FILE_NAME: COUNTER_ACCOUNTS_CSV},
+    Table.OpeningBalance: {
+        CF_IMPORT_PATH: CF_IMPORT_PATH_OPENING_BALANCE,
+        FILE_NAME: OPENING_BALANCE_CSV},
     Table.SearchTerm: {
         CF_IMPORT_PATH: CF_IMPORT_PATH_SEARCH_TERMS,
         FILE_NAME: SEARCH_TERMS_CSV},
-    Table.AnnualAccount: {
-        CF_IMPORT_PATH: CF_IMPORT_PATH_ANNUAL_ACCOUNT,
-        FILE_NAME: ANNUAL_ACCOUNT_CSV}
+
 }
 
 
@@ -309,10 +315,11 @@ configDef = {
         f'Alleen de gekozen {TRANSACTION} wijzigen', False,
         _border(f'Als je deze kiest wordt alleen deze {TRANSACTION} gewijzigd'), isBool),
     # Hidden
-    CF_IMPORT_PATH_BOOKINGS: ConfigItem(f'Pad naar {BOOKINGS_CSV}'),
+    CF_IMPORT_PATH_ANNUAL_ACCOUNT: ConfigItem(f'Pad naar {ANNUAL_ACCOUNT_CSV}'),
+    CF_IMPORT_PATH_BOOKINGS: ConfigItem(f'Pad naar {BOOKING_CODES_CSV}'),
     CF_IMPORT_PATH_SEARCH_TERMS: ConfigItem(f'Pad naar {SEARCH_TERMS_CSV}'),
     CF_IMPORT_PATH_COUNTER_ACCOUNTS: ConfigItem(f'Pad naar {COUNTER_ACCOUNTS_CSV}'),
-    CF_IMPORT_PATH_ANNUAL_ACCOUNT: ConfigItem(f'Pad naar {ANNUAL_ACCOUNT_CSV}'),
+    CF_IMPORT_PATH_OPENING_BALANCE: ConfigItem(f'Pad naar {OPENING_BALANCE_CSV}'),
     CF_ROW_NO_YS: ConfigItem(),
     CF_ROW_NO_MS: ConfigItem(),
     CF_ROW_NO_ME: ConfigItem(),
@@ -352,7 +359,7 @@ configDef = {
     CMD_UNDO: ConfigItem(tooltip=f'Maak laatste {BOOKING_CODE} wijziging ongedaan.'),
     CMD_HELP_WITH_OUTPUT_DIR: ConfigItem(),
     CMD_HELP_WITH_INPUT_DIR: ConfigItem(),
-    CMD_HELP_WITH_BOOKING: ConfigItem(tooltip=get_text_file('Help_with_Bookings')),
+    CMD_HELP_WITH_BOOKING: ConfigItem(tooltip=get_text_file('Help_with_BookingCodes')),
     CMD_HELP_WITH_SEARCH: ConfigItem(tooltip=get_text_file('Help_with_Search')),
 }
 

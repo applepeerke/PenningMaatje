@@ -28,7 +28,7 @@ PGM = 'TransactionsIO'
 TABLE = Table.TransactionEnriched
 c_counter_account_id = Model().get_column_number(TABLE, FD.Counter_account_id)
 
-BKM = BookingCache()
+BCM = BookingCache()
 
 
 class TransactionsIO(BaseIO, ABC):
@@ -137,14 +137,14 @@ class TransactionsIO(BaseIO, ABC):
             self._where_atts.append(copy(att))
         # Booking and Counter-account: Convert values to ids
         # - BookingCode
-        booking_code = BKM.get_booking_code_from_desc(CM.get_config_item(CF_SEARCH_BOOKING_CODE))
+        booking_code = BCM.get_booking_code_from_desc(CM.get_config_item(CF_SEARCH_BOOKING_CODE))
         if booking_code:
             if booking_code == LEEG:
                 self._add_where_att(FD.Counter_account_id, 'int', 0, relation=oper.GT)
                 Id = 0
             else:
                 Id = self._db.fetch_id(
-                    Table.Booking, where=[Att(FD.Booking_code, booking_code)])
+                    Table.BookingCode, where=[Att(FD.Booking_code, booking_code)])
             self._add_where_att(FD.Booking_id, 'int', Id)
         # - CounterAccount
         counter_account = CM.get_config_item(CF_SEARCH_COUNTER_ACCOUNT)
