@@ -9,7 +9,7 @@
 import unittest
 
 from src.BL.Functions import get_annual_account_filename
-from src.BL.Managers.ExportManager import TOTAL_GENERAL
+from src.BL.Managers.TemplateManager import TOTAL_GENERAL
 from src.GL.BusinessLayer.CsvManager import CsvManager
 from src.GL.BusinessLayer.SessionManager import Singleton as Session
 from src.GL.Functions import maybeFloat, toFloat

@@ -6,20 +6,17 @@
 # ---------- --- ------------------------------------------------------------------------------------------------------
 # 2023-10-30 PHe First creation
 # ---------------------------------------------------------------------------------------------------------------------
-from datetime import datetime
-
-from src.BL.Managers.ExportManager import ExportManager
 from src.BL.Summary.SearchResults import SearchResults
-from src.DL.Config import CF_COMBO_SUMMARY
-from src.DL.DBDriver.Att import Att
-from src.DL.DBDriver.SQLOperator import SQLOperator
+from src.BL.Summary.Templates.AnnualAccount import AnnualAccount
+from src.BL.Summary.Templates.PeriodicAccount import PeriodicAccount
+from src.DL.Config import CF_COMBO_SUMMARY, CF_SUMMARY_YEAR, CF_SUMMARY_MONTH_FROM, CF_SUMMARY_MONTH_TO, \
+    CF_SUMMARY_OPENING_BALANCE
 from src.DL.Enums.Enums import Summary
-from src.DL.Lexicon import ANNUAL_ACCOUNT, SEARCH_RESULT
-from src.DL.Model import FD
-from src.DL.Table import Table
+from src.DL.Lexicon import ANNUAL_ACCOUNT, SEARCH_RESULT, PERIODIC_ACCOUNT
 from src.GL.BusinessLayer.ConfigManager import ConfigManager
 from src.GL.BusinessLayer.SessionManager import Singleton as Session
-from src.GL.GeneralException import GeneralException
+from src.GL.Enums import MessageSeverity
+from src.GL.Functions import toFloat
 from src.GL.Result import Result
 
 session = Session()
@@ -29,12 +26,17 @@ class SummaryDriver:
 
     def __init__(self):
         self._CM = ConfigManager()
-        self._EM = ExportManager()
+        self._AA = AnnualAccount()
+        self._PA = None
         self._search_results = SearchResults()
         self._result = Result()
 
-    def create_summary(self, te_rows, summary_type=None, year=None) -> Result:
+    def create_summary(self, te_rows, summary_type=None) -> Result:
         summary_type = summary_type or self._CM.get_config_item(CF_COMBO_SUMMARY)
+        year = self._CM.get_config_item(CF_SUMMARY_YEAR)
+        month_from = self._CM.get_config_item(CF_SUMMARY_MONTH_FROM, 0)
+        month_to = self._CM.get_config_item(CF_SUMMARY_MONTH_TO, 0)
+        opening_balance = toFloat(self._CM.get_config_item(CF_SUMMARY_OPENING_BALANCE, 0.0))
 
         # A. Search results
         if summary_type == Summary.SearchResult:
@@ -42,41 +44,51 @@ class SummaryDriver:
 
         # B. Annual account
         elif summary_type == Summary.AnnualAccount:
-            self.produce_csv_files(ANNUAL_ACCOUNT, year, monthly=False, quarterly=False)
+            self.produce_csv_files(ANNUAL_ACCOUNT, year)
+
+        # B. Periodical account
+        elif summary_type == Summary.PeriodicAccount:
+            self._PA = PeriodicAccount(opening_balance)
+            self.produce_csv_files(PERIODIC_ACCOUNT, year, month_from, month_to)
 
         # B. Annual account Plus
         elif summary_type == Summary.AnnualAccountPlus:
+            self._PA = PeriodicAccount(opening_balance)
             self.produce_csv_files(ANNUAL_ACCOUNT, year)
+            self.produce_csv_files(PERIODIC_ACCOUNT, year, month_from, month_to)
         return self._result
 
-    def produce_csv_files(self, template_name=None, year=None, monthly=True, quarterly=True):
+    def produce_csv_files(self, template_name=None, year=None, month_from=0, month_to=0):
+        self._result = Result()
+        prefix = f'{template_name} overzichten zijn NIET gemaakt.'
+        if not year:
+            self._result.add_message(f'{prefix} "Jaar" is niet opgegeven.', severity=MessageSeverity.Error)
+            return
+        quarters = [q for q in range(4) if (q * 3) + 1 >= month_from and month_to >= month_from + 2]
+
         # Jaarrekening t/m maand x
-        if template_name:
-            self._result = self._EM.export(template_name=template_name, year=year)
-            if not self._result.OK:
-                raise GeneralException(self._result.get_messages_as_message())
+        if template_name == ANNUAL_ACCOUNT:
+            self._result = self._AA.export(template_name, year)
 
-        # Kwartalen, maanden
-        [self._export_transactions(year, q=i) for i in range(1, 5) if monthly]
-        [self._export_transactions(year, month_from=i, month_to=i) for i in range(1, 13) if quarterly]
+        # Periodiek overzicht
+        elif template_name == PERIODIC_ACCOUNT:
+            # Validation
+            if not month_from:
+                self._result.add_message(
+                    f'{prefix} "Maand vanaf" is niet opgegeven.', severity=MessageSeverity.Error)
+                return
+            if not month_to:
+                self._result.add_message(
+                    f'{prefix} "Maand t/m" is niet opgegeven.', severity=MessageSeverity.Error)
+                return
 
-    def _export_transactions(self, year, month_from=None, month_to=None, q=None):
-        if q:
-            month_from = ((q - 1) * 3) + 1
-            month_to = month_from + 2
+            # Maanden
+            [self._PA.export(template_name, year, i, i)
+             for i in range(month_from, month_to + 1) if month_from >= 1 and month_to <= 12]
 
-        where = [Att(FD.Year, year)]
-        if month_from == month_to:
-            title = f'{year} maand {month_from} transacties'
-            where.extend([Att(FD.Month, month_from)])
-        else:
-            title = f'{year} Q{q} transacties'
-            where.extend([
-                Att(FD.Month, month_from, relation=SQLOperator().GE),
-                Att(FD.Month, month_to, relation=SQLOperator().LE)]
-            )
-        te_rows = session.db.select(Table.TransactionEnriched, where=where)
-        if te_rows:
-            self._result = self._search_results.create_summary(te_rows, title=title)
-            if not self._result.OK:
-                raise GeneralException(self._result.get_messages_as_message())
+            # Kwartalen
+            [self._PA.export(template_name, year, q + 1, q + 3) for q in quarters]
+
+            # Completion message
+            self._result.add_message(f'{self._PA.export_count} {PERIODIC_ACCOUNT} overzichten zijn geëxporteerd naar '
+                                     f'"{session.export_dir}"')

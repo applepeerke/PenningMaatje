@@ -7,11 +7,12 @@
 # 2023-11-25 PHe First creation
 # ---------------------------------------------------------------------------------------------------------------------
 from src.BL.Summary.SummaryDriver import SummaryDriver
-from src.DL.Config import CF_COMBO_SUMMARY, CF_SUMMARY_YEAR
+from src.DL.Config import CF_COMBO_SUMMARY, CF_SUMMARY_YEAR, CF_SUMMARY_MONTH_FROM, CF_SUMMARY_OPENING_BALANCE
 from src.DL.Enums.Enums import Summary
 from src.VL.Data.Constants.Const import CMD_OK, CMD_CANCEL
 from src.VL.Data.Constants.Enums import WindowType
 from src.DL.Lexicon import SUMMARY
+from src.VL.Data.WTyp import WTyp
 from src.VL.Functions import get_name_from_key
 from src.VL.Views.SummaryView import SummaryView
 from src.VL.Windows.BaseWindow import BaseWindow
@@ -40,10 +41,11 @@ class SummaryWindow(BaseWindow):
             if not summary_type:
                 self._result = Result(ResultCode.Warning, f'Kies een soort {SUMMARY}.')
                 return
-            if (summary_type in (Summary.AnnualAccount, Summary.AnnualAccountPlus) and
+            if (summary_type in (Summary.AnnualAccount, Summary.AnnualAccountPlus, Summary.PeriodicAccount) and
                     not self._CM.get_config_item(CF_SUMMARY_YEAR)):
                 self._result = Result(ResultCode.Warning, 'Kies een jaar.')
                 return
+
             # Create summary
             self._result = self._summary_manager.create_summary(self._te_rows, summary_type)
             return
@@ -51,3 +53,14 @@ class SummaryWindow(BaseWindow):
             self._result = Result(ResultCode.Canceled)
             return
         return
+
+    def _appearance_before(self):
+        # Jaar
+        self._window[self.gui_key(CF_SUMMARY_YEAR, WTyp.FR)].update(
+            visible=self._CM.get_config_item(CF_COMBO_SUMMARY) != Summary.SearchResult)
+        # Maand vanaf en t/m
+        self._window[self.gui_key(CF_SUMMARY_MONTH_FROM, WTyp.FR)].update(
+            visible=self._CM.get_config_item(CF_COMBO_SUMMARY) == Summary.PeriodicAccount)
+        # Begin saldo
+        self._window[self.gui_key(CF_SUMMARY_OPENING_BALANCE, WTyp.FR)].update(
+            visible=self._CM.get_config_item(CF_COMBO_SUMMARY) not in (Summary.SearchResult, Summary.AnnualAccount))

@@ -2,6 +2,7 @@ from abc import ABC
 
 from src.DL.Config import CF_REMARKS
 from src.DL.DBDriver.Att import Att
+from src.DL.DBDriver.SQLOperator import SQLOperator
 from src.DL.IO.BaseIO import BaseIO
 from src.DL.Model import FD
 from src.DL.Table import Table
@@ -100,3 +101,19 @@ class TransactionIO(BaseIO, ABC):
         cr.append(amount)
         return cr
 
+    def get_transactions(self, year, month_from, month_to) -> list:
+        """
+        Either for 1 month or for multiple months (e.g. quarterly).
+        Sorted on date (asc).
+        """
+        where = [Att(FD.Year, year)]
+        if month_from == month_to:
+            where.extend([Att(FD.Month, month_from)])
+        else:
+            where.extend([
+                Att(FD.Month, month_from, relation=SQLOperator().GE),
+                Att(FD.Month, month_to, relation=SQLOperator().LE)
+            ])
+        rows = self._db.select(TABLE, where=where, order_by=[[Att(FD.Date), 'ASC']])
+        self._total_amount = sum(row[self._te_def[FD.Amount_signed]] for row in rows)
+        return rows

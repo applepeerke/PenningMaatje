@@ -81,6 +81,9 @@ CF_REMARKS = 'CF_REMARKS'
 # Summary popup
 CF_COMBO_SUMMARY = 'CF_COMBO_SUMMARY'
 CF_SUMMARY_YEAR = 'CF_SUMMARY_YEAR'
+CF_SUMMARY_MONTH_FROM = 'CF_SUMMARY_MONTH_FROM'
+CF_SUMMARY_MONTH_TO = 'CF_SUMMARY_MONTH_TO'
+CF_SUMMARY_OPENING_BALANCE = 'CF_SUMMARY_OPENING_BALANCE'
 
 # Hidden
 CF_ROW_NO_YS = f'CF_ROW_NO_{Pane.YS}'
@@ -332,6 +335,9 @@ configDef = {
     # Summary
     CF_COMBO_SUMMARY: ConfigItem(f'Kies het soort {SUMMARY}'),
     CF_SUMMARY_YEAR: ConfigItem('Kies het Jaar', validation_method=isIntOrNone),
+    CF_SUMMARY_MONTH_FROM: ConfigItem('Maand vanaf', 0, validation_method=isIntOrNone),
+    CF_SUMMARY_MONTH_TO: ConfigItem('Maand t/m', 0, validation_method=isIntOrNone),
+    CF_SUMMARY_OPENING_BALANCE: ConfigItem('Begin saldo', 0.0, validation_method=isAmount),
 
     # Commands
     CMD_IMPORT_TE: ConfigItem(tooltip=_border(

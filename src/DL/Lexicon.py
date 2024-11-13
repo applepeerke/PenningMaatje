@@ -21,11 +21,27 @@ GREY = 'Grijs'
 OLIVE = 'Olijfgroen'
 CYAN = 'Cyaan'
 
+# Months
+MONTH_DESCRIPTIONS = {
+    1: 'Januari',
+    2: 'Februari',
+    3: 'Maart',
+    4: 'April',
+    5: 'Mei',
+    6: 'Juni',
+    7: 'Juli',
+    8: 'Augustus',
+    9: 'September',
+    10: 'Oktober',
+    11: 'November',
+    12: 'December'
+}
 
 # Words
 ACCOUNT_NUMBER = 'Rekening'
 ANNUAL_ACCOUNT = 'Jaarrekening'
 ANNUAL_ACCOUNT_PLUS = 'Jaarrekening plus maand- en kwartaal overzichten'
+PERIODIC_ACCOUNT = 'Periodieke rekening'
 AGE_MONTHS = 'Leeftijd (maanden)'
 AGE_YEARS = 'Leeftijd (jaren)'
 AMOUNT = 'Bedrag'

@@ -1,6 +1,7 @@
 import PySimpleGUI as sg
 
-from src.DL.Config import CF_COMBO_SUMMARY, CF_SUMMARY_YEAR
+from src.DL.Config import CF_COMBO_SUMMARY, CF_SUMMARY_YEAR, CF_SUMMARY_MONTH_FROM, CF_SUMMARY_MONTH_TO, \
+    CF_SUMMARY_OPENING_BALANCE
 from src.DL.Enums.Enums import Summary
 from src.DL.Model import FD
 from src.VL.Data.Constants.Const import CMD_OK, CMD_CANCEL, STATUS_MESSAGE
@@ -26,6 +27,13 @@ class SummaryView(BaseView):
                 self.frame(CF_SUMMARY_YEAR, [
                     self.combo(CF_SUMMARY_YEAR, items=DD.get_combo_items(FD.Year), x=x)
                 ], p=0),
+                self.frame(CF_SUMMARY_OPENING_BALANCE, [
+                    self.inbox(CF_SUMMARY_OPENING_BALANCE, x=x)
+                ], p=0),
+                self.multi_frame(CF_SUMMARY_MONTH_FROM, [
+                    self.combo(CF_SUMMARY_MONTH_FROM, items=DD.get_combo_items(FD.Month), x=x),
+                    self.combo(CF_SUMMARY_MONTH_TO, items=DD.get_combo_items(FD.Month), x=x)
+                ], p=0)
             ]),
             self.multi_frame('Buttons', [[self.button(CMD_OK), self.button(CMD_CANCEL)]], justify='right',
                              expand_x=True, p=2)
