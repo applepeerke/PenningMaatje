@@ -20,7 +20,7 @@ from src.DL.IO.YearMonthIO import YearMonthIO
 from src.DL.Model import FD, Model
 from src.DL.Objects.CounterAccount import CounterAccount
 from src.DL.Table import Table
-from src.DL.UserCsvFiles.Cache.BookingCache import Singleton as BookingCache
+from src.DL.UserCsvFiles.Cache.BookingCodeCache import Singleton as BookingCodeCache
 from src.DL.UserCsvFiles.Cache.CounterAccountCache import Singleton as CounterAccountCache
 from src.DL.UserCsvFiles.Cache.SearchTermCache import Singleton as SearchTermCache
 from src.DL.UserCsvFiles.Cache.UserMutationsCache import Singleton as UserMutationsCache, get_te_key
@@ -54,7 +54,7 @@ model = Model()
 csvm = CsvManager()
 CM = ConfigManager()
 
-BCM = BookingCache()
+BCM = BookingCodeCache()
 ACM = CounterAccountCache()
 STM = SearchTermCache()
 UMC = UserMutationsCache()
@@ -140,7 +140,7 @@ class ImportManager(BaseManager):
         #   (bookings, accounts, search-terms), even if not working with bookings.
         self._progress(2, f'{CSV_FILE.title()}en importeren')
         if import_user_csv_files:
-            self._user_csv_manager.import_booking_related_user_defined_csv_files()
+            self._user_csv_manager.import_user_defined_csv_files()
             self._result.add_message(f'{CSV_FILE.title()}en zijn geïmporteerd.', Sev.Completion)
 
         # c. Import the raw bank transaction files and the accounts.

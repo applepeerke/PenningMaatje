@@ -1,7 +1,7 @@
 from src.DL.Config import CF_COMMA_REPRESENTATION_DB, CF_COMMA_REPRESENTATION_DISPLAY, CF_REMARKS
 from src.DL.Model import FD
 from src.DL.Table import Table
-from src.DL.UserCsvFiles.Cache.BookingCache import Singleton as BookingCache
+from src.DL.UserCsvFiles.Cache.BookingCodeCache import Singleton as BookingCodeCache
 from src.DL.UserCsvFiles.Cache.CounterAccountCache import Singleton as AccountCache
 from src.VL.Models.BaseModel import model, CM, DD
 from src.VL.Models.BaseModelTable import BaseModelTable
@@ -9,7 +9,7 @@ from src.GL.Const import EMPTY, BLANK
 from src.GL.Functions import FloatToStr
 
 TE_dict = model.get_colno_per_att_name(Table.TransactionEnriched, zero_based=False)  # Skip Id
-BCM = BookingCache()
+BCM = BookingCodeCache()
 ACM = AccountCache()
 TABLE = Table.TransactionEnriched
 

@@ -7,6 +7,7 @@ class Pane(object):
     LG = 'Log'
     LO = 'Layout opties'
     MS = 'Maanden'
+    OB = 'Begin saldi'
     SC = 'Zoeken in transacties'
     SS = 'Zoektermen'
     ST = 'Zoekterm'

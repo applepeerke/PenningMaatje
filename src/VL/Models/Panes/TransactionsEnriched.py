@@ -2,10 +2,10 @@ from src.DL.Config import CF_ROWS_TRANSACTION
 from src.DL.Model import Model, FD
 from src.DL.Table import Table
 from src.VL.Models.BaseModelTable import BaseModelTable, CM
-from src.DL.UserCsvFiles.Cache.BookingCache import Singleton as BookingCache
+from src.DL.UserCsvFiles.Cache.BookingCodeCache import Singleton as BookingCodeCache
 
 TE_dict = Model().get_colno_per_att_name(Table.TransactionEnriched, zero_based=False)
-BCM = BookingCache()
+BCM = BookingCodeCache()
 
 PGM = 'TransactionsEnriched'
 

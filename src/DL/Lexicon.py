@@ -40,8 +40,9 @@ MONTH_DESCRIPTIONS = {
 # Words
 ACCOUNT_NUMBER = 'Rekening'
 ANNUAL_ACCOUNT = 'Jaarrekening'
-ANNUAL_ACCOUNT_PLUS = 'Jaarrekening plus maand- en kwartaal overzichten'
-PERIODIC_ACCOUNT = 'Periodieke rekening'
+ANNUAL_ACCOUNT_PLUS = 'Jaarrekening plus periodieke overzichten'
+PERIODIC_ACCOUNTS = 'Periodieke overzichten'
+PERIODIC_ACCOUNT = 'Periodiek rekening overzicht'
 AGE_MONTHS = 'Leeftijd (maanden)'
 AGE_YEARS = 'Leeftijd (jaren)'
 AMOUNT = 'Bedrag'
@@ -79,6 +80,7 @@ MUTATION_TYPE = 'Mutatiesoort'
 NAME = 'Naam'
 OR = 'of'
 OPENING_BALANCE = 'Beginsaldo'
+OPENING_BALANCES = 'Beginsaldi'
 OTHER = 'Overige'
 OUTPUT_DIR = 'Uitvoer folder'
 OVERBOOKING = 'Overboeking'
@@ -110,6 +112,7 @@ SALDO_MINUS_CORRECTION = f'Saldo min {CORRECTION}'
 CMD_IMPORT_TE = to_cmd_key(f'IMPORTEER_{TRANSACTIONS}')
 CMD_WORK_WITH_BOOKING_CODES = to_cmd_key(BOOKING_CODES)
 CMD_WORK_WITH_SEARCH_TERMS = to_cmd_key(SEARCH_TERMS)
+CMD_WORK_WITH_OPENING_BALANCES = to_cmd_key(OPENING_BALANCE)
 CMD_RESTORE_BOOKING_RELATED_DATA = to_cmd_key(f'TERUGZETTEN_{BOOKING_CODES}')
 CMD_SEARCH_FOR_EMPTY_BOOKING_CODE = to_cmd_key(f'ONTBREKENDE_{BOOKING_CODES}')
 
@@ -123,6 +126,7 @@ var_names = {
     'CMD_IMPORT_TE': to_cmd_key(CMD_IMPORT_TE),
     'CMD_WORK_WITH_BOOKING_CODES': to_text_key(CMD_WORK_WITH_BOOKING_CODES),
     'CMD_WORK_WITH_SEARCH_TERMS': to_text_key(CMD_WORK_WITH_SEARCH_TERMS),
+    'CMD_WORK_WITH_OPENING_BALANCES': to_text_key(CMD_WORK_WITH_OPENING_BALANCES),
     'CMD_RESTORE_BOOKING_RELATED_DATA': to_text_key(CMD_RESTORE_BOOKING_RELATED_DATA),
     'CMD_SEARCH_FOR_EMPTY_BOOKING': to_text_key(CMD_SEARCH_FOR_EMPTY_BOOKING_CODE),
     'CONFIG': CONFIG,

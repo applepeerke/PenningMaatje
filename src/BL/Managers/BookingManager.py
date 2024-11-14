@@ -15,7 +15,7 @@ from src.DL.DBDriver.SQLOperator import SQLOperator
 from src.DL.IO.TransactionIO import TransactionIO
 from src.DL.Model import FD, Model
 from src.DL.Table import Table
-from src.DL.UserCsvFiles.Cache.BookingCache import Singleton as BookingCache
+from src.DL.UserCsvFiles.Cache.BookingCodeCache import Singleton as BookingCodeCache
 from src.DL.UserCsvFiles.Cache.CounterAccountCache import Singleton as CounterAccountCache
 from src.DL.UserCsvFiles.Cache.SearchTermCache import Singleton as SearchTermCache
 from src.DL.UserCsvFiles.UserCsvFileManager import UserCsvFileManager, GeneralException
@@ -42,7 +42,7 @@ bk_dict = model.get_colno_per_att_name(Table.BookingCode, zero_based=False)
 
 CM = ConfigManager()
 CsvM = CsvManager()
-BCM = BookingCache()
+BCM = BookingCodeCache()
 ACM = CounterAccountCache()
 STM = SearchTermCache()
 UM = UserCsvFileManager()

@@ -6,18 +6,18 @@ from src.DL.Table import Table
 from src.VL.Data.Constants.Const import PROTECTED_BOOKINGS
 from src.VL.Data.Constants.Enums import BoxCommand
 from src.DL.Lexicon import TRANSACTIONS, BOOKING_CODE
-from src.VL.Models.BookingModel import BookingModel
+from src.VL.Models.BookingCodeModel import BookingCodeModel
 from src.GL.Const import EMPTY, MUTATION_PGM_BC
 from src.GL.Enums import ActionCode, Mutation, ResultCode
 from src.GL.Result import Result
 from src.GL.Validate import toBool
-from src.DL.UserCsvFiles.Cache.BookingCache import Singleton as BookingCache
+from src.DL.UserCsvFiles.Cache.BookingCodeCache import Singleton as BookingCodeCache
 
 TABLE = Table.BookingCode
 d = Model().get_colno_per_att_name(TABLE, zero_based=False)
 PGM = MUTATION_PGM_BC
 
-BCM = BookingCache()
+BCM = BookingCodeCache()
 
 
 class BookingIO(BaseIO):
@@ -76,7 +76,7 @@ class BookingIO(BaseIO):
         rows = self._db.select(table_name=TABLE, name=FD.SeqNo, where=[Att(FD.Booking_type, type)])
         return max(seqno for seqno in rows)
 
-    def edit(self, model: BookingModel) -> Result:
+    def edit(self, model: BookingCodeModel) -> Result:
         self._result = Result()
         self._transaction_count = model.transaction_count
         self._object = model.object

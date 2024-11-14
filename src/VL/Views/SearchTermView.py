@@ -8,9 +8,9 @@ from src.VL.Data.Constants.Enums import BoxCommand
 from src.VL.Models.SearchTermModel import SearchTermModel
 from src.VL.Views.BaseView import BaseView
 from src.GL.Const import EMPTY
-from src.DL.UserCsvFiles.Cache.BookingCache import Singleton as BookingCache
+from src.DL.UserCsvFiles.Cache.BookingCodeCache import Singleton as BookingCodeCache
 
-BCM = BookingCache()
+BCM = BookingCodeCache()
 
 PGM = 'SearchTermView'
 

@@ -10,22 +10,22 @@ from src.DL.Config import CF_BOOKING_SEQNO, CF_BOOKING_TYPE, CF_BOOKING_MAINGROU
     CF_BOOKING_SUBGROUP, CF_BOOKING_CODE, CF_BOOKING_PROTECTED
 from src.DL.IO.BookingIO import BookingIO
 from src.DL.Objects.Booking import Booking
-from src.VL.Controllers.BookingController import BookingController
+from src.VL.Controllers.BookingCodeController import BookingCodeController
 from src.VL.Data.Constants.Const import CMD_OK
 from src.VL.Data.WTyp import WTyp
-from src.VL.Models.BookingModel import BookingModel
-from src.VL.Views.BookingView import BookingView
+from src.VL.Models.BookingCodeModel import BookingCodeModel
+from src.VL.Views.BookingCodeView import BookingCodeView
 from src.VL.Windows.ListItemWindow import ListItemWindow
 
 
-class BookingWindow(ListItemWindow):
+class BookingCodeWindow(ListItemWindow):
 
     def __init__(self, command, Id):
         super().__init__('BookingWindow', f'Boeking {command}', command)
         # MVC
-        self._model = BookingModel(command, obj=BookingIO().id_to_obj(Id))
-        self._view = BookingView(self._model)
-        self._controller = BookingController(self._model)
+        self._model = BookingCodeModel(command, obj=BookingIO().id_to_obj(Id))
+        self._view = BookingCodeView(self._model)
+        self._controller = BookingCodeController(self._model)
 
     def _event_handler(self, event, values):
         # Set model

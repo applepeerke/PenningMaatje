@@ -1,16 +1,16 @@
 from src.DL.Lexicon import SEARCH_RESULT, REVENUES, COSTS, OVERBOOKINGS, ANNUAL_ACCOUNT, ANNUAL_ACCOUNT_PLUS, \
-    PERIODIC_ACCOUNT
+    PERIODIC_ACCOUNTS
 
 
 class Summary:
     SearchResult = SEARCH_RESULT
     AnnualAccount = ANNUAL_ACCOUNT
-    PeriodicAccount = PERIODIC_ACCOUNT
+    PeriodicAccount = PERIODIC_ACCOUNTS
     AnnualAccountPlus = ANNUAL_ACCOUNT_PLUS
 
     @staticmethod
     def values():
-        return [SEARCH_RESULT, ANNUAL_ACCOUNT, PERIODIC_ACCOUNT, ANNUAL_ACCOUNT_PLUS]
+        return [SEARCH_RESULT, ANNUAL_ACCOUNT, PERIODIC_ACCOUNTS, ANNUAL_ACCOUNT_PLUS]
 
 
 class BookingType:

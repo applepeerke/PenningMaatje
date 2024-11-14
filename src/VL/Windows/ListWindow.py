@@ -9,12 +9,13 @@
 from src.DL.Table import Table
 from src.VL.Controllers.ListController import ListController
 from src.VL.Data.Constants.Enums import WindowType, Pane
-from src.DL.Lexicon import SEARCH_TERMS, MAINTAIN, BOOKING_CODES
+from src.DL.Lexicon import SEARCH_TERMS, MAINTAIN, BOOKING_CODES, OPENING_BALANCES
 from src.VL.Functions import set_focus_on_row
 from src.VL.Models.ListModel import ListModel
 from src.VL.Views.ListView import ListView
 from src.VL.Windows.BaseWindow import BaseWindow
-from src.VL.Windows.BookingWindow import BookingWindow
+from src.VL.Windows.BookingCodeWindow import BookingCodeWindow
+from src.VL.Windows.OpeningBalanceWindow import OpeningBalanceWindow
 from src.VL.Windows.SearchTermWindow import SearchTermWindow
 from src.GL.Validate import isInt
 
@@ -85,7 +86,7 @@ class BookingCodesWindow(ListWindow):
     def __init__(self):
         super().__init__(
             view=ListView(Pane.BS, ListModel(Table.BookingCode, f'{MAINTAIN} {BOOKING_CODES}')),
-            controller=ListController(BookingWindow)
+            controller=ListController(BookingCodeWindow)
         )
 
 
@@ -95,4 +96,13 @@ class SearchTermsWindow(ListWindow):
         super().__init__(
             view=ListView(Pane.SS, model=ListModel(Table.SearchTerm, f'{MAINTAIN} {SEARCH_TERMS}')),
             controller=ListController(SearchTermWindow)
+        )
+
+
+class OpeningBalancesWindow(ListWindow):
+
+    def __init__(self):
+        super().__init__(
+            view=ListView(Pane.OB, model=ListModel(Table.OpeningBalance, f'{MAINTAIN} {OPENING_BALANCES}')),
+            controller=ListController(OpeningBalanceWindow)
         )

@@ -33,7 +33,7 @@ class PenningMaatjeTestCase(unittest.TestCase):
 
         IM = ImportManager()
         UM = UserCsvFileManager()
-        UM.import_booking_related_user_defined_csv_files()
+        UM.import_user_defined_csv_files()
         IM.import_bank_transactions(session.db)
         IM.create_enriched_mutations(session.db)
 

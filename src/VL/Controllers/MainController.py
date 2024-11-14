@@ -22,7 +22,8 @@ from src.VL.Data.Constants.Const import CMD_CONSISTENCY, CMD_HELP_WITH_INPUT_DIR
     CMD_CONFIG, CMD_SUMMARY
 from src.VL.Data.Constants.Enums import Pane
 from src.DL.Lexicon import (
-    OUTPUT_DIR, TRANSACTIONS, CMD_SEARCH_FOR_EMPTY_BOOKING_CODE, COUNTER_ACCOUNTS, BOOKING_CODES, to_text_key)
+    OUTPUT_DIR, TRANSACTIONS, CMD_SEARCH_FOR_EMPTY_BOOKING_CODE, COUNTER_ACCOUNTS, BOOKING_CODES, to_text_key,
+    CMD_WORK_WITH_OPENING_BALANCES, SEARCH_TERMS, OPENING_BALANCES)
 from src.VL.Functions import help_message, get_name_from_text
 from src.VL.Views.PopUps.Info import Info
 from src.VL.Views.PopUps.Input import Input
@@ -30,7 +31,7 @@ from src.VL.Views.PopUps.PopUp import PopUp
 from src.VL.Windows.ConfigWindow import ConfigWindow
 from src.VL.Windows.General.Boxes import confirm_factory_reset, info_box
 from src.VL.Windows.General.MessageBox import message_box
-from src.VL.Windows.ListWindow import BookingCodesWindow
+from src.VL.Windows.ListWindow import BookingCodesWindow, OpeningBalancesWindow
 from src.VL.Windows.ListWindow import SearchTermsWindow
 from src.VL.Windows.SearchWindow import SearchWindow
 from src.VL.Windows.SummaryWindow import SummaryWindow
@@ -44,9 +45,9 @@ from src.GL.Functions import remove_crlf, remove_file
 from src.GL.GeneralException import GeneralException
 from src.GL.Result import Result, log
 from src.GL.Validate import toBool, isInt
-from src.DL.UserCsvFiles.Cache.BookingCache import Singleton as BookingCache
+from src.DL.UserCsvFiles.Cache.BookingCodeCache import Singleton as BookingCodeCache
 
-BCM = BookingCache()
+BCM = BookingCodeCache()
 
 model = Model()
 
@@ -318,12 +319,14 @@ class MainController(BaseController):
         # ---------------------------
         # Work with bookings
         elif self._event_key == CMD_WORK_WITH_BOOKING_CODES:
-            self._diag_message(f'{diag_prefix}Work with booking codes button pressed')
+            self._diag_message(f'{diag_prefix}Work with {BOOKING_CODES} button pressed')
             self._maintain_list(BookingCodesWindow)
         elif self._event_key == CMD_WORK_WITH_SEARCH_TERMS:
-            self._diag_message(f'{diag_prefix}Work with search terms button pressed')
+            self._diag_message(f'{diag_prefix}Work with {SEARCH_TERMS} button pressed')
             self._maintain_list(SearchTermsWindow)
-
+        elif self._event_key == CMD_WORK_WITH_OPENING_BALANCES:
+            self._diag_message(f'{diag_prefix}Work with {OPENING_BALANCES} button pressed')
+            self._maintain_list(OpeningBalancesWindow)
         # Restore booking related data
         elif self._event_key == CMD_RESTORE_BOOKING_RELATED_DATA:
             self._diag_message(f'{diag_prefix}Restore booking related data button pressed')
@@ -558,7 +561,7 @@ class MainController(BaseController):
             return
 
         # 2. Import csv files from the selected backup
-        self._UM.import_booking_related_user_defined_csv_files(self._booking_manager.restore_paths)
+        self._UM.import_user_defined_csv_files(self._booking_manager.restore_paths)
         self._result = self._UM.result
         if not self._result.OK:
             return

@@ -175,7 +175,7 @@ class Model(object):
 
     @property
     def booking_code_related_tables(self):
-        return [t for t in self._user_maintainable_tables if t != Table.BookingCode]
+        return [t for t in self._user_maintainable_tables if t not in (Table.BookingCode, Table.OpeningBalance)]
 
     def __init__(self):
         self._table = Table
@@ -206,7 +206,8 @@ class Model(object):
         self._user_maintainable_tables = [
             Table.BookingCode,
             Table.CounterAccount,
-            Table.SearchTerm
+            Table.SearchTerm,
+            Table.OpeningBalance
         ]
 
         self._FFD_FFD = OrderedDict({

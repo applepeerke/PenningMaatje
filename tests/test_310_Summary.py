@@ -33,7 +33,7 @@ class SearchTestCase(unittest.TestCase):
         year = model.get_value(Table.TransactionEnriched, FD.Year, te_rows[0])
         CM.set_config_item(CF_SUMMARY_YEAR, year)
         for summary_type in Summary.values():
-            result = SummaryDriver().create_summary(te_rows, summary_type, year)
+            result = SummaryDriver().create_summary(summary_type, te_rows)
             self.assertTrue(result.OK or result.WA, msg=f'Error at summary "{summary_type}" for year "{year}"')
 
 

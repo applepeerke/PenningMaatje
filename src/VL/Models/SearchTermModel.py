@@ -1,12 +1,12 @@
 from src.DL.Table import Table
-from src.DL.UserCsvFiles.Cache.BookingCache import Singleton as BookingCache
+from src.DL.UserCsvFiles.Cache.BookingCodeCache import Singleton as BookingCodeCache
 from src.VL.Data.Constants.Enums import BoxCommand
 from src.VL.Data.DataDriver import Singleton as DataDriver
 from src.VL.Models.ListItemModel import ListItemModel
 
 TABLE = Table.SearchTerm
 DD = DataDriver()
-BCM = BookingCache()
+BCM = BookingCodeCache()
 
 
 class SearchTermModel(ListItemModel):

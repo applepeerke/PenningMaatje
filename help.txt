@@ -25,6 +25,13 @@ Bank transactions directory. This folder must contain bank transaction csv files
 -o = output directory
 Output directory for the database, log, backup, exports.
 
+-s = summary type
+
+This must be one of the following values:
+- "Jaarrekening plus periodieke overzichten" (default)
+- "Periodieke overzichten"
+- "Jaarrekening"
+
 -y = year to export (optional).
 Default is the current year.
 

@@ -206,49 +206,46 @@ class BaseIO:
                 self._append_to_row(name, obj.active)
             elif name == FD.Amount:
                 self._append_to_row(name, obj.amount)
-            elif name == FD.Amount_signed:
-                self._append_to_row(name, obj.amount_signed)
-            elif name == FD.Amount_monthly:
-                self._append_to_row(name, obj.amount_monthly)
-            elif name == FD.Amount_yearly:
-                self._append_to_row(name, obj.amount_yearly)
-
-            elif name == FD.Amount_realisation:
-                self._append_to_row(name, obj.amount_realisation)
             elif name == FD.Amount_budget_this_year:
                 self._append_to_row(name, obj.amount_budget_this_year)
             elif name == FD.Amount_budget_previous_year:
                 self._append_to_row(name, obj.amount_budget_previous_year)
-
+            elif name == FD.Amount_monthly:
+                self._append_to_row(name, obj.amount_monthly)
+            elif name == FD.Amount_realisation:
+                self._append_to_row(name, obj.amount_realisation)
+            elif name == FD.Amount_signed:
+                self._append_to_row(name, obj.amount_signed)
+            elif name == FD.Amount_yearly:
+                self._append_to_row(name, obj.amount_yearly)
             elif name == FD.Bban:
                 self._append_to_row(name, obj.bban)
-
-            elif name == FD.Booking_type:
-                self._append_to_row(name, obj.booking_type)
+            elif name == FD.Booking_code:
+                self._append_to_row(name, obj.booking_code)
+            elif name == FD.Booking_id:
+                self._append_to_row(name, obj.booking_id)
             elif name == FD.Booking_maingroup:
                 self._append_to_row(name, obj.booking_maingroup)
             elif name == FD.Booking_subgroup:
                 self._append_to_row(name, obj.booking_subgroup)
-            elif name == FD.Booking_code:
-                self._append_to_row(name, obj.booking_code)
-            elif name == FD.SeqNo:
-                self._append_to_row(name, obj.seqno)
-
+            elif name == FD.Booking_type:
+                self._append_to_row(name, obj.booking_type)
             elif name == FD.Counter_account_number:
                 self._append_to_row(name, obj.counter_account_number)
             elif name == FD.FirstComment:
                 self._append_to_row(name, obj.first_comment)
-            elif name == FD.Booking_id:
-                self._append_to_row(name, obj.booking_id)
-
             elif name == FD.Iban:
                 self._append_to_row(name, obj.iban)
             elif name == FD.Name:
                 self._append_to_row(name, obj.name)
+            elif name == FD.Opening_balance:
+                self._append_to_row(name, obj.opening_balance)
             elif name == FD.Protected:
                 self._append_to_row(name, obj.protected)
             elif name == FD.SearchTerm:
                 self._append_to_row(name, obj.search_term)
+            elif name == FD.SeqNo:
+                self._append_to_row(name, obj.seqno)
             elif name == FD.Year:
                 self._append_to_row(name, obj.year)
 

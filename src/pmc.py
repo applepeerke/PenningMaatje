@@ -5,7 +5,7 @@ from src.BL.Managers.ImportManager import ImportManager
 from src.BL.Summary.SummaryDriver import SummaryDriver
 from src.DL.Config import CF_OUTPUT_DIR, CF_INPUT_DIR, CF_IMPORT_PATH_BOOKINGS, CF_IMPORT_PATH_COUNTER_ACCOUNTS, \
     CF_IMPORT_PATH_SEARCH_TERMS, BOOKING_CODES_CSV, COUNTER_ACCOUNTS_CSV, SEARCH_TERMS_CSV, \
-    CF_IMPORT_PATH_OPENING_BALANCE, OPENING_BALANCE_CSV
+    CF_IMPORT_PATH_OPENING_BALANCE, OPENING_BALANCE_CSV, CF_SUMMARY_YEAR, CF_SUMMARY_MONTH_FROM, CF_SUMMARY_MONTH_TO
 from src.DL.DBInitialize import DBInitialize
 from src.DL.Table import Table
 from src.GL.BusinessLayer.ConfigManager import ConfigManager
@@ -35,8 +35,11 @@ class PMC:
 
         self._summary_driver = SummaryDriver()
 
-    def produce_csv_files(self, template_name=None, year=None):
-        self._summary_driver.produce_csv_files(template_name, year)
+    def create_summary(self, summary_type, year, month_from=1, month_to=12):
+        CM.set_config_item(CF_SUMMARY_YEAR, year)
+        CM.set_config_item(CF_SUMMARY_MONTH_FROM, month_from)
+        CM.set_config_item(CF_SUMMARY_MONTH_TO, month_to)
+        self._summary_driver.create_summary(summary_type)
 
     def _start_up(self, input_dir, output_dir, build) -> Result:
         """ Start without using GUI Controller """

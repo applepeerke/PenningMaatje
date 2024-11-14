@@ -47,10 +47,10 @@ class TemplateBase(SummaryBase):
     def export_count(self):
         return self._export_count
 
-    def __init__(self):
+    def __init__(self, template_name):
         super().__init__()
         self._transaction_io = TransactionIO()
-        self._template_name = str
+        self._template_name = template_name
         self._template_var_names = set()
         self._column_fields = {}
         self._year = 0
@@ -66,7 +66,10 @@ class TemplateBase(SummaryBase):
         self._colno_current = 0
         self._export_count = 0
 
-    def export(self, template_name=None, year=None, month_from=None, month_to=None) -> Result:
+        # Validate the template
+        self._validate_template()
+
+    def export(self, year=None, month_from=None, month_to=None) -> Result:
         raise NotImplementedError
 
     def _construct(self, rows):

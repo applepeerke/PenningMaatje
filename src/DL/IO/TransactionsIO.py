@@ -19,7 +19,7 @@ from src.GL.Functions import FloatToStr, tuple_to_value, toFloat
 from src.GL.GeneralException import GeneralException
 from src.GL.Result import Result
 from src.GL.Validate import toBool, isInt
-from src.DL.UserCsvFiles.Cache.BookingCache import Singleton as BookingCache
+from src.DL.UserCsvFiles.Cache.BookingCodeCache import Singleton as BookingCodeCache
 
 CM = ConfigManager()
 oper = SQLOperator()
@@ -28,7 +28,7 @@ PGM = 'TransactionsIO'
 TABLE = Table.TransactionEnriched
 c_counter_account_id = Model().get_column_number(TABLE, FD.Counter_account_id)
 
-BCM = BookingCache()
+BCM = BookingCodeCache()
 
 
 class TransactionsIO(BaseIO, ABC):

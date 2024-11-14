@@ -101,13 +101,13 @@ class TransactionIO(BaseIO, ABC):
         cr.append(amount)
         return cr
 
-    def get_transactions(self, year, month_from, month_to) -> list:
+    def get_transactions(self, year, month_from, month_to=None) -> list:
         """
         Either for 1 month or for multiple months (e.g. quarterly).
         Sorted on date (asc).
         """
         where = [Att(FD.Year, year)]
-        if month_from == month_to:
+        if month_from == month_to or month_to is None:
             where.extend([Att(FD.Month, month_from)])
         else:
             where.extend([

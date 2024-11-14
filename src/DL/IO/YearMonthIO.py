@@ -16,7 +16,7 @@ from src.DL.IO.TransactionsIO import TransactionsIO
 from src.DL.Model import Model, FD
 from src.DL.Objects.Month import Month
 from src.DL.Table import Table
-from src.DL.UserCsvFiles.Cache.BookingCache import Singleton as BookingCache
+from src.DL.UserCsvFiles.Cache.BookingCodeCache import Singleton as BookingCodeCache
 from src.DL.UserCsvFiles.Cache.CounterAccountCache import Singleton as AccountCache
 from src.DL.YearMonthTransactionsMax import YearMonthTransactionsMax
 from src.DL.Lexicon import OVERBOOKING, COSTS, REVENUES, OVERBOOKINGS
@@ -34,7 +34,7 @@ PGM = 'YearMonthIO'
 error_prefix = f'{PGM} {Color.RED}Error{Color.NC}:'
 
 model = Model()
-BCM = BookingCache()
+BCM = BookingCodeCache()
 ACM = AccountCache()
 CM = ConfigManager()
 TE_dict = model.get_colno_per_att_name(Table.TransactionEnriched, zero_based=False)

@@ -20,18 +20,19 @@ from src.DL.IO.OpeningBalanceIO import OpeningBalanceIO
 from src.DL.IO.SearchTermIO import SearchTermIO
 from src.DL.Objects.Booking import Booking
 from src.DL.Objects.CounterAccount import CounterAccount
+from src.DL.Objects.OpeningBalance import OpeningBalance
 from src.DL.Objects.SearchTerm import SearchTerm
 from src.DL.Report import *
-from src.DL.UserCsvFiles.Cache.BookingCache import Singleton as BookingCache
+from src.DL.UserCsvFiles.Cache.BookingCodeCache import Singleton as BookingCodeCache
 from src.DL.UserCsvFiles.Cache.CounterAccountCache import Singleton as CounterAccountCache
 from src.DL.UserCsvFiles.Cache.SearchTermCache import Singleton as SearchTermCache
 from src.GL.BusinessLayer.ConfigManager import ConfigManager, get_label
 from src.GL.BusinessLayer.CsvManager import CsvManager
 from src.GL.BusinessLayer.SessionManager import Singleton as Session
 from src.GL.Const import RESOURCES, USER_MUTATIONS_FILE_NAME, EXT_CSV, MUTATION_PGM_TE, \
-    MUTATION_PGM_BC
+    MUTATION_PGM_BC, COMMA_SOURCE
 from src.GL.Enums import Color, MessageSeverity, ResultCode
-from src.GL.Functions import is_valid_file
+from src.GL.Functions import is_valid_file, toFloat
 from src.GL.Result import Result
 from src.GL.Validate import isCsvText, normalize_dir, isInt, toBool
 from src.VL.Data.Constants.Const import LABEL_WORK_WITH_BOOKINGS, PROTECTED_BOOKINGS
@@ -42,7 +43,7 @@ PGM = 'UserCsvFileManager'
 model = Model()
 CM = ConfigManager()
 csvm = CsvManager()
-BCM = BookingCache()
+BCM = BookingCodeCache()
 
 c_booking_id = model.get_column_number(Table.TransactionEnriched, FD.Booking_id)
 c_booking_code = model.get_column_number(Table.TransactionEnriched, FD.Booking_code)
@@ -330,24 +331,28 @@ class UserCsvFileManager(object):
     IMPORT TABLES
     """
 
-    def import_booking_related_user_defined_csv_files(self, restore_paths=None):
+    def import_user_defined_csv_files(self, restore_paths=None):
         """
         Import the user definition files 1:1 to the database (only if they exist).
         Not UserMutations.csv! This is only loaded in UserMutationsCache.
         - BookingCodes,
         - CounterAccounts,
         - Search terms
-        @param restore_paths: Validated restore paths from BookingManager.
+        - OpeningBalances
         """
         # Import and cache.
         # A. first booking...
         self._import_rows(Table.BookingCode, restore_paths)
         BCM.initialize(force=True)
-        # B. then booking dependent ones.
+
+        # B. then booking dependent and other ones.
         [self._import_rows(table_name, restore_paths)
          for table_name in model.csv_tables if table_name != Table.BookingCode]
+
+        # Initialize caches
         CounterAccountCache().initialize(force=True)  # CounterAccounts
         SearchTermCache().initialize(force=True)  # SearchTerms
+        BookingCodeCache().initialize(force=True)  # BookingCodes
 
     def _import_rows(self, table_name, restore_paths):
         """
@@ -396,6 +401,17 @@ class UserCsvFileManager(object):
                                 seqno=d[FD.SeqNo],
                                 protected=toBool(d[FD.Protected])
                             ))
+                    elif table_name == Table.OpeningBalance:
+                        comma_source = self._get_comma_source(table_name, rows)
+                        self._opening_balance_io.insert(
+                            OpeningBalance(
+                                year=d[FD.Year.title()],
+                                opening_balance=toFloat(
+                                    value=d[FD.Opening_balance.title()],
+                                    comma_source=comma_source))
+                        )
+                    else:
+                        raise GeneralException(f'{PGM} unsupported table "{table_name}"')
                 except KeyError as e:
                     raise GeneralException(f'{PGM} key error in csv file for table "{table_name}": {e}')
 
@@ -434,6 +450,15 @@ class UserCsvFileManager(object):
 
         CM.set_config_item(cf_code, path)
         return True if path else False
+
+    @staticmethod
+    def _get_comma_source(table_name, rows) -> str:
+        df = model.get_model_definition(table_name)
+        if not df or len(rows) < 2 or not any(att.type == AttType.Float for att in df.values()):
+            return COMMA_SOURCE
+        floats = [c - 1 for c, att in df.items() if att.type == AttType.Float]
+        c = floats[0]  # First amount column
+        return ',' if all(',' in row[c] for row in rows[1:] if row[c] != EMPTY) else '.'
 
     def _get_most_recent_path_name(self, table_name) -> str:
         """

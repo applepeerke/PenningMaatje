@@ -18,9 +18,9 @@ from src.VL.Data.WTyp import WTyp
 from src.VL.Models.SearchTermModel import SearchTermModel
 from src.VL.Views.SearchTermView import SearchTermView
 from src.VL.Windows.ListItemWindow import ListItemWindow
-from src.DL.UserCsvFiles.Cache.BookingCache import Singleton as BookingCache
+from src.DL.UserCsvFiles.Cache.BookingCodeCache import Singleton as BookingCodeCache
 
-BCM = BookingCache()
+BCM = BookingCodeCache()
 
 
 class SearchTermWindow(ListItemWindow):

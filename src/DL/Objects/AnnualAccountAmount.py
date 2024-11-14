@@ -2,9 +2,9 @@ from src.DL.Model import FD
 from src.DL.Objects.BaseObject import BaseObject
 from src.DL.Table import Table
 from src.GL.Const import EMPTY
-from src.DL.UserCsvFiles.Cache.BookingCache import Singleton as BookingCache
+from src.DL.UserCsvFiles.Cache.BookingCodeCache import Singleton as BookingCodeCache
 
-BCM = BookingCache()
+BCM = BookingCodeCache()
 
 
 class AnnualAccountAmount(BaseObject):

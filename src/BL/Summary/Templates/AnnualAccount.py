@@ -35,9 +35,7 @@ EXAMPLE:
 
 class AnnualAccount(TemplateBase):
     def __init__(self):
-        super().__init__()
-
-
+        super().__init__(ANNUAL_ACCOUNT)
         self._total_amounts = {}  # amounts per level
         self._level_no = {}
         self._first = True
@@ -47,11 +45,10 @@ class AnnualAccount(TemplateBase):
         self._annual_budgets = {}
         self._budget_years = 0
 
-    def export(self, template_name=None, year=None, month_from=None, month_to=None) -> Result:
-        self._template_name = ANNUAL_ACCOUNT
+    def export(self, year=None, month_from=None, month_to=None) -> Result:
         self._year = int(year) if year else int(datetime.now().year)
+
         # Process output template
-        self._validate_template()
         self._analyze_template()
 
         # Merge generated realisation from db with annual budgets from 'Jaarrekening.csv'
@@ -59,7 +56,7 @@ class AnnualAccount(TemplateBase):
 
         # Output naar CSV.
         # Filename example: "Jaarrekening (templateX) 2024 tm maand 4.csv"
-        filename = get_annual_account_filename(self._year, self._transaction_io.month_max, title=template_name)
+        filename = get_annual_account_filename(self._year, self._transaction_io.month_max, title=self._template_name)
         self._out_path = f'{session.export_dir}{filename}'
         self._construct(sorted_bookings)
         return Result(text=f'De {ANNUAL_ACCOUNT} van {self._year} is geëxporteerd naar "{self._out_path}"') \

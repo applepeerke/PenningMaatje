@@ -6,16 +6,16 @@ from src.DL.Table import Table
 from src.VL.Data.Constants.Color import STATUSBAR_COLOR_ERROR, COLOR_BACKGROUND_DISABLED
 from src.VL.Data.Constants.Const import CMD_OK, STATUS_MESSAGE, CMD_CANCEL
 from src.VL.Data.Constants.Enums import BoxCommand
-from src.VL.Models.BookingModel import BookingModel
+from src.VL.Models.BookingCodeModel import BookingCodeModel
 from src.VL.Views.BaseView import BaseView, CM
 from src.GL.Const import EMPTY
 
 TABLE = Table.BookingCode
 
 
-class BookingView(BaseView):
+class BookingCodeView(BaseView):
 
-    def __init__(self, model: BookingModel):
+    def __init__(self, model: BookingCodeModel):
         super().__init__()
         self._model = model
         self._booking = model.object

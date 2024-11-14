@@ -1,11 +1,10 @@
 from datetime import datetime
 
-from src.BL.Functions import get_annual_account_filename
 from src.BL.Summary.SummaryBase import session, csvm, BCM
 from src.BL.Summary.Templates.Const import *
 from src.BL.Summary.Templates.TemplateBase import TemplateBase, VAR_NAMES_MAP
 from src.BL.Summary.Templates.TemplateField import TemplateField
-from src.DL.Lexicon import PERIODIC_ACCOUNT, TRANSACTIONS, MONTH_DESCRIPTIONS
+from src.DL.Lexicon import PERIODIC_ACCOUNTS, TRANSACTIONS, MONTH_DESCRIPTIONS, PERIODIC_ACCOUNT
 from src.DL.Model import Model, FD
 from src.DL.Table import Table
 from src.GL.Const import EMPTY, BLANK, EXT_CSV
@@ -38,51 +37,93 @@ class PeriodicAccount(TemplateBase):
         return self._closing_balance
 
     def __init__(self, opening_balance=0.0):
-        super().__init__()
+        super().__init__(PERIODIC_ACCOUNT)
         self._te_def = Model().get_colno_per_att_name(Table.TransactionEnriched, zero_based=False)
         self._condensed_row_def = {}
         self._month_from = 0
         self._month_to = 0
-        self._opening_balance = opening_balance
+        self._month_from_current = 0
+        self._month_to_current = 0
+        self._opening_balance_start_of_year = opening_balance
+        self._opening_balance = 0.0
         self._closing_balance = 0.0
         self._total_costs = 0.0
         self._total_revenues = 0.0
-        self._title = EMPTY
 
-    def export(self, template_name=None, year=None, month_from=None, month_to=None):
+    def _initialize_year(self):
+        self._opening_balance = self._opening_balance_start_of_year
+
+    def export(self, year=None, month_from=None, month_to=None):
+        """ Process all months to calculate opening/closing balance. Only print the requested ones. """
         # Opening balance is updated
         self._out_rows = []
-        self._template_name = PERIODIC_ACCOUNT
+
         self._year = int(year) if year else int(datetime.now().year)
         self._month_from = month_from
         self._month_to = month_to if month_to else month_from
 
-        self._title = f'{self._year} maand {self._month_from}' if self._month_from == self._month_to \
-            else f'maand {self._month_from} - {self._month_to}'
+        # Export per month, quarter, semester
+        self._initialize_year()
+        [self._export(m + 1) for m in range(12)]
 
-        # Get the transactions
-        transactions = self._transaction_io.get_transactions(self._year, self._month_from, self._month_to)
+        self._initialize_year()
+        [self._export(q * 3 + 1, q * 3 + 3) for q in range(4)]
 
-        # Get the totals
+        self._initialize_year()
+        [self._export(s * 6 + 1, s * 6 + 6) for s in range(2)]
+
+    def _export(self, month, month_to=None):
+        """
+        @param: month = current month. M: [1-12], Q: [1, 4, 7, 10], S: [1, 7]
+        @param: month_to = month to.   M: [1-12], Q: [3, 6, 9, 12], S: [1, 2]
+        """
+        self._month_from_current = month
+        self._month_to_current = month_to
+
+        # Get the transactions for the period.
+        transactions = self._transaction_io.get_transactions(self._year, month, month_to)
+
+        # Get the period totals.
         c_amount = self._te_def[FD.Amount_signed]
         self._total_costs = sum(row[c_amount] for row in transactions if row[c_amount] < 0.0)
         self._total_revenues = sum(row[c_amount] for row in transactions if row[c_amount] > 0.0)
         self._closing_balance = self._opening_balance + self._total_revenues + self._total_costs
 
+        # Output the periods that are completely within the requested months-window.
+        month_to = month if month_to is None else month_to
+        if transactions and self._month_from <= month <= month_to <= self._month_to:
+            self._write_report(transactions, month, month_to)
+
+        # Set the opening balance
+        self._opening_balance = self._closing_balance
+
+    def _write_report(self, transactions, month, month_to=None):
+
         # Process output template
-        self._validate_template()
         self._analyze_template()
 
         # Output naar CSV.
         # Filename example: "Periodieke rekening 2024 maand 4.csv"
-        filename = f'{PERIODIC_ACCOUNT} {self._title}{EXT_CSV}'
+        filename = f'{PERIODIC_ACCOUNTS} {self._year} {self._get_title(month, month_to)}{EXT_CSV}'
         self._out_path = f'{session.export_dir}{filename}'
 
         # Construct the report
         self._construct(transactions)
 
-        # Set the opening balance
-        self._opening_balance = self._closing_balance
+        # Write CSV
+        csvm.write_rows(self._out_rows, data_path=self._out_path, open_mode='w')
+        self._export_count += 1
+
+    @staticmethod
+    def _get_title(month, month_to) -> str:
+        if not month_to or month == month_to:
+            return f'maand {month}'
+        elif month_to - month == 2:
+            return f'Q{int(((month - 1) / 3) + 1)}'
+        elif month_to - month == 5:
+            return f'S{int(((month - 1) / 6)) + 1}'
+        else:
+            raise GeneralException(f'Report title could not be established for month {month} and month_to {month_to}')
 
     def _substitute_singular_var(self, cell) -> str:
         """
@@ -101,12 +142,13 @@ class PeriodicAccount(TemplateBase):
         elif var == YEAR_PREVIOUS:
             return str(self._year - 1)
         elif var in (MONTH, MONTH_FROM):
-            if self._month_from == self._month_to:
-                return MONTH_DESCRIPTIONS.get(self._month_from)
+            if self._month_to_current is None:
+                return MONTH_DESCRIPTIONS.get(self._month_from_current)
             else:
-                return f'{MONTH_DESCRIPTIONS.get(self._month_from)} tot {MONTH_DESCRIPTIONS.get(self._month_to)}'
+                return (f'{MONTH_DESCRIPTIONS.get(self._month_from_current)} '
+                        f'tot {MONTH_DESCRIPTIONS.get(self._month_to_current)}')
         elif var == MONTH_TO:
-            return str(self._month_to)
+            return str(self._month_to_current or EMPTY)
         elif var == OPENING_BALANCE:
             return str(self._format_amount(self._opening_balance))
         elif var == CLOSING_BALANCE:
@@ -122,6 +164,7 @@ class PeriodicAccount(TemplateBase):
 
     def _analyze_template(self):
         """ Precondition: file syntax has been validated. Variables are in UC. """
+        self._out_rows = []
         self._r = -1
         self._c = 0
         self._out_row_ignored = False
@@ -211,10 +254,6 @@ class PeriodicAccount(TemplateBase):
             self._add_str_amounts(row[c_costs], row[c_revenues])
             for row in self._out_rows[start_row:])
         self._x_check(total_amount_signed, total_amount_out, '2. Voor export naar CSV')
-
-        # Write CSV
-        csvm.write_rows(self._out_rows, data_path=self._out_path, open_mode='w')
-        self._export_count += 1
 
     @staticmethod
     def _add_str_amounts(costs: str, revenues: str) -> float:

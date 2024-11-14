@@ -9,7 +9,7 @@ from src.DL.DBInitialize import DBInitialize
 from src.DL.IO.AccountsIO import AccountsIO
 from src.DL.Model import Model, FD, ID
 from src.DL.Table import Table
-from src.DL.UserCsvFiles.Cache.BookingCache import Singleton as BookingCache
+from src.DL.UserCsvFiles.Cache.BookingCodeCache import Singleton as BookingCodeCache
 from src.GL.BusinessLayer.ConfigManager import ConfigManager
 from src.GL.BusinessLayer.CsvManager import CsvManager
 from src.GL.BusinessLayer.SessionManager import Singleton as Session
@@ -20,7 +20,7 @@ from src.GL.Validate import normalize_dir
 
 PGM = 'Data_Driver'
 
-BCM = BookingCache()
+BCM = BookingCodeCache()
 CM = ConfigManager()
 csvm = CsvManager()
 

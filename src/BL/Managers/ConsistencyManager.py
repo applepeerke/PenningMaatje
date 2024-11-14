@@ -15,7 +15,7 @@ from src.DL.DBDriver.AttType import AttType
 from src.DL.IO.YearMonthIO import YearMonthIO
 from src.DL.Model import FD, Model
 from src.DL.Table import Table
-from src.DL.UserCsvFiles.Cache.BookingCache import Singleton as BookingCache
+from src.DL.UserCsvFiles.Cache.BookingCodeCache import Singleton as BookingCodeCache
 from src.DL.UserCsvFiles.Cache.CounterAccountCache import Singleton as CounterAccountCache
 from src.DL.UserCsvFiles.Cache.SearchTermCache import Singleton as SearchTermCache
 from src.DL.UserCsvFiles.Cache.UserMutationsCache import Singleton as UserMutationsCache
@@ -36,7 +36,7 @@ model = Model()
 
 CM = ConfigManager()
 CsvM = CsvManager()
-BCM = BookingCache()
+BCM = BookingCodeCache()
 ACM = CounterAccountCache()
 STM = SearchTermCache()
 UMC = UserMutationsCache()

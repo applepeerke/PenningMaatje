@@ -10,7 +10,7 @@ TABLE = Table.BookingCode
 DD = DataDriver()
 
 
-class BookingModel(ListItemModel):
+class BookingCodeModel(ListItemModel):
 
     @property
     def booking_types(self):

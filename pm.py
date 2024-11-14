@@ -1,24 +1,24 @@
 #!/usr/bin/python3
+import datetime
 import getopt
 import os
 import sys
 
-from src.DL.Lexicon import ANNUAL_ACCOUNT
+from src.DL.Enums.Enums import Summary
 from src.GL.Const import QUIT, EMPTY
 from src.GL.Enums import Color
 from src.GL.GeneralException import GeneralException
-from src.GL.Validate import normalize_dir, isInt, toBool, isFilename
+from src.GL.Validate import normalize_dir, isInt, toBool
 from src.pmc import PMC
-
 
 # Parameters
 input_dir = EMPTY
 output_dir = EMPTY
 year = None
 build = False
-template_name = ANNUAL_ACCOUNT
+summary_type = Summary.AnnualAccountPlus
 
-usage = 'usage: pm.py -i <inputdir> -o <outputdir> -y <year> -b <build> -t <template> -h'
+usage = 'usage: pm.py -i <inputdir> -o <outputdir> -y <year> -b <build> -s <summarytype> -h'
 errorText = Color.RED + "Error:" + Color.NC + " "
 
 
@@ -28,16 +28,16 @@ errorText = Color.RED + "Error:" + Color.NC + " "
 
 
 def main(argv):
-    global input_dir, output_dir, year, build, template_name
+    global input_dir, output_dir, year, build, summary_type
 
     try:
         opts, args = getopt.getopt(
-            argv, "b:h:i:o:t:y:",
+            argv, "b:h:i:o:s:y:",
             [
                 "bbuild=",
                 "iinputdir=",
                 "ooutputdir=",
-                "ttemplate=",
+                "ssummarytype=",
                 "yyear="
              ])
     except getopt.GetoptError:
@@ -75,14 +75,16 @@ def main(argv):
             if not toBool(build) in (True, False):
                 exit_program('Parameter -b (build) is not valid.')
 
-        elif opt in ("-t", "--template"):
-            template_name = arg
-            if not isFilename(template_name):
-                exit_program('Parameter -t (template) is not valid.')
+        elif opt in ("-s", "--summarytype"):
+            summary_type = arg
+            if summary_type not in Summary.values():
+                exit_program(f'Parameter -t (summary type) is not valid. it must be one of {Summary.values()}')
 
     try:
+        if not year:
+            year = datetime.datetime.now().year
         pmc = PMC(output_dir=output_dir, year=year, build=build, input_dir=input_dir)
-        pmc.produce_csv_files(template_name, year)
+        pmc.create_summary(summary_type, year)
 
     except GeneralException as e:
         exit_program(e.message)

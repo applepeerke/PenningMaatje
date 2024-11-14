@@ -9,7 +9,7 @@
 from src.DL.Model import FD
 from src.DL.Objects.Figure import Figure
 from src.DL.Objects.TimelineItem import TimelineItem
-from src.DL.UserCsvFiles.Cache.BookingCache import Singleton as BookingCache
+from src.DL.UserCsvFiles.Cache.BookingCodeCache import Singleton as BookingCodeCache
 from src.DL.Lexicon import TRANSACTIONS
 from src.GL.BusinessLayer.CsvManager import CsvManager
 from src.GL.BusinessLayer.SessionManager import Singleton as Session
@@ -20,7 +20,7 @@ from src.GL.Validate import isInt
 
 session = Session()
 csvm = CsvManager()
-BCM = BookingCache()
+BCM = BookingCodeCache()
 
 PGM = 'SummaryBase'
 

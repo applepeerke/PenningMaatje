@@ -22,13 +22,13 @@ from src.VL.Data.Constants.Const import PROTECTED_BOOKINGS
 model = Model()
 CM = ConfigManager()
 
-PGM = 'BookingCache'
+PGM = 'BookingCodeCache'
 
 
 class Singleton:
     """ Singleton """
 
-    class BookingCache(object):
+    class BookingCodeCache(object):
 
         @property
         def booking_codes(self):
@@ -219,7 +219,7 @@ class Singleton:
         # Check whether we already have an instance
         if Singleton.__instance is None:
             # Create and remember instance
-            Singleton.__instance = Singleton.BookingCache()
+            Singleton.__instance = Singleton.BookingCodeCache()
 
         # Store instance reference as the only member in the handle
         self.__dict__['_Singleton__instance'] = Singleton.__instance

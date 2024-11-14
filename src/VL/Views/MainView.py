@@ -9,9 +9,9 @@ from src.VL.Data.Constants.Color import *
 from src.DL.Lexicon import ACCOUNT_NUMBER, LOG, DASHBOARD
 from src.VL.Models.MainModel import MainModel
 from src.VL.Views.BaseView import BaseView, get_tooltip, CM
-from src.DL.UserCsvFiles.Cache.BookingCache import Singleton as BookingCache
+from src.DL.UserCsvFiles.Cache.BookingCodeCache import Singleton as BookingCodeCache
 
-BCM = BookingCache()
+BCM = BookingCodeCache()
 
 
 class MainView(BaseView):
@@ -191,7 +191,8 @@ class MainView(BaseView):
                 self.multi_frame(FRAME_WORK_WITH_BOOKINGS, [
                     self.button_frame(CMD_WORK_WITH_BOOKING_CODES),
                 ]),
-                self.button_frame(CMD_WORK_WITH_SEARCH_TERMS, p=10)
+                self.button_frame(CMD_WORK_WITH_SEARCH_TERMS, p=10),
+                self.button_frame(CMD_WORK_WITH_OPENING_BALANCES, p=10)
             ], border_width=1),
             # - Boekingen terugzetten
             self.frame(FRAME_RESTORE, [

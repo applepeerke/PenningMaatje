@@ -15,13 +15,13 @@ from src.DL.UserCsvFiles.UserCsvFileManager import UserCsvFileManager
 from src.VL.Controllers.ListItemController import ListItemController
 from src.VL.Data.Constants.Enums import BoxCommand
 from src.DL.Lexicon import BOOKING_CODE
-from src.VL.Models.BookingModel import BookingModel
+from src.VL.Models.BookingCodeModel import BookingCodeModel
 from src.GL.Const import EMPTY
 
 
-class BookingController(ListItemController):
+class BookingCodeController(ListItemController):
 
-    def __init__(self, model: BookingModel):
+    def __init__(self, model: BookingCodeModel):
         super().__init__(
             obj_name=BOOKING_CODE,
             model=model,

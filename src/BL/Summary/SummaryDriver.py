@@ -12,11 +12,10 @@ from src.BL.Summary.Templates.PeriodicAccount import PeriodicAccount
 from src.DL.Config import CF_COMBO_SUMMARY, CF_SUMMARY_YEAR, CF_SUMMARY_MONTH_FROM, CF_SUMMARY_MONTH_TO, \
     CF_SUMMARY_OPENING_BALANCE
 from src.DL.Enums.Enums import Summary
-from src.DL.Lexicon import ANNUAL_ACCOUNT, SEARCH_RESULT, PERIODIC_ACCOUNT
+from src.DL.Lexicon import ANNUAL_ACCOUNT, SEARCH_RESULT, PERIODIC_ACCOUNTS
 from src.GL.BusinessLayer.ConfigManager import ConfigManager
 from src.GL.BusinessLayer.SessionManager import Singleton as Session
 from src.GL.Enums import MessageSeverity
-from src.GL.Functions import toFloat
 from src.GL.Result import Result
 
 session = Session()
@@ -31,12 +30,11 @@ class SummaryDriver:
         self._search_results = SearchResults()
         self._result = Result()
 
-    def create_summary(self, te_rows, summary_type=None) -> Result:
-        summary_type = summary_type or self._CM.get_config_item(CF_COMBO_SUMMARY)
-        year = self._CM.get_config_item(CF_SUMMARY_YEAR)
+    def create_summary(self, summary_type, te_rows=None) -> Result:
+        year = self._CM.get_config_item(CF_SUMMARY_YEAR, 0)
         month_from = self._CM.get_config_item(CF_SUMMARY_MONTH_FROM, 0)
         month_to = self._CM.get_config_item(CF_SUMMARY_MONTH_TO, 0)
-        opening_balance = toFloat(self._CM.get_config_item(CF_SUMMARY_OPENING_BALANCE, 0.0))
+        opening_balance = self._CM.get_config_item(CF_SUMMARY_OPENING_BALANCE, 0.0)
 
         # A. Search results
         if summary_type == Summary.SearchResult:
@@ -49,13 +47,13 @@ class SummaryDriver:
         # B. Periodical account
         elif summary_type == Summary.PeriodicAccount:
             self._PA = PeriodicAccount(opening_balance)
-            self.produce_csv_files(PERIODIC_ACCOUNT, year, month_from, month_to)
+            self.produce_csv_files(PERIODIC_ACCOUNTS, year, month_from, month_to)
 
         # B. Annual account Plus
         elif summary_type == Summary.AnnualAccountPlus:
             self._PA = PeriodicAccount(opening_balance)
             self.produce_csv_files(ANNUAL_ACCOUNT, year)
-            self.produce_csv_files(PERIODIC_ACCOUNT, year, month_from, month_to)
+            self.produce_csv_files(PERIODIC_ACCOUNTS, year, month_from, month_to)
         return self._result
 
     def produce_csv_files(self, template_name=None, year=None, month_from=0, month_to=0):
@@ -64,14 +62,13 @@ class SummaryDriver:
         if not year:
             self._result.add_message(f'{prefix} "Jaar" is niet opgegeven.', severity=MessageSeverity.Error)
             return
-        quarters = [q for q in range(4) if (q * 3) + 1 >= month_from and month_to >= month_from + 2]
 
-        # Jaarrekening t/m maand x
+        # "Jaarrekening t/m maand x"
         if template_name == ANNUAL_ACCOUNT:
-            self._result = self._AA.export(template_name, year)
+            self._result = self._AA.export(year)
 
-        # Periodiek overzicht
-        elif template_name == PERIODIC_ACCOUNT:
+        # Periodic summary
+        elif template_name == PERIODIC_ACCOUNTS:
             # Validation
             if not month_from:
                 self._result.add_message(
@@ -82,13 +79,9 @@ class SummaryDriver:
                     f'{prefix} "Maand t/m" is niet opgegeven.', severity=MessageSeverity.Error)
                 return
 
-            # Maanden
-            [self._PA.export(template_name, year, i, i)
-             for i in range(month_from, month_to + 1) if month_from >= 1 and month_to <= 12]
-
-            # Kwartalen
-            [self._PA.export(template_name, year, q + 1, q + 3) for q in quarters]
+            # Export
+            self._PA.export(year, month_from, month_to)
 
             # Completion message
-            self._result.add_message(f'{self._PA.export_count} {PERIODIC_ACCOUNT} overzichten zijn geëxporteerd naar '
+            self._result.add_message(f'{self._PA.export_count} {PERIODIC_ACCOUNTS} zijn geëxporteerd naar '
                                      f'"{session.export_dir}"')
