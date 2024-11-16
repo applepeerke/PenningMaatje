@@ -1,0 +1,7 @@
+﻿"""Realisatie {jaar} {rekening naam} per boekingscode""";;;
+;;;
+;"""Boeking code""";"""Omschrijving""";"""Realisatie"""
+;;;
+;{boeking codes};{boeking omschrijvingen};{bedragen}
+;;;
+;;;{totaal generaal}

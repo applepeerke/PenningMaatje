@@ -15,7 +15,7 @@ from src.DL.Config import OUTPUT_DIR, CF_INPUT_DIR, CF_OUTPUT_DIR, \
     CMD_FACTORY_RESET, \
     CMD_LAYOUT_OPTIONS, CF_IMAGE_SUBSAMPLE
 from src.GL.BusinessLayer.ConfigManager import ConfigManager, CMD_HELP_WITH_INPUT_DIR, CMD_HELP_WITH_OUTPUT_DIR
-from src.GL.BusinessLayer.SessionManager import APP_OUTPUT_DIR
+from src.GL.BusinessLayer.SessionManager import OUTPUT_SUBDIRS
 from src.GL.Const import EMPTY
 from src.GL.Enums import ActionCode, ResultCode
 from src.GL.Result import Result
@@ -116,26 +116,32 @@ class ConfigController(BaseController):
         # Process
         if cf_item == CF_OUTPUT_DIR:
             # Main output location has been changed. This also contains the database (in subfolder Data).
+            # So a simple update (oops) is not possible...
             from_dir = self._prv_values[cf_item]
             to_dir = CM.get_config_item(cf_item)
-            # a. An update to another valid output dir.
-            if self._validation_manager.is_update_output_dir(from_dir, to_dir):
-                self._result = Result()
-            # b. Ask to move output folder.
-            else:
-                # Validate the new folder.
-                self._result = self._validation_manager.validate_config_dir(cf_item)
-                if not self._result.OK:
-                    self._cancel_smoothly(cf_item)
-                    return
-                self._result = self._validation_manager.validate_move_output_dir(from_dir=from_dir, to_dir=to_dir)
+
+            # Validation: From output folder must contain ONLY the supported subdirs.
+            if not self._validation_manager.is_valid_existing_output_dir(from_dir):
+                self._cancel_smoothly(cf_item)
+                return
+
+            # Validate the new output folder. Must be empty or populated with the output subfolders.
+            self._result = self._validation_manager.validate_config_dir(cf_item)
+            if not self._result.OK:
+                self._cancel_smoothly(cf_item)
+                return
+
+            # Ask to move the output folder.
+            if not self._validation_manager.is_valid_existing_output_dir(to_dir):
+                self._result = self._validation_manager.validate_move_output_subdirs(from_dir=from_dir, to_dir=to_dir)
                 if self._result.OK:
                     self._create_output_dir(to_dir)
                 if not self._result.OK:
                     self._cancel_smoothly(cf_item)
                     return
+
                 # Move
-                self._move_output_dir(from_dir=from_dir, to_dir=to_dir)
+                [shutil.move(f'{from_dir}{base_name}', to_dir) for base_name in OUTPUT_SUBDIRS]
 
             # Restart session. Database location has changed.
             basename = os.path.basename(from_dir[:-1])
@@ -177,10 +183,6 @@ class ConfigController(BaseController):
         if not os.path.isdir(to_dir):
             box_text = f'{OUTPUT_DIR} wijzigen is niet mogelijk.\n\nReden:\n'
             self._result = Result(ResultCode.Canceled, f'{box_text}Doelfolder {to_dir} kon niet gemaakt worden.')
-
-    def _move_output_dir(self, from_dir, to_dir):
-        self._result = Result()
-        shutil.move(from_dir, f'{to_dir}{APP_OUTPUT_DIR}')
 
     """
     Messages

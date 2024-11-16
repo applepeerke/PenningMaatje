@@ -232,6 +232,8 @@ class BaseIO:
                 self._append_to_row(name, obj.booking_type)
             elif name == FD.Counter_account_number:
                 self._append_to_row(name, obj.counter_account_number)
+            elif name == FD.Description:
+                self._append_to_row(name, obj.description)
             elif name == FD.FirstComment:
                 self._append_to_row(name, obj.first_comment)
             elif name == FD.Iban:

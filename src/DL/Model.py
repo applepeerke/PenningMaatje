@@ -56,6 +56,7 @@ class FD(object):
     ID = 'Id'
     No = 'No'
     Active = 'Actief'
+    Description = 'Omschrijving'
 
     # FFD
     FF_TableName = 'TableName'
@@ -224,6 +225,7 @@ class Model(object):
         self._Account = OrderedDict({
             1: Att(FD.Bban),
             2: Att(FD.Iban),
+            3: Att(FD.Description)
         })
 
         self._FlatFiles = OrderedDict({

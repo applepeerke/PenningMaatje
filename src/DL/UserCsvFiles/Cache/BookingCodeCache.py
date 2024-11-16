@@ -128,7 +128,7 @@ class Singleton:
                 else self._booking_code_descriptions_including_not_protected
 
         def _get_desc(self, booking_code) -> str:
-            return (f'{booking_code} - {self.get_value_from_booking_code(booking_code, FD.Booking_maingroup)} '
+            return (f'{self.get_value_from_booking_code(booking_code, FD.Booking_maingroup)} '
                     f'{self.get_value_from_booking_code(booking_code, FD.Booking_subgroup)}')
 
         @staticmethod

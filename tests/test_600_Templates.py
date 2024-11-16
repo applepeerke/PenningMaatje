@@ -8,7 +8,7 @@
 # ---------------------------------------------------------------------------------------------------------------------
 import unittest
 
-from src.BL.Functions import get_annual_account_filename
+from src.BL.Functions import get_summary_filename
 from src.BL.Managers.TemplateManager import TOTAL_GENERAL
 from src.GL.BusinessLayer.CsvManager import CsvManager
 from src.GL.BusinessLayer.SessionManager import Singleton as Session
@@ -50,7 +50,7 @@ class TemplateTestCase(unittest.TestCase):
             # Start PenningMaatje (without build db).
             year = 2018
             export_dir = Session().export_dir
-            filename = get_annual_account_filename(year, 12, title=template_name)
+            filename = get_summary_filename(year, 12, title=template_name)
             path = f'{export_dir}{filename}'
             pmc = PMC(export_dir, year, build=False)
             pmc.create_summary(template_name, year)

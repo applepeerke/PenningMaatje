@@ -10,7 +10,7 @@ from src.DL.DBDriver.SQLOperator import SQLOperator
 from src.DL.IO.BaseIO import BaseIO
 from src.DL.Model import FD, Model
 from src.DL.Table import Table
-from src.VL.Data.Constants.Const import LEEG, NIET_LEEG
+from src.VL.Data.Constants.Const import LEEG, NIET_LEEG, OTHER_COSTS, OTHER_REVENUES
 from src.DL.Lexicon import TRANSACTIONS
 from src.GL.BusinessLayer.ConfigManager import ConfigManager
 from src.GL.Const import EMPTY
@@ -41,6 +41,14 @@ class TransactionsIO(BaseIO, ABC):
     def total(self):
         return self._total
 
+    @property
+    def total_amount(self):
+        return self._total_amount
+
+    @property
+    def month_max(self):
+        return self._month_max
+
     def __init__(self):
         super().__init__(TABLE)
         self._comma_target = CM.get_config_item(CF_COMMA_REPRESENTATION_DB)
@@ -50,6 +58,8 @@ class TransactionsIO(BaseIO, ABC):
         self._rows = []
         self._total = self.get_total()
         self._te_dict = self._model.get_colno_per_att_name(TABLE, zero_based=False)
+        self._total_amount = 0.0
+        self._month_max = 0
 
     """
     Search
@@ -196,3 +206,58 @@ class TransactionsIO(BaseIO, ABC):
     def get_year_rows(self, year=None):
         where = None if not year else [Att(FD.Year, year)]
         return self._db.fetch(TABLE, where=where)
+
+    """
+    Summary
+    """
+    def get_realisation_data(self, account_bban, year) -> list:
+        """ @return: [type, maingroup, subgroup, amount]"""
+        self._total_amount = 0.0
+        d = {}
+        b_def = self._model.get_colno_per_att_name(Table.BookingCode, zero_based=False)
+        where = [Att(FD.Account_bban, account_bban), Att(FD.Year, year)]
+        mutations = self._db.select(TABLE, where=where)
+        for m_row in mutations:
+            self._month_max = max(self._month_max, m_row[self._te_dict[FD.Month]])
+            booking_id = m_row[self._te_dict[FD.Booking_id]]
+            if not booking_id:
+                booking_maingroup = OTHER_COSTS if m_row[self._te_dict[FD.Amount_signed]] < 0 else OTHER_REVENUES
+                booking_id = self._db.fetch_id(Table.BookingCode, where=[Att(FD.Booking_maingroup, booking_maingroup)])
+                if not booking_id:
+                    raise GeneralException(
+                        f'{PGM}: Gereserveerde boeking {booking_maingroup} is niet gevonden in tabel {Table.BookingCode}.')
+            b_row = self._db.fetch_one(Table.BookingCode, where=[Att(FD.ID, booking_id)])
+            amount = m_row[self._te_dict[FD.Amount_signed]]
+            self._total_amount += amount
+            key = (f'{b_row[b_def[FD.Booking_type]]}|'
+                   f'{b_row[b_def[FD.Booking_maingroup]]}|'
+                   f'{b_row[b_def[FD.Booking_subgroup]]}')
+            if key in d:
+                d[key] += amount
+            else:
+                d[key] = amount
+
+        return [self._add_condensed_row(key, amount) for key, amount in d.items()]
+
+    @staticmethod
+    def _add_condensed_row(key, amount):
+        cr = key.split('|')
+        cr.append(amount)
+        return cr
+
+    def get_transactions(self, account_bban, year, month_from, month_to=None, order_by=None) -> list:
+        """
+        Either for 1 month or for multiple months (e.g. quarterly).
+        Sorted on date (asc).
+        """
+        where = [Att(FD.Account_bban, account_bban), Att(FD.Year, year)]
+        if month_from == month_to or month_to is None:
+            where.extend([Att(FD.Month, month_from)])
+        else:
+            where.extend([
+                Att(FD.Month, month_from, relation=SQLOperator().GE),
+                Att(FD.Month, month_to, relation=SQLOperator().LE)
+            ])
+        rows = self._db.select(TABLE, where=where, order_by=order_by)
+        self._total_amount = sum(row[self._te_dict[FD.Amount_signed]] for row in rows)
+        return rows

@@ -27,7 +27,6 @@ IMAGES = 'images'
 RESOURCES = 'resources'
 TEMPLATES = 'templates'
 DB_EXT = '.db'
-APP_OUTPUT_DIR = 'Output'
 OUTPUT_SUBDIRS = (BACKUP, DATA, LOG, EXPORT)
 
 

@@ -2,11 +2,10 @@ from datetime import datetime
 
 from src.BL.Summary.SummaryBase import session, csvm, BCM
 from src.BL.Summary.Templates.Const import *
-from src.BL.Summary.Templates.TemplateBase import TemplateBase, VAR_NAMES_MAP
-from src.BL.Summary.Templates.TemplateField import TemplateField
+from src.BL.Summary.Templates.TemplateBase import TemplateBase
+from src.DL.DBDriver.Att import Att
 from src.DL.Lexicon import PERIODIC_ACCOUNTS, TRANSACTIONS, MONTH_DESCRIPTIONS, PERIODIC_ACCOUNT
-from src.DL.Model import Model, FD
-from src.DL.Table import Table
+from src.DL.Model import FD
 from src.GL.Const import EMPTY, BLANK, EXT_CSV
 from src.GL.Functions import toFloat
 from src.GL.GeneralException import GeneralException
@@ -36,9 +35,8 @@ class PeriodicAccount(TemplateBase):
     def closing_balance(self):
         return self._closing_balance
 
-    def __init__(self, opening_balance=0.0):
-        super().__init__(PERIODIC_ACCOUNT)
-        self._te_def = Model().get_colno_per_att_name(Table.TransactionEnriched, zero_based=False)
+    def __init__(self, account_bban, opening_balance=0.0):
+        super().__init__(account_bban, PERIODIC_ACCOUNT)
         self._condensed_row_def = {}
         self._month_from = 0
         self._month_to = 0
@@ -53,7 +51,7 @@ class PeriodicAccount(TemplateBase):
     def _initialize_year(self):
         self._opening_balance = self._opening_balance_start_of_year
 
-    def export(self, year=None, month_from=None, month_to=None):
+    def export(self, account_bban, year=None, month_from=None, month_to=None):
         """ Process all months to calculate opening/closing balance. Only print the requested ones. """
         # Opening balance is updated
         self._out_rows = []
@@ -81,7 +79,8 @@ class PeriodicAccount(TemplateBase):
         self._month_to_current = month_to
 
         # Get the transactions for the period.
-        transactions = self._transaction_io.get_transactions(self._year, month, month_to)
+        transactions = self._transactions_io.get_transactions(
+            self._account_bban, self._year, month, month_to, order_by=[[Att(FD.Date), 'ASC']])
 
         # Get the period totals.
         c_amount = self._te_def[FD.Amount_signed]
@@ -125,23 +124,14 @@ class PeriodicAccount(TemplateBase):
         else:
             raise GeneralException(f'Report title could not be established for month {month} and month_to {month_to}')
 
-    def _substitute_singular_var(self, cell) -> str:
-        """
-        Variables in the heading.
-        N.B. Cell has been validated already.
-        """
+    def _substitute_singular_var(self, cell, final=False) -> str:
+        var = super()._substitute_singular_var(cell)
+        if var:
+            return var
         if not cell:
             return EMPTY
-        if cell.startswith('"'):
-            return cell[1:-1]
-
         var = cell[1:-1]  # Remove {}
-
-        if var == YEAR:
-            return str(self._year)
-        elif var == YEAR_PREVIOUS:
-            return str(self._year - 1)
-        elif var in (MONTH, MONTH_FROM):
+        if var in (MONTH, MONTH_FROM):
             if self._month_to_current is None:
                 return MONTH_DESCRIPTIONS.get(self._month_from_current)
             else:
@@ -157,57 +147,8 @@ class PeriodicAccount(TemplateBase):
             return str(self._format_amount(self._total_revenues))
         elif var == TOTAL_COSTS:
             return str(self._format_amount(self._total_costs))
-        elif var in VAR_SINGULAR_DESC:
-            return VAR_SINGULAR_DESC[var]
         else:
             return f'{cell} (*UNSUPPORTED*)'
-
-    def _analyze_template(self):
-        """ Precondition: file syntax has been validated. Variables are in UC. """
-        self._out_rows = []
-        self._r = -1
-        self._c = 0
-        self._out_row_ignored = False
-
-        for row in self._template_rows:
-            self._r += 1
-
-            # a. Output Blank row (only if output has not been ignored, e.g. do not print blank lines between totals)
-            if all(cell == EMPTY for cell in row):
-                if not self._out_row_ignored:
-                    self._out_rows.append(row)
-                continue
-
-            # b. Output Comments = Row with only texts (Title row)
-            if all((cell == EMPTY or cell.startswith('"')) for cell in row):
-                self._out_rows.append([self._substitute_vars_in_text(cell) for cell in row])
-                self._out_row_ignored = False
-
-            # c. Output Column headings = Row with only Singular variables
-            elif all((cell[1:-1] in VAR_NAMES_HEADER) for cell in row if (cell != EMPTY and not cell.startswith('"'))):
-                self._out_rows.append([self._substitute_singular_var(cell) for cell in row])
-                self._out_row_ignored = False
-
-            # d. List Columns = Row with only Plural vars
-            # Remember row (=column headers and positions). Level break = when blank line or totals
-            elif all((cell[1:-1] in VAR_NAMES_DETAIL) for cell in row if (cell != EMPTY and not cell.startswith('"'))):
-                [self._add_column_field(row[c], c) for c in range(len(row))]
-                self._out_row_ignored = True
-            else:
-                raise GeneralException(
-                    f'Fout in regel {self._r}: Gemengde meervoudige en enkelvoudige variabelen in een regel '
-                    f'worden niet ondersteund.')
-
-        # Map column fields with model definition
-        [self._map_var_name(F) for F in self._column_fields.values()]
-
-    def _map_var_name(self, F) -> TemplateField:
-        F.model_var_name = VAR_NAMES_MAP.get(F.template_var_name)
-        if not F.model_var_name:
-            raise GeneralException(
-                f'Fout in regel {self._r}: Variabele "{F.model_var_name}" wordt niet ondersteund. '
-                f'De variable kon niet gemapped worden met een model variable.')
-        return F
 
     """
     Construction
@@ -264,7 +205,7 @@ class PeriodicAccount(TemplateBase):
             return self._split_costs_revenues(value, template_var_name)
         elif template_var_name == DESCRIPTIONS:
             desc = self._get_comments_part(value, 'OMSCHRIJVING')
-            if len(desc) < 10:
+            if len(desc) < 10 or all(c in DIGITS_PLUS for c in desc):
                 name = self._get_comments_part(value, 'NAAM')
                 desc = f'{name} {desc}' if desc else name
             if len(desc) < 10:

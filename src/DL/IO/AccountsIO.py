@@ -33,18 +33,18 @@ class AccountsIO(BaseIO):
             return
         bban, iban = self.get_bban_iban_from_account_number(value)
         if bban and iban:
-            self._accounts_dict[bban] = iban
+            self._accounts_dict[bban] = Account(bban, iban)
 
     def persist_accounts(self):
-        [self.insert(Account(bban, iban)) for bban, iban in self._accounts_dict.items()]
+        [self.insert(Account(bban, o.iban, o.description)) for bban, o in self._accounts_dict.items()]
 
     def get_current_iban(self, current_iban) -> str:
         iban = current_iban
-        self._accounts_dict = {o.bban: o.iban for o in self._get_objects()}
+        self._accounts_dict = {o.bban: o for o in self._get_objects()}
 
         # If iban in config does not exist in the new iban list, return the first one (or empty)
-        if not any(iban == current_iban for iban in self._accounts_dict.values()):
-            iban = list(self._accounts_dict.values())[0] if self._accounts_dict else EMPTY
+        if not any(o.iban == current_iban for o in self._accounts_dict.values()):
+            iban = list(self._accounts_dict.values())[0].iban if self._accounts_dict else EMPTY
         return iban
 
     def _get_objects(self) -> list:
@@ -62,8 +62,9 @@ class AccountsIO(BaseIO):
         # Convert account number to bban
         bban = account_number if account_number[0].isdigit() else get_BBAN_from_IBAN(account_number)
         # Check: bban can not have different ibans
-        iban_cached = self._accounts_dict.get(bban, EMPTY)
-        iban = account_number if not account_number[0].isdigit() else self._accounts_dict.get(bban, EMPTY)
+        account = self._accounts_dict.get(bban)
+        iban_cached = account.iban if account else None
+        iban = account_number if not account_number[0].isdigit() else iban_cached
         if iban_cached and iban != iban_cached:
             raise GeneralException(
                 f'{PGM}: IBAN {iban} van rekening {value} verschilt van eerder gevonden '
@@ -73,6 +74,7 @@ class AccountsIO(BaseIO):
     @staticmethod
     def _row_to_obj(row) -> Account:
         return Account(
-                bban=row[d[FD.Bban]],
-                iban=row[d[FD.Iban]]
-            )
+            bban=row[d[FD.Bban]],
+            iban=row[d[FD.Iban]],
+            description=row[d[FD.Description]]
+        )

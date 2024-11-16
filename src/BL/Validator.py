@@ -14,7 +14,7 @@ from src.DL.Report import *
 from src.DL.Lexicon import TRANSACTION, TRANSACTIONS, CSV_FILE, INPUT_DIR, OUTPUT_DIR
 from src.GL.BusinessLayer.ConfigManager import ConfigManager, get_label
 from src.GL.BusinessLayer.CsvManager import CsvManager
-from src.GL.BusinessLayer.SessionManager import APP_OUTPUT_DIR, OUTPUT_SUBDIRS
+from src.GL.BusinessLayer.SessionManager import OUTPUT_SUBDIRS
 from src.GL.Const import APP_NAME
 from src.GL.Enums import MessageSeverity as Sev, ResultCode
 from src.GL.Result import Result
@@ -39,7 +39,7 @@ class Validator:
         Input folder requested:
         - Only valid bank transaction files may exist in the bank transactions folder (CF_INPUT_DIR).
         Output folder requested:
-        - No bank transaction files may exist in the output folder (CF_OUTPUT_DIR).
+        - No data may exist in the output folder (CF_OUTPUT_DIR).
         - Output folder must not be equal to the input folder.
         dirname: Only for "create demo" purpose
         """
@@ -102,10 +102,10 @@ class Validator:
                     problem = f'Probleem:\nGeen geldige {TRANSACTIONS} gevonden in\n"{dirname}"'
                 elif self._transaction_files and len(csv_files) != len(self._transaction_files):
                     problem = f'Probleem:\nEr zijn andere bestanden dan {TRANSACTIONS} in de folder gevonden.'
-            elif cf_code == CF_OUTPUT_DIR and csv_files:
-                problem = f'Probleem:\nEr zijn {CSV_FILE}en in de folder gevonden.\n' \
-                          f'Dit zou een mogelijke {INPUT_DIR} kunnen zijn.'
-                solution = f'Kies een folder die geen {CSV_FILE}en bevat.\n'
+
+            elif cf_code == CF_OUTPUT_DIR and listdir(dirname) and not self.is_valid_existing_output_dir(dirname):
+                problem = f'Probleem:\nEr zijn gegevens in de folder gevonden.\n'
+                solution = f'Kies een folder die leeg is of een al bestaande {APP_NAME} uitvoer folder.\n'
 
         # Success`
         if not problem:
@@ -122,28 +122,23 @@ class Validator:
         return result
 
     @staticmethod
-    def is_update_output_dir(from_dir, to_dir) -> bool:
-        if not from_dir or from_dir == to_dir:
-            return False
-        subdirs = [os.path.basename(p) for p in listdir(to_dir)]
-        return OUTPUT_SUBDIRS and all([dirname in subdirs for dirname in OUTPUT_SUBDIRS])
+    def is_valid_existing_output_dir(dirname) -> bool:
+        """ Output dir must contain only the supported subdirs """
+        base_names = [os.path.basename(p) for p in listdir(dirname)]
+        return (OUTPUT_SUBDIRS
+                and all([dirname in base_names for dirname in OUTPUT_SUBDIRS])
+                and all([base_name in OUTPUT_SUBDIRS for base_name in base_names if not base_name.startswith('.')]))
 
     @staticmethod
-    def validate_move_output_dir(from_dir, to_dir) -> Result:
+    def validate_move_output_subdirs(from_dir, to_dir) -> Result:
         from src.VL.Views.PopUps.PopUp import PopUp
         # Validate
         box_text = f'{OUTPUT_DIR} wijzigen is niet mogelijk.\n\nReden:\n'
-        cancel_reason = None
-        prefix = f'Subfolder "{APP_OUTPUT_DIR}" moet hierbij verplaatst worden\n'\
+        prefix = f'De uitvoer subfolders moeten hierbij verplaatst worden\n'\
                  f'  van  "{from_dir}"\n  naar "{to_dir}".\n\n'
-        path_parts = to_dir.split(f'{slash()}')
         if to_dir.startswith(from_dir) or from_dir.startswith(to_dir):
-            cancel_reason = f'{prefix}Verplaatsen is niet mogelijk binnen het eigen folder pad.'
-        elif APP_OUTPUT_DIR in path_parts:
-            cancel_reason = f'{prefix}Folder "{APP_OUTPUT_DIR}" bestaat echter al in "{to_dir}".'
-
-        if cancel_reason:
-            return Result(ResultCode.Canceled, text=f'{box_text}{cancel_reason}')
+            return Result(ResultCode.Canceled,
+                          text=f'{box_text}{prefix}Verplaatsen is niet mogelijk binnen het eigen folder pad.')
 
         # Dialog
         if not PopUp().confirm(
@@ -151,7 +146,7 @@ class Validator:
                 title=f'{OUTPUT_DIR} wijzigen',
                 text=f'De {OUTPUT_DIR} zal worden gewijzigd\n'
                      f'  van:  "{from_dir}"\n  naar: "{to_dir}".\n\n'
-                     f'De {APP_NAME} gegevens (in subfolder "{APP_OUTPUT_DIR}") zullen naar de nieuwe {OUTPUT_DIR} '
+                     f'De {APP_NAME} subfolders zullen naar de nieuwe {OUTPUT_DIR} '
                      f'verplaatst worden.\n'):
             return Result(ResultCode.Canceled)
         return Result()

@@ -12,7 +12,7 @@ from src.GL.Functions import toFloat
 from src.GL.GeneralException import GeneralException
 from src.GL.Result import Result
 from src.GL.Validate import isInt
-from src.DL.Lexicon import ANNUAL_ACCOUNT, ANNUAL_BUDGET, REALISATION, BUDGET, BOOKING_CODE
+from src.DL.Lexicon import TEMPLATE_ANNUAL_ACCOUNT, ANNUAL_BUDGET, REALISATION, BUDGET, BOOKING_CODE
 
 PGM = 'AnnualAccountIO'
 
@@ -171,12 +171,12 @@ class AnnualAccountIO(BaseIO):
         col_count = len(self._amount_columns)
         if col_count < 2 or col_count > 4:
             raise GeneralException(
-                f'{PGM}: Er is een onjuist ({col_count}) aantal bedrag-kolommen in de aangeleverde {ANNUAL_ACCOUNT}. '
+                f'{PGM}: Er is een onjuist ({col_count}) aantal bedrag-kolommen in de aangeleverde {TEMPLATE_ANNUAL_ACCOUNT}. '
                 f'Het moeten er 2 of 3 zijn (realisatie, begroting dit/vorig jaar).')
 
         if col_count < 3:
             self._result.add_message(
-                f'{PGM}: Er zijn {col_count} bedrag-kolommen aanwezig in de aangeleverde {ANNUAL_ACCOUNT}.\n'
+                f'{PGM}: Er zijn {col_count} bedrag-kolommen aanwezig in de aangeleverde {TEMPLATE_ANNUAL_ACCOUNT}.\n'
                 f'De tweede ("{self._amount_columns[1]["title"]})" wordt voor de {ANNUAL_BUDGET} gebruikt.',
                 MessageSeverity.Warning)
 

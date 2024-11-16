@@ -12,6 +12,7 @@ from src.VL.Data.Constants.Enums import Pane
 from src.DL.Lexicon import TRANSACTIONS, CMD_IMPORT_TE
 from src.VL.Models.BaseModel import model, CM, DD
 from src.VL.Models.BaseModelTable import BaseModelTable
+from src.VL.Models.Panes.Accounts import Accounts
 from src.VL.Models.Panes.Log import Log
 from src.VL.Models.Panes.Months import Months
 from src.VL.Models.Panes.TransactionsEnriched import TransactionsEnriched
@@ -62,6 +63,7 @@ class MainModel(BaseModelTable):
         self._search_mode = False
 
         self._models = {
+            Pane.AC: Accounts(),
             Pane.YS: Years(),
             Pane.MS: Months(),
             Pane.TE: TransactionsEnriched(),

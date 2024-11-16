@@ -1,11 +1,11 @@
 from datetime import datetime
 
-from src.BL.Functions import get_annual_account_filename
+from src.BL.Functions import get_summary_filename
 from src.BL.Summary.SummaryBase import BCM, session, csvm
 from src.BL.Summary.Templates.Const import *
 from src.BL.Summary.Templates.TemplateBase import TemplateBase, get_total_label
 from src.DL.IO.AnnualAccountIO import AnnualAccountIO
-from src.DL.Lexicon import ANNUAL_ACCOUNT, TRANSACTIONS, REALISATION
+from src.DL.Lexicon import TEMPLATE_ANNUAL_ACCOUNT, TRANSACTIONS, REALISATION, ACCOUNT_NUMBER
 from src.GL.Const import EMPTY
 from src.GL.GeneralException import GeneralException
 from src.GL.Result import Result
@@ -34,8 +34,8 @@ EXAMPLE:
 
 
 class AnnualAccount(TemplateBase):
-    def __init__(self):
-        super().__init__(ANNUAL_ACCOUNT)
+    def __init__(self, account_bban):
+        super().__init__(account_bban, TEMPLATE_ANNUAL_ACCOUNT)
         self._total_amounts = {}  # amounts per level
         self._level_no = {}
         self._first = True
@@ -45,7 +45,7 @@ class AnnualAccount(TemplateBase):
         self._annual_budgets = {}
         self._budget_years = 0
 
-    def export(self, year=None, month_from=None, month_to=None) -> Result:
+    def export(self, account_bban, year=None, month_from=None, month_to=None) -> Result:
         self._year = int(year) if year else int(datetime.now().year)
 
         # Process output template
@@ -54,67 +54,18 @@ class AnnualAccount(TemplateBase):
         # Merge generated realisation from db with annual budgets from 'Jaarrekening.csv'
         sorted_bookings = self._get_merged_bookings()
 
-        # Output naar CSV.
         # Filename example: "Jaarrekening (templateX) 2024 tm maand 4.csv"
-        filename = get_annual_account_filename(self._year, self._transaction_io.month_max, title=self._template_name)
+        filename = get_summary_filename(self._year, self._transactions_io.month_max, title=self._template_name)
         self._out_path = f'{session.export_dir}{filename}'
+
+        # Output naar CSV.
         self._construct(sorted_bookings)
-        return Result(text=f'De {ANNUAL_ACCOUNT} van {self._year} is geëxporteerd naar "{self._out_path}"') \
+
+        return Result(text=f'De {TEMPLATE_ANNUAL_ACCOUNT} van {self._year} is geëxporteerd naar "{self._out_path}"') \
             if self._result.OK else self._result
 
-    def _substitute_singular_var(self, cell) -> str:
-        """ N.B. Cell has been validated already. """
-        if not cell:
-            return EMPTY
-        var = cell[1:-1]  # Remove {}
-        if var == YEAR:
-            return str(self._year)
-        elif var == YEAR_PREVIOUS:
-            return str(self._year - 1)
-        elif var in VAR_SINGULAR_DESC:
-            return VAR_SINGULAR_DESC[var]
-        else:
-            return f'{cell} (*UNSUPPORTED*)'
-
-    def _analyze_template(self):
-        """ Precondition: file syntax has been validated. Variables are in UC. """
-        self._r = -1
-        self._c = 0
-        self._out_row_ignored = False
-
-        for row in self._template_rows:
-            self._r += 1
-
-            # a. Blank row (only if output has not been ignored for now, e.g. do not print blank lines between totals)
-            if all(cell == EMPTY for cell in row):
-                if not self._out_row_ignored:
-                    self._out_rows.append(row)
-                continue
-
-            # b. Title row
-            if all((cell == EMPTY or cell.startswith('"')) for cell in row):
-                self._out_rows.append([self._substitute_vars_in_text(cell) for cell in row])
-                self._out_row_ignored = False
-
-            # c. Ignore totals
-            elif all(TOTAL in (cell[1:-1]) for cell in row if cell != EMPTY):
-                self._out_row_ignored = True
-
-            # d. List column headings = Row with only singular variables
-            elif all((cell[1:-1] in VAR_NAMES_HEADER) for cell in row if (cell != EMPTY and not cell.startswith('"'))):
-                self._out_rows.append([self._substitute_singular_var(cell) for cell in row])
-                self._out_row_ignored = False
-
-            # e. List rows = Row with only plural vars (columns)
-            # Remember row (=column header). Level break = when blank line or totals
-            elif all((cell[1:-1] in VAR_NAMES_DETAIL) for cell in row if (cell != EMPTY and not cell.startswith('"'))):
-                [self._add_column_field(row[c], c) for c in range(len(row))]
-                self._out_row_ignored = True
-            else:
-                raise GeneralException(
-                    f'Fout in regel {self._r}: Gemengde meervoudige en enkelvoudige variabelen in een regel '
-                    f'worden niet ondersteund.')
-
+    def _substitute_singular_var(self, cell, final=False) -> str:
+        return super()._substitute_singular_var(cell, final=True)
 
     """
     Construction
@@ -122,12 +73,12 @@ class AnnualAccount(TemplateBase):
 
     def _get_merged_bookings(self) -> list:
         """ Add budget booking columns to realisation """
-        realisation_rows = self._transaction_io.get_realisation_data(self._year)
+        realisation_rows = self._transactions_io.get_realisation_data(self._account_bban, self._year)
         if not realisation_rows:
             return []
 
         total_amount = sum(row[3] for row in realisation_rows)
-        self._x_check(self._transaction_io.total_amount, total_amount, 'Ophalen Realisatie data')
+        self._x_check(self._transactions_io.total_amount, total_amount, 'Ophalen Realisatie data')
 
         budget_rows = self._annual_account_io.get_annual_budget_data(self._year - 1)
         self._budget_years = max(len(budget_rows[0]) - self._c_first_amount, 0) if budget_rows else 0
@@ -155,7 +106,7 @@ class AnnualAccount(TemplateBase):
 
         # X-check
         total_amount = sum(row[3] for row in sorted_bookings)
-        self._x_check(self._transaction_io.total_amount, total_amount, 'Merge Realisatie en Budget')
+        self._x_check(self._transactions_io.total_amount, total_amount, 'Merge Realisatie en Budget')
 
         return sorted_bookings
 
@@ -180,7 +131,7 @@ class AnnualAccount(TemplateBase):
         if not sorted_bookings:
             raise GeneralException(
                 f'{PGM}: Er is niets te doen. Er zijn geen transacties in de database gevonden '
-                f'(voor jaar {self._year}).')
+                f'(voor {ACCOUNT_NUMBER} {self._account_bban} en {YEAR} {self._year}).')
 
         col_count = len(sorted_bookings[0])
         if col_count != len(self._column_fields):
@@ -226,7 +177,7 @@ class AnnualAccount(TemplateBase):
         # Check-check-double-check
         if self._total_amounts[GENERAL]:
             total_general = round(self._total_amounts[GENERAL][0], 2)
-            self._x_check(self._transaction_io.total_amount, total_general, 'Export naar CSV')
+            self._x_check(self._transactions_io.total_amount, total_general, 'Export naar CSV')
 
     @staticmethod
     def _x_check(total_amount_db, total_amount_processed, step_name=None):
@@ -308,23 +259,7 @@ class AnnualAccount(TemplateBase):
                 self._format_and_add_total_row(level_name, total_label)
 
     def _format_and_add_total_row(self, level_name, total_label=EMPTY):
-        """ Also add optional empty columns """
-        var_name = get_total_label(level_name)
-        values = self._total_amounts[level_name]
-
-        if var_name in self._template_var_names:
-
-            # Output empty columns
-            [self._output_cell(EMPTY) for _ in range(self._r_c[AMOUNTS][1] - 1)]
-
-            # Output total label
-            self._output_cell(TOTAL_GENERAL.title() if level_name == GENERAL else total_label.title())
-
-            # Format and output the total values
-            [self._output_cell(self._format_amount(values[i])) for i in range(len(values))]
-
-            # Output the total row
-            self._add_row(var_name)
+        super()._format_and_add_total_row(level_name, total_label)
 
         # Initialize totals (real., budget, ...)
         level_no = self._level_no[level_name]
