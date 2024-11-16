@@ -1,9 +1,9 @@
-﻿;"""Bankrekening wijkgemeente Leiden Zuidwest""";;;;
-;;{maand};;;{jaar}
+﻿"""Bankrekening {rekening omschrijving}""";;;;;
+;{maand};;;;{jaar}
 ;;;;;
-;"""datum""";"""Omschrijving""";"""inkomsten""";"""uitgaven""";"""Grootboek"""
-;;"""Beginsaldo""";{beginsaldo};;
-;;"""Eindsaldo""";{eindsaldo};;
-; ;"""totaal inkomsten\uitgaven""";{totaal inkomsten};{totaal uitgaven};
+"""datum""";"""Omschrijving""";"""inkomsten""";"""uitgaven""";"""Boeking code""";"""Omschrijving"""
+;"""Beginsaldo""";{beginsaldo};;;
+;"""Eindsaldo""";{eindsaldo};;;
+ ;"""totaal inkomsten\uitgaven""";{totaal inkomsten};{totaal uitgaven};;
 ;;;;;
-;{datums};{Omschrijvingen};{inkomsten};{uitgaven};{Boeking omschrijvingen}
+{datums};{Omschrijvingen};{inkomsten};{uitgaven};{Boeking codes};{Boeking omschrijvingen}

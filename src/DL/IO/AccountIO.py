@@ -5,7 +5,7 @@ from src.DL.IO.BaseIO import BaseIO
 from src.DL.Model import FD, Model
 from src.DL.Objects.Account import Account
 from src.DL.Table import Table
-from src.GL.Const import EMPTY
+from src.GL.Const import EMPTY, UNDEFINED
 from src.GL.GeneralException import GeneralException
 
 PGM = 'AccountIO'
@@ -13,7 +13,7 @@ TABLE = Table.Account
 d = Model().get_colno_per_att_name(TABLE, zero_based=False)
 
 
-class AccountsIO(BaseIO):
+class AccountIO(BaseIO):
 
     @property
     def objects(self):
@@ -47,9 +47,23 @@ class AccountsIO(BaseIO):
             iban = list(self._accounts_dict.values())[0].iban if self._accounts_dict else EMPTY
         return iban
 
+    def get_description(self, bban=None, dft=UNDEFINED) -> str:
+        self._accounts_dict = {o.bban: o for o in self._get_objects()}
+        # bban specified
+        if bban:
+            o = self._accounts_dict.get(bban)
+            return o.description if o else dft
+        # If only 1 account, return that description
+        elif len(self._accounts_dict) == 1:
+            for obj in self._accounts_dict.values():
+                return obj.description
+        # Multiple accounts: undefined.
+        else:
+            return dft
+
     def _get_objects(self) -> list:
         rows = self._session.db.select(TABLE, mode=FetchMode.WholeTable)
-        self._objects = [self._row_to_obj(row) for row in rows]
+        self._objects = [self.row_to_obj(row) for row in rows]
         return self._objects
 
     def get_ibans(self) -> list:
@@ -72,7 +86,7 @@ class AccountsIO(BaseIO):
         return bban, iban
 
     @staticmethod
-    def _row_to_obj(row) -> Account:
+    def row_to_obj(row) -> Account:
         return Account(
             bban=row[d[FD.Bban]],
             iban=row[d[FD.Iban]],

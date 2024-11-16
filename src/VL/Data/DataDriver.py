@@ -6,7 +6,7 @@ from os import listdir
 from src.DL.Config import CF_BACKUP_RETENTION_MONTHS, LEEG, TABLE_PROPERTIES, FILE_NAME, NIET_LEEG
 from src.DL.DBDriver.Att import Att
 from src.DL.DBInitialize import DBInitialize
-from src.DL.IO.AccountsIO import AccountsIO
+from src.DL.IO.AccountIO import AccountIO
 from src.DL.Model import Model, FD, ID
 from src.DL.Table import Table
 from src.DL.UserCsvFiles.Cache.BookingCodeCache import Singleton as BookingCodeCache
@@ -72,7 +72,7 @@ class Singleton:
         def initialize_combos(self):
             if not self._db_started:
                 return
-            self._combos[FD.Iban] = AccountsIO().get_ibans()
+            self._combos[FD.Iban] = AccountIO().get_ibans()
             # From flat files
             self._set_combo_items(FD.Year)
             self._set_combo_items(FD.Month)

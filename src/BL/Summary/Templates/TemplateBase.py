@@ -4,6 +4,7 @@ from src.BL.Summary.SummaryBase import SummaryBase, session, csvm
 from src.BL.Summary.Templates.Const import *
 from src.BL.Summary.Templates.TemplateField import TemplateField
 from src.DL.Config import CF_COMMA_REPRESENTATION_DISPLAY
+from src.DL.IO.AccountIO import AccountIO
 from src.DL.IO.TransactionsIO import TransactionsIO
 from src.DL.Lexicon import CSV_FILE
 from src.DL.Model import FD, Model
@@ -56,6 +57,7 @@ class TemplateBase(SummaryBase):
 
         self._te_def = Model().get_colno_per_att_name(Table.TransactionEnriched, zero_based=False)
         self._transactions_io = TransactionsIO()
+        self._accounts_io = AccountIO()
         self._template_var_names = set()
         self._column_fields = {}
         self._year = 0
@@ -155,7 +157,8 @@ class TemplateBase(SummaryBase):
                 continue
             # New var_name
             if var_name_uc not in (VAR_NAMES_HEADER + VAR_NAMES_DETAIL + VAR_NAMES_DETAIL_TOTAL):
-                self._add_error(f'{self._get_prefix()}Variabele "{var_name}" wordt niet ondersteund.')
+                self._add_error(f'{self._get_prefix()}Variabele "{var_name}" wordt niet ondersteund.'
+                                f'{self._get_supported_var_names()}')
             if cell.startswith('"') and var_name_uc not in VAR_NAMES_HEADER:
                 self._add_error(
                     f'{self._get_prefix()}Kolom variabele "{var_name}" wordt niet ondersteund in een tekst.')
@@ -177,6 +180,15 @@ class TemplateBase(SummaryBase):
         self._column_fields[self._c] = TemplateField(cell[1:-1], column=column)
         self._c += 1
 
+    @staticmethod
+    def _get_supported_var_names():
+        header_names = ', '.join(["{" + x.title() + "}" for x in VAR_NAMES_HEADER])
+        detail_names = ', '.join(["{" + x.title() + "}" for x in VAR_NAMES_DETAIL])
+        total_names = ', '.join(["{" + x.title() + "}" for x in VAR_NAMES_DETAIL_TOTAL])
+        return (f'\n\nDe ondersteunde variabelen zijn:\n\n'
+                f'Voor in de kop:\n{header_names}.\n'
+                f'Als kolom kop:\n{detail_names}.\n'
+                f'Als totaal:\n{total_names}.\n\n')
     """
     Definition
     """
@@ -245,14 +257,23 @@ class TemplateBase(SummaryBase):
             return EMPTY
         cell = cell[1:-1]  # Remove apostrophes
         s = cell.find('{')
-        if s > -1:
-            count = 0
-            while count < 100 and cell.find('{', s) > -1:
-                count += 1
-                e = cell.find('}', s)
-                cell = self._substitute_var_in_text(cell, s, e + 1)
-                s = s + 1
-        return cell
+        if s == -1:
+            return cell
+        cell_out = []
+        var_mode = False
+        for i in range(len(cell)):
+            if cell[i] == '{':
+                var_mode = True
+                s = i
+            elif cell[i] == '}':
+                var_mode = False
+                e = i
+                var = self._substitute_singular_var(cell[s:e + 1].upper())
+                for j in range(len(var)):
+                    cell_out.append(var[j])
+            elif not var_mode:
+                cell_out.append(cell[i])
+        return EMPTY.join(cell_out)
 
     def _substitute_singular_var(self, cell, final=False) -> str:
         """ N.B. Cell has been validated already. """
@@ -263,6 +284,8 @@ class TemplateBase(SummaryBase):
             return str(self._year)
         elif var == YEAR_PREVIOUS:
             return str(self._year - 1)
+        elif var == ACCOUNT_DESCRIPTION:
+            return self._accounts_io.get_description()
         elif var in VAR_SINGULAR_DESC:
             return VAR_SINGULAR_DESC[var]
         else:
@@ -299,12 +322,6 @@ class TemplateBase(SummaryBase):
         # Blank line after
         if var_name and var_name.startswith(TOTAL):
             self._add_empty_rows(1)
-
-    def _substitute_var_in_text(self, cell, s, e) -> str:
-        var = cell[s + 1:e - 1].upper()
-        if var == YEAR:
-            cell = f'{cell[:s]}{self._year}{cell[e:]}'
-        return cell
 
     def _format_and_add_total_row(self, level_name, total_label=EMPTY):
         """ Also add optional empty columns """

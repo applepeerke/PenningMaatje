@@ -21,12 +21,12 @@ class ConfigWindow(BaseWindow):
     def model(self):
         return self._model
 
-    def __init__(self):
+    def __init__(self, account_model):
         """ TransActionIO is a plugin """
         super().__init__('ConfigWindow', 'ConfiguratieScherm', WindowType.Detail_with_statusbar)
         self._do_import = False
         # MVC
-        self._model = ConfigModel()
+        self._model = ConfigModel(account_model)
         self._view = ConfigView(self._model)
         self._controller = ConfigController(self._model)
 

@@ -13,11 +13,13 @@ from os import listdir
 from src.DL.Config import CF_IMPORT_PATH_BOOKINGS, CF_IMPORT_PATH, TABLE_PROPERTIES, FILE_NAME
 from src.DL.DBDriver.AttType import AttType
 from src.DL.DBDriver.Audit import Program_mutation
+from src.DL.IO.AccountIO import AccountIO
 from src.DL.IO.AnnualAccountIO import AnnualAccountIO
 from src.DL.IO.BookingIO import BookingIO
 from src.DL.IO.CounterAccountIO import CounterAccountIO
 from src.DL.IO.OpeningBalanceIO import OpeningBalanceIO
 from src.DL.IO.SearchTermIO import SearchTermIO
+from src.DL.Objects.Account import Account
 from src.DL.Objects.Booking import Booking
 from src.DL.Objects.CounterAccount import CounterAccount
 from src.DL.Objects.OpeningBalance import OpeningBalance
@@ -82,6 +84,7 @@ class UserCsvFileManager(object):
         self._index = 0
 
         # IO
+        self._account_io = AccountIO()
         self._counter_account_io = CounterAccountIO()
         self._booking_io = BookingIO()
         self._search_term_io = SearchTermIO()
@@ -91,6 +94,7 @@ class UserCsvFileManager(object):
     def validate_resource_files(self, full_check=False) -> Result:
         """
         Validate resource .csv files.
+            "Rekeningen.csv",
             "Boekingscodes.csv",
             "Tegenrekeningen.csv",
             "Zoektermen.csv",
@@ -335,6 +339,7 @@ class UserCsvFileManager(object):
         """
         Import the user definition files 1:1 to the database (only if they exist).
         Not UserMutations.csv! This is only loaded in UserMutationsCache.
+        - Accounts,
         - BookingCodes,
         - CounterAccounts,
         - Search terms
@@ -376,7 +381,15 @@ class UserCsvFileManager(object):
             for row in rows[1:]:
                 try:
                     d = dict(zip(map(lambda x: x.title(), header), row))
-                    if table_name == Table.CounterAccount:
+                    if table_name == Table.Account:
+                        self._account_io.insert(
+                            Account(
+                                bban=d[FD.Bban.title()],
+                                iban=d[FD.Iban.title()],
+                                description=d[FD.Description.title()]
+                            )
+                        )
+                    elif table_name == Table.CounterAccount:
                         self._counter_account_io.insert(
                             CounterAccount(
                                 counter_account_number=d[FD.Counter_account_number.title()],

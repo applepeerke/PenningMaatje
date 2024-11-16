@@ -1,4 +1,4 @@
-﻿"""Realisatie {jaar} {rekening naam}""";;;;;
+﻿"""Realisatie {jaar} {rekening omschrijving}""";;;;;
 ;;;"""Realisatie""";"""Begroting""";"""Begroting"""
 ;;;{jaar};{vorig jaar};{jaar}
 ;;;;;

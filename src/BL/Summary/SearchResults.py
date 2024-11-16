@@ -48,7 +48,7 @@ class SearchResults(SummaryBase):
         if not self._session.CLI_mode:
             from src.VL.Views.PopUps.Input import Input
             file_name = Input((200, 200)).get_input(
-                label='Naam bestand', title='Specificeer',
+                label='Naam bestand',
                 dft=file_name,
                 unit_test=self._session.unit_test
             )

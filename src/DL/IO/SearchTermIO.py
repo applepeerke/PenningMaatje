@@ -30,7 +30,7 @@ class SearchTermIO(BaseIO):
             f'kon niet worden {action}')
 
     @staticmethod
-    def _row_to_obj(row) -> SearchTerm:
+    def row_to_obj(row) -> SearchTerm:
         return SearchTerm(
             search_term=row[d[FD.SearchTerm]],
             booking_code=row[d[FD.Booking_code]]

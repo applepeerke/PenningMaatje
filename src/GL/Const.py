@@ -30,6 +30,7 @@ QUIT = 'q'
 Y = 'y'
 YES = 'Ja'
 UNKNOWN = '*UNKNOWN'
+UNDEFINED = '*UNDEFINED'
 COMMA_SOURCE = ','
 COMMA_DB = '.'
 

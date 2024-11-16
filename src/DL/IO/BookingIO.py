@@ -30,7 +30,7 @@ class BookingIO(BaseIO):
         self._transaction_count = 0
 
     @staticmethod
-    def _row_to_obj(row) -> Booking:
+    def row_to_obj(row) -> Booking:
         return Booking(
             booking_type=row[d[FD.Booking_type]],
             booking_maingroup=row[d[FD.Booking_maingroup]],

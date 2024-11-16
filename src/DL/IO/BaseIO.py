@@ -84,7 +84,7 @@ class BaseIO:
         if not row or isinstance(row[0], list):
             return -1
         # Has something changed?
-        obj_prv = self._row_to_obj(row)
+        obj_prv = self.row_to_obj(row)
         if any(str(att.value) != str(obj_prv.attributes[att.name].value) for att in obj.attributes.values()):
             return row[0]
         return 0
@@ -116,17 +116,17 @@ class BaseIO:
 
     def fetch(self, where):
         row = self._db.fetch_one(self._table_name, where=where)
-        return self._row_to_obj(row)
+        return self.row_to_obj(row)
 
     def count(self, where=None) -> int:
         return self._db.count(self._table_name, where=where)
 
     def select(self, where=None):
         rows = self._db.select(self._table_name, where=where)
-        return [self._row_to_obj(row) for row in rows]
+        return [self.row_to_obj(row) for row in rows]
 
     def id_to_obj(self, Id=0):
-        return self._row_to_obj(self._id_to_row(Id))
+        return self.row_to_obj(self._id_to_row(Id))
 
     def _id_to_row(self, Id=0) -> list:
         return self._db.fetch_one(table_name=self._table_name, where=[Att(FD.ID, value=Id)])
@@ -189,7 +189,7 @@ class BaseIO:
             f'Gegevens zijn {text}.', severity=MessageSeverity.Completion, log_message=False)
 
     @staticmethod
-    def _row_to_obj(row):
+    def row_to_obj(row):
         raise NotImplementedError(f'{PGM}: Method "_row_to_obj" is not implemented.')
 
     def _obj_to_row(self, mode: Mutation, obj) -> list:

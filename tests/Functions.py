@@ -4,7 +4,8 @@ from PenningMaatje import get_root_dir
 from src.BL.Managers.ImportManager import ImportManager
 from src.DL.Config import CF_IMPORT_PATH_BOOKINGS, CF_IMPORT_PATH_COUNTER_ACCOUNTS, \
     CF_IMPORT_PATH_SEARCH_TERMS, CF_INPUT_DIR, CF_OUTPUT_DIR, \
-    COUNTER_ACCOUNTS_CSV, BOOKING_CODES_CSV, SEARCH_TERMS_CSV
+    COUNTER_ACCOUNTS_CSV, BOOKING_CODES_CSV, SEARCH_TERMS_CSV, CF_IMPORT_PATH_ACCOUNTS, ACCOUNTS_CSV, \
+    OPENING_BALANCE_CSV, CF_IMPORT_PATH_OPENING_BALANCE
 from src.DL.DBInitialize import DBInitialize
 from src.VL.Controllers.MainController import MainController
 from src.VL.Models.MainModel import MainModel
@@ -116,14 +117,17 @@ def _create_config_from_session(session, input_dir):
     CM.set_config_item(CF_OUTPUT_DIR, session.output_dir)
     # Input
     CM.start_config(persist=True)
-    # Category files
+    # Csv files
     if not input_dir:
         input_dir = get_input_sub_dir('Bankafschriften')
     CM.set_config_item(CF_INPUT_DIR, input_dir)
+
     resources_dir = session.resources_dir
+    CM.set_config_item(CF_IMPORT_PATH_ACCOUNTS, f'{resources_dir}{ACCOUNTS_CSV}')
     CM.set_config_item(CF_IMPORT_PATH_BOOKINGS, f'{resources_dir}{BOOKING_CODES_CSV}')
     CM.set_config_item(CF_IMPORT_PATH_COUNTER_ACCOUNTS, f'{resources_dir}{COUNTER_ACCOUNTS_CSV}')
     CM.set_config_item(CF_IMPORT_PATH_SEARCH_TERMS, f'{resources_dir}{SEARCH_TERMS_CSV}')
+    CM.set_config_item(CF_IMPORT_PATH_OPENING_BALANCE, f'{resources_dir}{OPENING_BALANCE_CSV}')
 
     # Write the json config
     CM.write_config()

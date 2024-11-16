@@ -3,7 +3,7 @@ from copy import copy
 from src.BL.Functions import get_BBAN_from_IBAN
 from src.DL.Config import CF_IBAN, CF_ROWS_TRANSACTION, CF_REMARKS
 from src.DL.DBDriver.Att import Att
-from src.DL.IO.AccountsIO import AccountsIO
+from src.DL.IO.AccountIO import AccountIO
 from src.DL.IO.TransactionsIO import TransactionsIO
 from src.DL.IO.YearMonthIO import YearMonthIO
 from src.DL.Model import FD
@@ -74,7 +74,7 @@ class MainModel(BaseModelTable):
 
     def start_io(self):
         """ After controller has set the db in the session """
-        self._account_io = AccountsIO()
+        self._account_io = AccountIO()
         self._year_month_io = YearMonthIO()
         self._transactions_io = TransactionsIO()
 

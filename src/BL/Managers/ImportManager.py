@@ -14,7 +14,7 @@ from src.DL.Config import CF_VERBOSE, DOUBLES_CSV, \
     CF_AMOUNT_THRESHOLD_TO_OTHER
 from src.DL.DBDriver.Att import Att
 from src.DL.DBDriver.Enums import FetchMode
-from src.DL.IO.AccountsIO import AccountsIO
+from src.DL.IO.AccountIO import AccountIO
 from src.DL.IO.CounterAccountIO import CounterAccountIO
 from src.DL.IO.YearMonthIO import YearMonthIO
 from src.DL.Model import FD, Model
@@ -79,7 +79,7 @@ class ImportManager(BaseManager):
 
         self._validation_manager = Validator()
         self._user_csv_manager = UserCsvFileManager()
-        self._account_io = AccountsIO()
+        self._account_io = AccountIO()
         self._counter_account_manager = CounterAccountIO()
 
         self._unique_account_bban = set()
@@ -128,7 +128,7 @@ class ImportManager(BaseManager):
 
         # Go!
         # a. Clear DB tables
-        self._account_io = AccountsIO()  # Clear accounts in memory
+        self._account_io = AccountIO()  # Clear accounts in memory
         self._progress(1, 'Leeg maken database tabellen')
         if import_user_csv_files:
             [self._db.clear(table) for table in model.DB_tables]

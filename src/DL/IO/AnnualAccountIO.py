@@ -56,7 +56,7 @@ class AnnualAccountIO(BaseIO):
         self._transformed_rows = []
 
     @staticmethod
-    def _row_to_obj(row) -> AnnualAccountAmount:
+    def row_to_obj(row) -> AnnualAccountAmount:
         return AnnualAccountAmount(
             year=row[d[FD.Year]],
             booking_type=row[d[FD.Booking_type]],

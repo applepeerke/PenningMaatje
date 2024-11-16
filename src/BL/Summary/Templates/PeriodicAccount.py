@@ -136,7 +136,7 @@ class PeriodicAccount(TemplateBase):
                 return MONTH_DESCRIPTIONS.get(self._month_from_current)
             else:
                 return (f'{MONTH_DESCRIPTIONS.get(self._month_from_current)} '
-                        f'tot {MONTH_DESCRIPTIONS.get(self._month_to_current)}')
+                        f't/m {MONTH_DESCRIPTIONS.get(self._month_to_current)}')
         elif var == MONTH_TO:
             return str(self._month_to_current or EMPTY)
         elif var == OPENING_BALANCE:

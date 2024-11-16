@@ -9,11 +9,17 @@
 import os
 import shutil
 
+from src.BL.Summary.Templates.Const import ACCOUNT_NAME_LABEL
 from src.BL.Validator import Validator
 from src.DL.Config import OUTPUT_DIR, CF_INPUT_DIR, CF_OUTPUT_DIR, \
     CF_SHOW_ALL_POPUPS, CF_HIDDEN_POPUPS, CF_THEME, CF_FONT, CF_FONT_SIZE, CF_FONT_TABLE, CF_FONT_TABLE_SIZE, \
     CMD_FACTORY_RESET, \
     CMD_LAYOUT_OPTIONS, CF_IMAGE_SUBSAMPLE
+from src.DL.DBDriver.Att import Att
+from src.DL.IO.AccountIO import AccountIO
+from src.DL.Model import FD
+from src.DL.Objects.Account import Account
+from src.DL.Table import Table
 from src.GL.BusinessLayer.ConfigManager import ConfigManager, CMD_HELP_WITH_INPUT_DIR, CMD_HELP_WITH_OUTPUT_DIR
 from src.GL.BusinessLayer.SessionManager import OUTPUT_SUBDIRS
 from src.GL.Const import EMPTY
@@ -23,6 +29,7 @@ from src.GL.Validate import normalize_dir
 from src.VL.Controllers.BaseController import BaseController
 from src.VL.Functions import get_name_from_text, help_message
 from src.VL.Views.PopUps.Info import Info
+from src.VL.Views.PopUps.Input import Input
 from src.VL.Windows.LayoutOptionsWindow import LayoutOptionsWindow
 
 CM = ConfigManager()
@@ -49,8 +56,13 @@ class ConfigController(BaseController):
         self._help_message()
 
         diag_prefix = 'Handling event - Config - '
+
+        if event[0] == Table.Account:
+            self._diag_message('Handling event - Account row selected')
+            self._handle_row(self._model.account_model, event[2][0])
+
         # Folders
-        if self._event_key == get_name_from_text(CF_OUTPUT_DIR):
+        elif self._event_key == get_name_from_text(CF_OUTPUT_DIR):
             self._diag_message(f'{diag_prefix}Output directory selected')
             self._config_folder_selected(CF_OUTPUT_DIR)
         elif self._event_key == get_name_from_text(CF_INPUT_DIR):
@@ -102,6 +114,24 @@ class ConfigController(BaseController):
         if CM.get_config_item(CF_SHOW_ALL_POPUPS):
             CM.set_config_item(CF_HIDDEN_POPUPS, {})
 
+    def _handle_row(self, VM, row_no):
+        self._result = Result()
+        accounts_io = AccountIO()
+        row = VM.rows[row_no]
+        account_prv = accounts_io.row_to_obj(row)
+        description = Input((200, 200)).get_input(
+            label=ACCOUNT_NAME_LABEL,
+            dft=account_prv.description,
+            unit_test=self._session.unit_test
+        )
+        if description is not None:  # Window not closed/canceled
+            account = Account(account_prv.bban, account_prv.iban, description)
+            if accounts_io.update(account, where=[Att(FD.Bban, account.bban)]):
+                # - Set flag to back up the table
+                self._session.set_user_table_changed(Table.Account)
+
+        # Redisplay Config
+        self._result = Result(action_code=ActionCode.Retry)
     """
     Config
     """

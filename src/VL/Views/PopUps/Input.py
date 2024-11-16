@@ -31,7 +31,7 @@ class Input(BaseView):
         if relative_location:
             self._relative_location = relative_location
 
-    def get_input(self, label, title, dft=None, unit_test=False) -> str:
+    def get_input(self, label, title='Specificeer', dft=None, unit_test=False) -> str:
         if not label:
             return EMPTY
         if unit_test:
@@ -109,7 +109,7 @@ class Input(BaseView):
             # - OK
             if event_key == CMD_OK:
                 input_value = values.get(self.gui_key(input_key, WTyp.IN))
-                if input_value or optional:
+                if input_value or optional or input_value == dft:
                     break
             # - Browse
             elif event_key == input_key:
@@ -129,13 +129,14 @@ class Input(BaseView):
     def _get_text_invalid_input(input_value, folder_browse):
         item_type = 'Folder' if folder_browse else 'Bestand'
         message = f'Een waarde is verplicht.' if not input_value else f'{item_type} bestaat niet. '
-        message = f'{message} Druk op "Browse" om een {item_type} te kiezen.'
+        browse_text = f'Druk op "Browse" om een {item_type} te kiezen.' if folder_browse else EMPTY
+        message = f'{message}{browse_text}'
         return message
 
     def _get_window(self, gui_key, folder_browse=False, file_browse=False, dft=None, label=EMPTY, version=EMPTY) \
             -> list:
         x = max(get_width(self._get_label(gui_key)), len(label))
-        x2 = len(dft) if dft else None
+        x2 = 132 if dft is None else len(dft)
         if not x2 and (folder_browse or file_browse):
             x2 = PATH_WIDTH_MIN
         lists = [self.multi_frame('InputBox_input_help', [

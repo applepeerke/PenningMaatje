@@ -30,7 +30,7 @@ class OpeningBalanceIO(BaseIO):
             f'{OPENING_BALANCE} "{self._object.year}" kon niet worden {action}')
 
     @staticmethod
-    def _row_to_obj(row) -> OpeningBalance:
+    def row_to_obj(row) -> OpeningBalance:
         return OpeningBalance(
             year=row[d[FD.Year]],
             opening_balance=toFloat(row[d[FD.Opening_balance]])

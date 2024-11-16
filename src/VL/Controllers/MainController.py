@@ -25,6 +25,7 @@ from src.DL.Lexicon import (
     OUTPUT_DIR, TRANSACTIONS, CMD_SEARCH_FOR_EMPTY_BOOKING_CODE, COUNTER_ACCOUNTS, BOOKING_CODES, to_text_key,
     CMD_WORK_WITH_OPENING_BALANCES, SEARCH_TERMS, OPENING_BALANCES)
 from src.VL.Functions import help_message, get_name_from_text
+from src.VL.Models.BaseModelTable import BaseModelTable
 from src.VL.Views.PopUps.Info import Info
 from src.VL.Views.PopUps.Input import Input
 from src.VL.Views.PopUps.PopUp import PopUp
@@ -534,13 +535,22 @@ class MainController(BaseController):
         self._flag_transaction_saved()
 
     def config(self):
-        self._config_window = ConfigWindow()
-        self._config_window.display()
-        self._result = self._config_window.result
-        if self._config_window.model.do_factory_reset:
-            self._factory_reset(to_text_key(CMD_FACTORY_RESET))
-        if self._result.OK and self._config_window.model.do_import:
-            self.import_transactions(import_user_csv_files=False)
+        loop_count = 0
+        while loop_count < 100:
+            loop_count += 1
+            account_model = BaseModelTable(Table.Account)
+            account_model.set_data(DD.fetch_set(Table.Account))
+            self._config_window = ConfigWindow(account_model)
+            self._config_window.display()
+            self._result = self._config_window.result
+            if self._config_window.model.do_factory_reset:
+                self._factory_reset(to_text_key(CMD_FACTORY_RESET))
+                break
+            if self._result.OK and self._config_window.model.do_import:
+                self.import_transactions(import_user_csv_files=False)
+                break
+            if not self._result.RT:  # Account description changed: redisplay
+                break
 
     def search(self):
         self._search_window = SearchWindow(self._main_model, self._main_window)
@@ -674,7 +684,7 @@ class MainController(BaseController):
         # N.B. Strictly speaking this full backup is only needed when booking has been changed.
         [self._session.set_user_table_changed(table_name) for table_name in model.user_maintainable_tables]
         DD.export_user_tables()
-        self._result.add_message(f'Er is een backup gemaakt van aan {BOOKING_CODES} gerelateerde tabellen.')
+        self._result.add_message(f'Er is een backup gemaakt van handmatige wijzigingen.')
 
         # When the user updates e.g. the booking main table, user_mutations.csv is updated already.
         # So backup user_mutations.csv only when the user has updated a transaction.

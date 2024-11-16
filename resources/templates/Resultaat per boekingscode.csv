@@ -1,4 +1,4 @@
-﻿"""Realisatie {jaar} {rekening naam} per boekingscode""";;;
+﻿"""Realisatie {jaar} {rekening omschrijving} per boekingscode""";;;
 ;;;
 ;"""Boeking code""";"""Omschrijving""";"""Realisatie"""
 ;;;
