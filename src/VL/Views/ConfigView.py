@@ -4,10 +4,13 @@ from src.DL.Config import EXPAND, \
     STATUS_MESSAGE, CF_OUTPUT_DIR, CF_INPUT_DIR, \
     CF_AUTO_CLOSE_TIME_S, CF_BACKUP_RETENTION_MONTHS, FRAME_CONFIG_MAIN, CMD_HELP_WITH_OUTPUT_DIR, \
     CMD_HELP_WITH_INPUT_DIR, FRAME_VARIOUS, FRAME_CONFIG_BUTTONS, CMD_FACTORY_RESET, CMD_LAYOUT_OPTIONS, \
-    CF_AMOUNT_THRESHOLD_TO_OTHER
+    CF_AMOUNT_THRESHOLD_TO_OTHER, CF_RESTORE_BOOKING_DATA
+from src.DL.Lexicon import CMD_RESTORE_BACKUP
 from src.DL.Table import Table
+from src.DL.UserCsvFiles.UserCsvFileManager import get_backup_dirs
 from src.VL.Data.Constants.Color import TABLE_COLOR_SELECTED_ROW, TABLE_COLOR_BACKGROUND, TABLE_COLOR_TEXT
-from src.VL.Data.Constants.Const import FRAME_CONFIG_ACCOUNT, TABLE_JUSTIFY
+from src.VL.Data.Constants.Const import FRAME_CONFIG_ACCOUNT, TABLE_JUSTIFY, FRAME_RESTORE, \
+    FRAME_RESTORE_BOOKING_RELATED_DATA
 from src.VL.Views.BaseView import BaseView, CM
 from src.GL.Const import EMPTY
 
@@ -33,24 +36,7 @@ class ConfigView(BaseView):
 
         # Layout
         view_layout = [
-            # - "Basis folder [inputBox met pad] [Browse] [?]"
-            self.frame(FRAME_CONFIG_MAIN, [
-                self.multi_frame(CF_OUTPUT_DIR, [
-                    self.inbox(CF_OUTPUT_DIR, x=x_DI, x2=x_dir, folder_browse=True),
-                    self.frame(
-                        'Help bij output folder',
-                        [[self.button(CMD_HELP_WITH_OUTPUT_DIR, button_text='?', transparent=True, p=0)]],
-                        border_width=1)
-                ], p=0),
-                # - "Folder met bankafschriften  [Combo met paden] [?]"
-                self.multi_frame(CF_INPUT_DIR, [
-                    self.inbox(CF_INPUT_DIR, x=x_DI, x2=x_dir, folder_browse=True),
-                    self.frame(
-                        'Help bij input folder',
-                        [[self.button(CMD_HELP_WITH_INPUT_DIR, button_text='?', transparent=True, p=0)]],
-                        border_width=1)
-                ], p=0),
-            ], border_width=1, expand_x=True),
+
             # Accounts
             self.frame(FRAME_CONFIG_ACCOUNT, [
                 [sg.Table(k=self.key_of(Table.Account),
@@ -70,6 +56,27 @@ class ConfigView(BaseView):
                  ],
             ], border_width=1, expand_x=True, expand_y=True),
 
+            # - "Basis folder [inputBox met pad] [Browse] [?]"
+            self.frame(FRAME_CONFIG_MAIN, [
+                self.multi_frame(CF_OUTPUT_DIR, [
+                    self.inbox(CF_OUTPUT_DIR, x=x_DI, x2=x_dir, folder_browse=True),
+                    self.frame(
+                        'Help bij output folder',
+                        [[self.button(CMD_HELP_WITH_OUTPUT_DIR, button_text='?', transparent=True, p=0)]],
+                        border_width=1)
+                ], p=0),
+
+                # - "Folder met bankafschriften  [Combo met paden] [?]"
+                self.multi_frame(CF_INPUT_DIR, [
+                    self.inbox(CF_INPUT_DIR, x=x_DI, x2=x_dir, folder_browse=True),
+                    self.frame(
+                        'Help bij input folder',
+                        [[self.button(CMD_HELP_WITH_INPUT_DIR, button_text='?', transparent=True, p=0)]],
+                        border_width=1)
+                ], p=0),
+            ], border_width=1, expand_x=True),
+
+
             # Various
             self.frame(FRAME_VARIOUS, [
                 self.frame(CF_AMOUNT_THRESHOLD_TO_OTHER,
@@ -79,6 +86,14 @@ class ConfigView(BaseView):
                 self.frame(CF_BACKUP_RETENTION_MONTHS,
                            [self.combo(CF_BACKUP_RETENTION_MONTHS, [x for x in range(1, 12, 1)], x=x_CX)], p=5),
             ], border_width=1, expand_x=True),
+
+            # - Boekingen terugzetten
+            self.frame(FRAME_RESTORE, [
+                self.multi_frame(FRAME_RESTORE_BOOKING_RELATED_DATA, [
+                    self.button_frame(CMD_RESTORE_BACKUP),
+                    self.combo(CF_RESTORE_BOOKING_DATA, [x for x in get_backup_dirs()], dft=EMPTY)
+                ], p=12),
+            ], border_width=1),
             self.multi_frame(FRAME_CONFIG_BUTTONS, [
                 self.button_frame(CMD_FACTORY_RESET),
                 self.button_frame(CMD_LAYOUT_OPTIONS),

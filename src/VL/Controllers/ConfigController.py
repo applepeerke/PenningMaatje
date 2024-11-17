@@ -9,6 +9,7 @@
 import os
 import shutil
 
+from src.BL.Managers.BookingManager import BookingManager
 from src.BL.Summary.Templates.Const import ACCOUNT_NAME_LABEL
 from src.BL.Validator import Validator
 from src.DL.Config import OUTPUT_DIR, CF_INPUT_DIR, CF_OUTPUT_DIR, \
@@ -17,9 +18,11 @@ from src.DL.Config import OUTPUT_DIR, CF_INPUT_DIR, CF_OUTPUT_DIR, \
     CMD_LAYOUT_OPTIONS, CF_IMAGE_SUBSAMPLE
 from src.DL.DBDriver.Att import Att
 from src.DL.IO.AccountIO import AccountIO
+from src.DL.Lexicon import CMD_RESTORE_BACKUP
 from src.DL.Model import FD
 from src.DL.Objects.Account import Account
 from src.DL.Table import Table
+from src.DL.UserCsvFiles.UserCsvFileManager import UserCsvFileManager
 from src.GL.BusinessLayer.ConfigManager import ConfigManager, CMD_HELP_WITH_INPUT_DIR, CMD_HELP_WITH_OUTPUT_DIR
 from src.GL.BusinessLayer.SessionManager import OUTPUT_SUBDIRS
 from src.GL.Const import EMPTY
@@ -43,6 +46,9 @@ class ConfigController(BaseController):
         super().__init__()
         self._model = model
         self._validation_manager = Validator()  # Used in start_config
+        self._UM = UserCsvFileManager()
+        self._booking_manager = BookingManager()
+
         self._prv_values = {
             CF_INPUT_DIR: CM.get_config_item(CF_INPUT_DIR),
             CF_OUTPUT_DIR: CM.get_config_item(CF_OUTPUT_DIR),
@@ -68,6 +74,12 @@ class ConfigController(BaseController):
         elif self._event_key == get_name_from_text(CF_INPUT_DIR):
             self._diag_message(f'{diag_prefix}Input directory selected')
             self._config_folder_selected(CF_INPUT_DIR)
+
+        # Restore backup
+        elif self._event_key == CMD_RESTORE_BACKUP:
+            self._diag_message(f'{diag_prefix}Restore backup button pressed')
+            self._restore_booking_related_data()
+            self._result.action_code = ActionCode.Close
 
         # Factory reset
         elif self._event_key == CMD_FACTORY_RESET:
@@ -130,7 +142,7 @@ class ConfigController(BaseController):
                 # - Set flag to back up the table
                 self._session.set_user_table_changed(Table.Account)
 
-        # Redisplay Config
+        # Restart Config view
         self._result = Result(action_code=ActionCode.Retry)
     """
     Config
@@ -213,6 +225,22 @@ class ConfigController(BaseController):
         if not os.path.isdir(to_dir):
             box_text = f'{OUTPUT_DIR} wijzigen is niet mogelijk.\n\nReden:\n'
             self._result = Result(ResultCode.Canceled, f'{box_text}Doelfolder {to_dir} kon niet gemaakt worden.')
+
+    def _restore_booking_related_data(self):
+        # 1.Check inner consistency of booking related csv files to be imported
+        self._booking_manager.validate_csv_files_before_restore()
+        self._result = self._booking_manager.result
+        if not self._result.OK:
+            return
+
+        # 2. Import csv files from the selected backup
+        self._UM.import_user_defined_csv_files(self._booking_manager.restore_paths)
+        self._result = self._UM.result
+        if not self._result.OK:
+            return
+
+        # 3. Import all bank transactions (without csv files) to link them the bookings
+        self._model.do_import = True
 
     """
     Messages

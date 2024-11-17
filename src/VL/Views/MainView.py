@@ -2,14 +2,13 @@ import PySimpleGUI as sg
 
 from src.BL.Functions import get_image_path
 from src.DL.Config import *
+from src.DL.Lexicon import ACCOUNT_NUMBER, LOG, DASHBOARD
 from src.DL.Model import FD
 from src.DL.Table import Table
-from src.DL.UserCsvFiles.UserCsvFileManager import get_backup_dirs
+from src.DL.UserCsvFiles.Cache.BookingCodeCache import Singleton as BookingCodeCache
 from src.VL.Data.Constants.Color import *
-from src.DL.Lexicon import ACCOUNT_NUMBER, LOG, DASHBOARD
 from src.VL.Models.MainModel import MainModel
 from src.VL.Views.BaseView import BaseView, get_tooltip, CM
-from src.DL.UserCsvFiles.Cache.BookingCodeCache import Singleton as BookingCodeCache
 
 BCM = BookingCodeCache()
 
@@ -193,13 +192,6 @@ class MainView(BaseView):
                 ]),
                 self.button_frame(CMD_WORK_WITH_SEARCH_TERMS, p=10),
                 self.button_frame(CMD_WORK_WITH_OPENING_BALANCES, p=10)
-            ], border_width=1),
-            # - Boekingen terugzetten
-            self.frame(FRAME_RESTORE, [
-                self.multi_frame(FRAME_RESTORE_BOOKING_RELATED_DATA, [
-                    self.button_frame(CMD_RESTORE_BOOKING_RELATED_DATA),
-                    self.combo(CF_RESTORE_BOOKING_DATA, [x for x in get_backup_dirs()], dft=EMPTY)
-                ], p=12),
             ], border_width=1)
         ]
 

@@ -224,8 +224,8 @@ class BookingManager(BaseManager):
                 text=f'Backup van je {BOOKING_CODES} is niet mogelijk.'
                      f'\n\nDe volgende {BOOKING_CODES} bestaan niet in tabel {Table.BookingCode}:{self._reason}.'
                      f'\n\nRemedie:\nVerwijder de {BOOKING_CODES} referenties uit bovengenoemde tabel(len).'
-                     f'\nDit kun je bijvoorbeeld doen door de backups van deze bestanden uit de "{BACKUP}" folder '
-                     f'te verwijderen.\nCheck eventueel of deze bestanden in folder "{RESOURCES}" bestaande'
+                     f'\n\nDit kun je bijvoorbeeld doen door de backups van deze bestanden uit de "{BACKUP}" folder '
+                     f'te verwijderen.\n\nCheck eventueel of deze bestanden in folder "{RESOURCES}" bestaande'
                      f'{BOOKING_CODES} bevatten.')
         return Result(ResultCode.Canceled)
 

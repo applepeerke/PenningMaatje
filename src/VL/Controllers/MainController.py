@@ -6,7 +6,7 @@ from src.BL.Managers.ConsistencyManager import ConsistencyManager
 from src.BL.Managers.ImportManager import ImportManager
 from src.BL.Validator import Validator, slash
 from src.DL.Config import CF_IBAN, TAB_LOG, CMD_IMPORT_TE, CMD_WORK_WITH_BOOKING_CODES, \
-    CMD_WORK_WITH_SEARCH_TERMS, CMD_RESTORE_BOOKING_RELATED_DATA, CF_COUNTER_ACCOUNT_BOOKING_DESCRIPTION
+    CMD_WORK_WITH_SEARCH_TERMS, CMD_RESTORE_BACKUP, CF_COUNTER_ACCOUNT_BOOKING_DESCRIPTION
 from src.DL.Config import CF_OUTPUT_DIR, CF_VERBOSE, \
     CF_INPUT_DIR, CMD_HELP_WITH_BOOKING, get_label, CMD_HELP_WITH_OUTPUT_DIR, INPUT_DIR, CMD_FACTORY_RESET, \
     CF_REMARKS, get_text_file
@@ -328,10 +328,6 @@ class MainController(BaseController):
         elif self._event_key == CMD_WORK_WITH_OPENING_BALANCES:
             self._diag_message(f'{diag_prefix}Work with {OPENING_BALANCES} button pressed')
             self._maintain_list(OpeningBalancesWindow)
-        # Restore booking related data
-        elif self._event_key == CMD_RESTORE_BOOKING_RELATED_DATA:
-            self._diag_message(f'{diag_prefix}Restore booking related data button pressed')
-            self._restore_booking_related_data()
 
         # _____________
         # T a b   L o g
@@ -456,8 +452,9 @@ class MainController(BaseController):
                 raise GeneralException(self._result.get_messages_as_message())
 
             self._start_log('Import')
-            # - Save pending booking related data, and backup it in the csv folder of today.
-            self._save_and_backup()
+
+            # - First save pending booking related data, and backup it in the csv folder of today.
+            self._save_and_backup(before_import=True)
 
             # - Import
             result = self._IM.start(import_user_csv_files)
@@ -560,26 +557,6 @@ class MainController(BaseController):
             self._search_mode = True
 
     """
-    Tab BookingCodes
-    """
-
-    def _restore_booking_related_data(self):
-        # 1.Check inner consistency of booking related csv files to be imported
-        self._booking_manager.validate_csv_files_before_restore()
-        self._result = self._booking_manager.result
-        if not self._result.OK:
-            return
-
-        # 2. Import csv files from the selected backup
-        self._UM.import_user_defined_csv_files(self._booking_manager.restore_paths)
-        self._result = self._UM.result
-        if not self._result.OK:
-            return
-
-        # 3. Import all bank transactions to link the bookings
-        self.import_transactions(import_user_csv_files=False)
-
-    """
     Tab Log
     """
 
@@ -656,15 +633,15 @@ class MainController(BaseController):
         DD.delete_stale_files()
         self._result.add_messages(DD.result.messages)
 
-    def _save_and_backup(self):
+    def _save_and_backup(self, before_import=False):
         """
         1. Save pending db changes (remarks)
         2. Backup booking related db data in csv files of the backup folder of today
         """
         self.save_pending_remarks()
-        self._export_user_updates()
+        self._export_user_updates(before_import)
 
-    def _export_user_updates(self):
+    def _export_user_updates(self, before_import=False):
         """
         Backup wijzigingen in "Boekingen, Zoektermen etc." in csv bestanden in een subdir.
         Backup wijzigingen in transacties ("Remarks, boeking") op generiek level.
@@ -674,7 +651,11 @@ class MainController(BaseController):
             return  # Nothing to do.
 
         # Db consistency check
-        self._result = self._booking_manager.validate_db_before_backup()
+        if before_import:
+            # Between restoring user csv files and importing bank transactions a check is not needed.
+            self._result = Result()
+        else:
+            self._result = self._booking_manager.validate_db_before_backup()
         if not self._result.OK:
             return
 

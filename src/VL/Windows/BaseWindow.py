@@ -128,8 +128,8 @@ class BaseWindow(BaseGUI):
             if not self._result.OK and self._event_value_previous:
                 self._CM.set_config_item(event_key, self._event_value_previous)
 
-            # - Close requested from within event
-            if self._close_window or self._result.CN:
+            # - Close requested (Restore), also from within event
+            if self._close_window or self._result.CL or self._result.CN:
                 self._CM.set_location(self._name, self._location)
                 break
 
