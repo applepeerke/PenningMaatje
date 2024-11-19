@@ -1,7 +1,7 @@
 import base64
 import re
 
-from src.DL.Lexicon import TEMPLATE_ANNUAL_ACCOUNT, PERIODIC_ACCOUNTS, PERIODIC_ACCOUNT
+from src.DL.Lexicon import TEMPLATE_ANNUAL_ACCOUNT, PERIODIC_ACCOUNTS, TEMPLATE_PERIODIC_ACCOUNT
 from src.DL.Model import EMPTY
 from src.GL.Const import BLANK, EXT_CSV
 from src.GL.Functions import is_valid_file

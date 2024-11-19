@@ -9,7 +9,9 @@
 import unittest
 
 from src.BL.Functions import get_summary_filename
-from src.BL.Managers.TemplateManager import TOTAL_GENERAL
+from src.BL.Summary.Templates.Const import TOTAL_GENERAL
+from src.DL.Enums.Enums import Summary
+from src.GL.BusinessLayer.ConfigManager import ConfigManager
 from src.GL.BusinessLayer.CsvManager import CsvManager
 from src.GL.BusinessLayer.SessionManager import Singleton as Session
 from src.GL.Functions import maybeFloat, toFloat
@@ -25,11 +27,11 @@ class TemplateTestCase(unittest.TestCase):
     def test_TC01_Templates(self):
 
         self._run_test('Jaarrekening', exp_tg=-103.49, exp_cols=6, exp_rows=19)
-        self._run_test('Jaarrekening - without totals', exp_tg=-103.49, exp_cols=6, exp_rows=9)
+        self._run_test('Jaarrekening - without totals', exp_tg=-103.49, exp_cols=6, exp_rows=8)
         self._run_test('Jaarrekening - 3 empty extra columns', exp_tg=-103.49, exp_cols=9, exp_rows=19)
         self._run_test('Jaarrekening - 1 realisation 1 budget', exp_tg=-103.49, exp_cols=5, exp_rows=19)
         self._run_test('Jaarrekening - 1 realisation 0 budget', exp_tg=-103.49, exp_cols=4, exp_rows=19)
-        self._run_test('Jaarrekening - 0 amounts', exp_tg=0.0, exp_cols=3, exp_rows=11)
+        self._run_test('Jaarrekening - 0 amounts', exp_tg=0.0, exp_cols=3, exp_rows=10)
         self._run_test('Jaarrekening - wrong format', exp_result=False)
         self._run_test('Jaarrekening - invalid tokens', exp_result=False)
 
@@ -39,7 +41,8 @@ class TemplateTestCase(unittest.TestCase):
             exp_tg=0.0,  # Total General
             exp_cols=0,
             exp_rows=0,
-            exp_result=True
+            exp_result=True,
+            summary_type=Summary.AnnualAccount
     ):
         # Start config, session and db, import transactions
         input_sub_dir = get_input_sub_dir('Bankafschriften')
@@ -48,17 +51,17 @@ class TemplateTestCase(unittest.TestCase):
 
         try:
             # Start PenningMaatje (without build db).
-            year = 2018
             export_dir = Session().export_dir
-            filename = get_summary_filename(year, 12, title=template_name)
-            path = f'{export_dir}{filename}'
+            year = 2018
             pmc = PMC(export_dir, year, build=False)
-            pmc.create_summary(template_name, year)
+            pmc.create_summary(summary_type, year, template_names={summary_type: template_name})
         except GeneralException:
             self.assertTrue(exp_result is False)
             return
 
         # Check no. of rows
+        filename = get_summary_filename(year, 12, title=template_name)
+        path = f'{export_dir}{filename}'
         rows = csvm.get_rows(data_path=path, include_header_row=True, include_empty_row=True)
         self.assertTrue(
             len(rows) == exp_rows,

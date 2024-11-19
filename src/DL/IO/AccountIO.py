@@ -40,10 +40,10 @@ class AccountIO(BaseIO):
 
     def get_current_iban(self, current_iban) -> str:
         iban = current_iban
-        self._accounts_dict = {o.bban: o for o in self._get_objects()}
 
-        # If iban in config does not exist in the new iban list, return the first one (or empty)
+        # If iban does not exist (in the new iban cache list), return the first one from cache (or empty)
         if not any(o.iban == current_iban for o in self._accounts_dict.values()):
+            # self._accounts_dict = {o.bban: o for o in self._get_objects()}
             iban = list(self._accounts_dict.values())[0].iban if self._accounts_dict else EMPTY
         return iban
 

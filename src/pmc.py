@@ -17,33 +17,35 @@ from src.GL.GeneralException import GeneralException
 from src.GL.Result import Result
 from src.GL.Validate import normalize_dir
 
-CM = ConfigManager()
 log = Log()
 session = Session()
 
 
 class PMC:
     def __init__(self, output_dir, year=None, build=False, input_dir=None):
-        input_dir = normalize_dir(f'{session.root_dir}Input', create=True) if not input_dir else input_dir
-        output_dir = normalize_dir(f'{session.root_dir}Output', create=True) if not output_dir else output_dir
         self._year = year or datetime.now().year
 
-        session.start(output_dir=output_dir, CLI_mode=True)
-
+        self._CM = ConfigManager()
         result = self._start_up(input_dir, output_dir, build)
+
         if not result.OK:
             raise GeneralException(result.get_messages_as_message())
 
         self._summary_driver = SummaryDriver()
 
-    def create_summary(self, summary_type, year, month_from=1, month_to=12):
-        CM.set_config_item(CF_SUMMARY_YEAR, year)
-        CM.set_config_item(CF_SUMMARY_MONTH_FROM, month_from)
-        CM.set_config_item(CF_SUMMARY_MONTH_TO, month_to)
-        self._summary_driver.create_summary(summary_type)
+    def create_summary(self, summary_type, year, month_from=1, month_to=12, template_names=None):
+        self._CM.set_config_item(CF_SUMMARY_YEAR, year)
+        self._CM.set_config_item(CF_SUMMARY_MONTH_FROM, month_from)
+        self._CM.set_config_item(CF_SUMMARY_MONTH_TO, month_to)
+        self._summary_driver.create_summary(summary_type, template_names=template_names)
 
     def _start_up(self, input_dir, output_dir, build) -> Result:
         """ Start without using GUI Controller """
+        input_dir = normalize_dir(f'{session.root_dir}Input', create=True) if not input_dir else input_dir
+        output_dir = normalize_dir(f'{session.root_dir}Output', create=True) if not output_dir else output_dir
+
+        # Session
+        session.start(output_dir=output_dir, CLI_mode=True)
 
         # Config - create json from session
         self._create_config_from_session(input_dir, output_dir)
@@ -67,29 +69,26 @@ class PMC:
                 result = IM.start()
         return result
 
-    @staticmethod
-    def _create_config_from_session(input_dir, output_dir):
+    def _create_config_from_session(self, input_dir, output_dir):
         """
         json config is the starting point of the Controller.
         """
-        CM.unit_test = False  # Can be initialized as False (e.g. in MessageBox)
+        self._CM.unit_test = False  # Can be initialized as False (e.g. in MessageBox)
         # Base
-        CM.set_config_item(CF_OUTPUT_DIR, session.output_dir)
-        # Input
-        CM.start_config(persist=True)
+        self._CM.set_config_item(CF_OUTPUT_DIR, session.output_dir)
         # Booking files
-        CM.set_config_item(CF_INPUT_DIR, input_dir)
-        CM.set_config_item(CF_OUTPUT_DIR, output_dir)
+        self._CM.set_config_item(CF_INPUT_DIR, input_dir)
+        self._CM.set_config_item(CF_OUTPUT_DIR, output_dir)
 
         resources_dir = session.resources_dir
-        CM.set_config_item(CF_IMPORT_PATH_ACCOUNTS, f'{resources_dir}{ACCOUNTS_CSV}')
-        CM.set_config_item(CF_IMPORT_PATH_BOOKINGS, f'{resources_dir}{BOOKING_CODES_CSV}')
-        CM.set_config_item(CF_IMPORT_PATH_COUNTER_ACCOUNTS, f'{resources_dir}{COUNTER_ACCOUNTS_CSV}')
-        CM.set_config_item(CF_IMPORT_PATH_OPENING_BALANCE, f'{resources_dir}{OPENING_BALANCE_CSV}')
-        CM.set_config_item(CF_IMPORT_PATH_SEARCH_TERMS, f'{resources_dir}{SEARCH_TERMS_CSV}')
+        self._CM.set_config_item(CF_IMPORT_PATH_ACCOUNTS, f'{resources_dir}{ACCOUNTS_CSV}')
+        self._CM.set_config_item(CF_IMPORT_PATH_BOOKINGS, f'{resources_dir}{BOOKING_CODES_CSV}')
+        self._CM.set_config_item(CF_IMPORT_PATH_COUNTER_ACCOUNTS, f'{resources_dir}{COUNTER_ACCOUNTS_CSV}')
+        self._CM.set_config_item(CF_IMPORT_PATH_OPENING_BALANCE, f'{resources_dir}{OPENING_BALANCE_CSV}')
+        self._CM.set_config_item(CF_IMPORT_PATH_SEARCH_TERMS, f'{resources_dir}{SEARCH_TERMS_CSV}')
 
         # Write the json config
-        CM.write_config()
+        self._CM.write_config()
 
     @staticmethod
     def _start_db(build=False) -> Result:

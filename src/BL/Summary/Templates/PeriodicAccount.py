@@ -4,7 +4,7 @@ from src.BL.Summary.SummaryBase import session, csvm, BCM
 from src.BL.Summary.Templates.Const import *
 from src.BL.Summary.Templates.TemplateBase import TemplateBase
 from src.DL.DBDriver.Att import Att
-from src.DL.Lexicon import PERIODIC_ACCOUNTS, TRANSACTIONS, MONTH_DESCRIPTIONS, PERIODIC_ACCOUNT
+from src.DL.Lexicon import PERIODIC_ACCOUNTS, TRANSACTIONS, MONTH_DESCRIPTIONS, TEMPLATE_PERIODIC_ACCOUNT
 from src.DL.Model import FD
 from src.GL.Const import EMPTY, BLANK, EXT_CSV
 from src.GL.Functions import toFloat
@@ -35,8 +35,8 @@ class PeriodicAccount(TemplateBase):
     def closing_balance(self):
         return self._closing_balance
 
-    def __init__(self, account_bban, opening_balance=0.0):
-        super().__init__(account_bban, PERIODIC_ACCOUNT)
+    def __init__(self, account_bban, opening_balance=0.0, template_name=None):
+        super().__init__(account_bban, template_name)
         self._condensed_row_def = {}
         self._month_from = 0
         self._month_to = 0

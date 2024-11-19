@@ -31,8 +31,8 @@ EXAMPLE:
 
 
 class ResultsPerBookingCode(TemplateBase):
-    def __init__(self, account_bban):
-        super().__init__(account_bban, TEMPLATE_RESULTS_PER_BOOKING_CODE)
+    def __init__(self, account_bban, template_name):
+        super().__init__(account_bban, template_name)
         self._total_amounts = {}  # amounts per level
         self._level_no = {}
         self._first = True
@@ -55,7 +55,7 @@ class ResultsPerBookingCode(TemplateBase):
         # Output naar CSV.
         self._construct(transactions)
 
-        return Result(text=f'De {TEMPLATE_ANNUAL_ACCOUNT} van {self._year} is geëxporteerd naar "{self._out_path}"') \
+        return Result(text=f'De {TEMPLATE_RESULTS_PER_BOOKING_CODE} van {self._year} is geëxporteerd naar "{self._out_path}"') \
             if self._result.OK else self._result
 
     """

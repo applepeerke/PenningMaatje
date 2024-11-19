@@ -8,7 +8,7 @@ from src.DL.Enums.Enums import Summary
 from src.GL.Const import QUIT, EMPTY
 from src.GL.Enums import Color
 from src.GL.GeneralException import GeneralException
-from src.GL.Validate import normalize_dir, isInt, toBool
+from src.GL.Validate import normalize_dir, isInt, toBool, isPathname
 from src.pmc import PMC
 
 # Parameters
@@ -17,8 +17,9 @@ output_dir = EMPTY
 year = None
 build = False
 summary_type = Summary.AnnualAccountPlus
+template_name = None
 
-usage = 'usage: pm.py -i <inputdir> -o <outputdir> -y <year> -b <build> -s <summarytype> -h'
+usage = 'usage: pm.py -i <inputdir> -o <outputdir> -y <year> -b <build> -s <summarytype> -t <templatename> -h'
 errorText = Color.RED + "Error:" + Color.NC + " "
 
 
@@ -28,16 +29,17 @@ errorText = Color.RED + "Error:" + Color.NC + " "
 
 
 def main(argv):
-    global input_dir, output_dir, year, build, summary_type
+    global input_dir, output_dir, year, build, summary_type, template_name
 
     try:
         opts, args = getopt.getopt(
-            argv, "b:h:i:o:s:y:",
+            argv, "b:h:i:o:s:t:y:",
             [
                 "bbuild=",
                 "iinputdir=",
                 "ooutputdir=",
                 "ssummarytype=",
+                "ttemplatename=",
                 "yyear="
              ])
     except getopt.GetoptError:
@@ -80,11 +82,18 @@ def main(argv):
             if summary_type not in Summary.values():
                 exit_program(f'Parameter -t (summary type) is not valid. it must be one of {Summary.values()}')
 
+        elif opt in ("-t", "--templatename"):
+            template_name = arg
+            if not isPathname(template_name):
+                exit_program(f'Parameter -t (template name) is not valid.')
+
     try:
         if not year:
             year = datetime.datetime.now().year
+        template_names = {summary_type: template_name} if template_name else {}
+
         pmc = PMC(output_dir=output_dir, year=year, build=build, input_dir=input_dir)
-        pmc.create_summary(summary_type, year)
+        pmc.create_summary(summary_type, year, template_names=template_names)
 
     except GeneralException as e:
         exit_program(e.message)

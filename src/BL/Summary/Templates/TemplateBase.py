@@ -51,6 +51,7 @@ class TemplateBase(SummaryBase):
         return self._export_count
 
     def __init__(self, account_bban, template_name):
+        """ Template name may vary per summary type."""
         super().__init__()
         self._account_bban = account_bban
         self._template_name = template_name
@@ -114,7 +115,7 @@ class TemplateBase(SummaryBase):
                     self._check_cell(cell)
                     self._c += 1
                 self._blank_lines = 0
-        self._r += 1
+            self._r += 1
 
         if self._result.OK:
             # Convert pure variables to uppercase
@@ -323,24 +324,26 @@ class TemplateBase(SummaryBase):
         if var_name and var_name.startswith(TOTAL):
             self._add_empty_rows(1)
 
-    def _format_and_add_total_row(self, level_name, total_label=EMPTY):
+    def _format_and_add_total_row(self, level_name, total_label=EMPTY) -> bool:
         """ Also add optional empty columns """
         var_name = get_total_label(level_name)
         values = self._total_amounts[level_name]
 
-        if var_name in self._template_var_names:
+        if var_name not in self._template_var_names:
+            return False
 
-            # Output empty columns
-            [self._output_cell(EMPTY) for _ in range(self._r_c[AMOUNTS][1] - 1)]
+        # Output empty columns
+        [self._output_cell(EMPTY) for _ in range(self._r_c[AMOUNTS][1] - 1)]
 
-            # Output total label
-            self._output_cell(TOTAL_GENERAL.title() if level_name == GENERAL else total_label.title())
+        # Output total label
+        self._output_cell(TOTAL_GENERAL.title() if level_name == GENERAL else total_label.title())
 
-            # Format and output the total values
-            [self._output_cell(self._format_amount(values[i])) for i in range(len(values))]
+        # Format and output the total values
+        [self._output_cell(self._format_amount(values[i])) for i in range(len(values))]
 
-            # Output the total row
-            self._add_row(var_name)
+        # Output the total row
+        self._add_row(var_name)
+        return True
 
     @staticmethod
     def _format_amount(value) -> str:

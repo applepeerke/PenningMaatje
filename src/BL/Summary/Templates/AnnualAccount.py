@@ -34,8 +34,8 @@ EXAMPLE:
 
 
 class AnnualAccount(TemplateBase):
-    def __init__(self, account_bban):
-        super().__init__(account_bban, TEMPLATE_ANNUAL_ACCOUNT)
+    def __init__(self, account_bban, template_name):
+        super().__init__(account_bban, template_name)
         self._total_amounts = {}  # amounts per level
         self._level_no = {}
         self._first = True
@@ -168,8 +168,8 @@ class AnnualAccount(TemplateBase):
 
         # General total
         # Format and add only the amounts.
-        self._format_and_add_total_row(GENERAL)
-        self._add_row(TOTAL_GENERAL)
+        if self._format_and_add_total_row(GENERAL):
+            self._add_row(TOTAL_GENERAL)
 
         # Write CSV
         csvm.write_rows(self._out_rows, data_path=self._out_path, open_mode='w')
@@ -258,11 +258,12 @@ class AnnualAccount(TemplateBase):
             if (self._is_level_break(c) and self._lb_fields[c].same_value_count > 0) or last:
                 self._format_and_add_total_row(level_name, total_label)
 
-    def _format_and_add_total_row(self, level_name, total_label=EMPTY):
-        super()._format_and_add_total_row(level_name, total_label)
+    def _format_and_add_total_row(self, level_name, total_label=EMPTY) -> bool:
+        added = super()._format_and_add_total_row(level_name, total_label)
 
         # Initialize totals (real., budget, ...)
         level_no = self._level_no[level_name]
         for name, no in self._level_no.items():
             if no >= max(level_no, 1):  # Do not clear General total
                 self._total_amounts[name] = self._initialize_totals()
+        return added
