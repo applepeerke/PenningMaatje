@@ -33,11 +33,11 @@ class PMC:
 
         self._summary_driver = SummaryDriver()
 
-    def create_summary(self, summary_type, year, month_from=1, month_to=12, template_names=None):
+    def create_summary(self, summary_type, year, month_from=1, month_to=12, template_names=None, iban=None):
         self._CM.set_config_item(CF_SUMMARY_YEAR, year)
         self._CM.set_config_item(CF_SUMMARY_MONTH_FROM, month_from)
         self._CM.set_config_item(CF_SUMMARY_MONTH_TO, month_to)
-        self._summary_driver.create_summary(summary_type, template_names=template_names)
+        self._summary_driver.create_summary(summary_type, template_filenames=template_names, iban=iban, CLI_mode=True)
 
     def _start_up(self, input_dir, output_dir, build) -> Result:
         """ Start without using GUI Controller """

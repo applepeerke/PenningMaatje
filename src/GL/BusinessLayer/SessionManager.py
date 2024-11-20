@@ -193,7 +193,7 @@ class Singleton:
 
             # Unit test - Input override
             if self._unit_test:
-                self._output_dir = normalize_dir(f'{self._root_dir}{UT}') if not output_dir else output_dir
+                self._output_dir = normalize_dir(f'{self._root_dir}{UT}{slash()}{OUTPUT}') if not output_dir else output_dir
                 self._resources_dir = normalize_dir(f'{self._root_dir}{UT}{slash()}{RESOURCES}')
                 self._templates_dir = normalize_dir(f'{self._resources_dir}{TEMPLATES}')
 

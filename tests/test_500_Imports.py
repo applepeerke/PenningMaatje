@@ -41,7 +41,7 @@ class ImportTestCase(unittest.TestCase):
         self._run_test(get_input_sub_dir(
             'Bankafschriften - dubbel'),
             expected_transaction_count=0,
-            expected_accounts=4,
+            expected_accounts=2,
             expected_import_result_OK=False
         )
 
@@ -49,7 +49,7 @@ class ImportTestCase(unittest.TestCase):
         self._run_test(get_input_sub_dir(
             'Bankafschriften - dubbel'),
             expected_import_result_OK=False,
-            expected_accounts=4,
+            expected_accounts=2,
             auto_continue=True)
 
         # Multiple accounts

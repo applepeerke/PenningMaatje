@@ -2,11 +2,10 @@ from datetime import datetime
 
 from src.BL.Functions import get_summary_filename
 from src.BL.Summary.SummaryBase import session, csvm, BCM
-from src.BL.Summary.Templates.Const import *
+from src.BL.Summary.Templates.Enums import DetailTotalVars
 from src.BL.Summary.Templates.TemplateBase import TemplateBase
 from src.DL.DBDriver.Att import Att
-from src.DL.Lexicon import TEMPLATE_ANNUAL_ACCOUNT, TRANSACTIONS, REALISATION, ACCOUNT_NUMBER, \
-    TEMPLATE_RESULTS_PER_BOOKING_CODE
+from src.DL.Lexicon import TRANSACTIONS, REALISATION, TEMPLATE_REALISATION_PER_BOOKING_CODE
 from src.DL.Model import FD
 from src.GL.Const import EMPTY
 from src.GL.GeneralException import GeneralException
@@ -31,14 +30,15 @@ EXAMPLE:
 
 
 class ResultsPerBookingCode(TemplateBase):
-    def __init__(self, account_bban, template_name):
-        super().__init__(account_bban, template_name)
+    def __init__(self, iban, template_filename, CLI_mode=False):
+        super().__init__(iban, template_filename, CLI_mode)
         self._total_amounts = {}  # amounts per level
         self._level_no = {}
         self._first = True
         self._c_first_amount = 1  # type, maingroup, subgroup, then amounts.
 
-    def export(self, account_bban, year=None, month_from=1, month_to=12) -> Result:
+    def export(self, year=None, month_from=1, month_to=12) -> Result:
+        super().export(year, month_from, month_to)
         self._year = int(year) if year else int(datetime.now().year)
 
         # Process output template
@@ -46,17 +46,18 @@ class ResultsPerBookingCode(TemplateBase):
 
         # Get transactions
         transactions = self._transactions_io.get_transactions(
-            self._account_bban, self._year, month_from, month_to, order_by=[[Att(FD.Booking_code), 'ASC']])
+            self._iban, self._year, month_from, month_to, order_by=[[Att(FD.Booking_code), 'ASC']])
 
         # Filename example: "Jaarrekening (templateX) 2024 tm maand 4.csv"
-        filename = get_summary_filename(self._year, self._transactions_io.month_max, title=self._template_name)
+        filename = get_summary_filename(self._template_filename, self._year, self._transactions_io.month_max, )
         self._out_path = f'{session.export_dir}{filename}'
 
         # Output naar CSV.
         self._construct(transactions)
 
-        return Result(text=f'De {TEMPLATE_RESULTS_PER_BOOKING_CODE} van {self._year} is geëxporteerd naar "{self._out_path}"') \
-            if self._result.OK else self._result
+        return Result(
+            text=f'De {TEMPLATE_REALISATION_PER_BOOKING_CODE} van {self._year} is geëxporteerd '
+                 f'naar "{self._out_path}"') if self._result.OK else self._result
 
     """
     Construction
@@ -67,25 +68,22 @@ class ResultsPerBookingCode(TemplateBase):
         N.B. Out rows are already been filled with header rows.
         fields = {seqNo: Field}
         """
-        if not te_sorted_on_booking_code:
-            raise GeneralException(
-                f'{PGM}: Er is niets te doen. Er zijn geen transacties in de database gevonden '
-                f'(voor {ACCOUNT_NUMBER} {self._account_bban} en {YEAR} {self._year}).')
+        super()._construct(te_sorted_on_booking_code)
 
         # Preparation
-        self._total_amounts = {GENERAL: [0.0]}
+        self._total_amounts = {DetailTotalVars.General: [0.0]}
 
         # Detail rows
         [self._add_data_row(row) for row in self._condense(te_sorted_on_booking_code)]
 
         # General total
-        self._format_and_add_total_row(GENERAL)
+        self._format_and_add_total_row(DetailTotalVars.General)
 
         # Write CSV
         csvm.write_rows(self._out_rows, data_path=self._out_path, open_mode='w')
 
         # Check-check-double-check
-        total_general = round(self._total_amounts[GENERAL][0], 2)
+        total_general = round(self._total_amounts[DetailTotalVars.General][0], 2)
         self._x_check(self._transactions_io.total_amount, total_general, 'Export naar CSV')
 
     def _condense(self, sorted_rows) -> list:
@@ -100,7 +98,7 @@ class ResultsPerBookingCode(TemplateBase):
             booking_desc = BCM.get_value_from_booking_code(booking_code, FD.Booking_description)
             booking_seqno = BCM.get_value_from_booking_code(booking_code, FD.SeqNo)
             amount = row[d[FD.Amount_signed]]
-            self._total_amounts[GENERAL][0] += amount
+            self._total_amounts[DetailTotalVars.General][0] += amount
             # level break
             if booking_code != booking_code_prv:
                 out_rows.append([booking_code_prv, booking_desc_prv, amount_prv, booking_seqno_prv])

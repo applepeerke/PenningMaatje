@@ -9,9 +9,9 @@
 import unittest
 
 from src.BL.Functions import get_summary_filename
-from src.BL.Summary.Templates.Const import TOTAL_GENERAL
+from src.BL.Summary.Templates.Enums import DetailTotalVars
+
 from src.DL.Enums.Enums import Summary
-from src.GL.BusinessLayer.ConfigManager import ConfigManager
 from src.GL.BusinessLayer.CsvManager import CsvManager
 from src.GL.BusinessLayer.SessionManager import Singleton as Session
 from src.GL.Functions import maybeFloat, toFloat
@@ -37,7 +37,7 @@ class TemplateTestCase(unittest.TestCase):
 
     def _run_test(
             self,
-            template_name,
+            template_filename,
             exp_tg=0.0,  # Total General
             exp_cols=0,
             exp_rows=0,
@@ -54,13 +54,13 @@ class TemplateTestCase(unittest.TestCase):
             export_dir = Session().export_dir
             year = 2018
             pmc = PMC(export_dir, year, build=False)
-            pmc.create_summary(summary_type, year, template_names={summary_type: template_name})
+            pmc.create_summary(summary_type, year, template_names={summary_type: template_filename})
         except GeneralException:
             self.assertTrue(exp_result is False)
             return
 
         # Check no. of rows
-        filename = get_summary_filename(year, 12, title=template_name)
+        filename = get_summary_filename(template_filename, year, 12)
         path = f'{export_dir}{filename}'
         rows = csvm.get_rows(data_path=path, include_header_row=True, include_empty_row=True)
         self.assertTrue(
@@ -75,7 +75,7 @@ class TemplateTestCase(unittest.TestCase):
 
         # Check General Total
         for row in rows:
-            if any(TOTAL_GENERAL.upper() in cell.upper() for cell in row):
+            if any(DetailTotalVars.TotalGeneral.upper() in cell.upper() for cell in row):
                 # 1st cell should contain realisation total general amount.
                 amounts = [cell for cell in row if maybeFloat(cell)]
                 realisation_general_total = toFloat(amounts[0]) if amounts else 0.0

@@ -2,10 +2,10 @@ from datetime import datetime
 
 from src.BL.Functions import get_summary_filename
 from src.BL.Summary.SummaryBase import BCM, session, csvm
-from src.BL.Summary.Templates.Const import *
+from src.BL.Summary.Templates.Enums import DetailTotalVars, DetailVars
 from src.BL.Summary.Templates.TemplateBase import TemplateBase, get_total_label
 from src.DL.IO.AnnualAccountIO import AnnualAccountIO
-from src.DL.Lexicon import TEMPLATE_ANNUAL_ACCOUNT, TRANSACTIONS, REALISATION, ACCOUNT_NUMBER
+from src.DL.Lexicon import TEMPLATE_ANNUAL_ACCOUNT, TRANSACTIONS, REALISATION
 from src.GL.Const import EMPTY
 from src.GL.GeneralException import GeneralException
 from src.GL.Result import Result
@@ -34,8 +34,8 @@ EXAMPLE:
 
 
 class AnnualAccount(TemplateBase):
-    def __init__(self, account_bban, template_name):
-        super().__init__(account_bban, template_name)
+    def __init__(self, iban, template_filename, CLI_mode=False):
+        super().__init__(iban, template_filename, CLI_mode)
         self._total_amounts = {}  # amounts per level
         self._level_no = {}
         self._first = True
@@ -45,7 +45,8 @@ class AnnualAccount(TemplateBase):
         self._annual_budgets = {}
         self._budget_years = 0
 
-    def export(self, account_bban, year=None, month_from=None, month_to=None) -> Result:
+    def export(self, year=None, month_from=None, month_to=None) -> Result:
+        super().export(year, month_from, month_to)
         self._year = int(year) if year else int(datetime.now().year)
 
         # Process output template
@@ -55,7 +56,7 @@ class AnnualAccount(TemplateBase):
         sorted_bookings = self._get_merged_bookings()
 
         # Filename example: "Jaarrekening (templateX) 2024 tm maand 4.csv"
-        filename = get_summary_filename(self._year, self._transactions_io.month_max, title=self._template_name)
+        filename = get_summary_filename(self._template_filename, self._year, self._transactions_io.month_max)
         self._out_path = f'{session.export_dir}{filename}'
 
         # Output naar CSV.
@@ -64,8 +65,8 @@ class AnnualAccount(TemplateBase):
         return Result(text=f'De {TEMPLATE_ANNUAL_ACCOUNT} van {self._year} is geëxporteerd naar "{self._out_path}"') \
             if self._result.OK else self._result
 
-    def _substitute_singular_var(self, cell, final=False) -> str:
-        return super()._substitute_singular_var(cell, final=True)
+    def _substitute_header_var(self, cell) -> str:
+        return super()._substitute_header_var(cell)
 
     """
     Construction
@@ -73,7 +74,7 @@ class AnnualAccount(TemplateBase):
 
     def _get_merged_bookings(self) -> list:
         """ Add budget booking columns to realisation """
-        realisation_rows = self._transactions_io.get_realisation_data(self._account_bban, self._year)
+        realisation_rows = self._transactions_io.get_realisation_data(self._iban, self._year)
         if not realisation_rows:
             return []
 
@@ -128,10 +129,7 @@ class AnnualAccount(TemplateBase):
         N.B. Out rows are already been filled with title.
         fields = {seqNo: Field}
         """
-        if not sorted_bookings:
-            raise GeneralException(
-                f'{PGM}: Er is niets te doen. Er zijn geen transacties in de database gevonden '
-                f'(voor {ACCOUNT_NUMBER} {self._account_bban} en {YEAR} {self._year}).')
+        super()._construct(sorted_bookings)
 
         col_count = len(sorted_bookings[0])
         if col_count != len(self._column_fields):
@@ -147,14 +145,14 @@ class AnnualAccount(TemplateBase):
 
         # Preparation
         self._total_amounts = {
-            GENERAL: self._initialize_totals(),
-            TYPES: self._initialize_totals(),
-            MAINGROUPS: self._initialize_totals()
+            DetailTotalVars.General: self._initialize_totals(),
+            DetailVars.Types: self._initialize_totals(),
+            DetailVars.Maingroups: self._initialize_totals()
         }
         self._level_no = {
-            GENERAL: 0,
-            TYPES: 1,
-            MAINGROUPS: 2
+            DetailTotalVars.General: 0,
+            DetailVars.Types: 1,
+            DetailVars.Maingroups: 2
         }
 
         for F in self._column_fields.values():
@@ -168,15 +166,15 @@ class AnnualAccount(TemplateBase):
 
         # General total
         # Format and add only the amounts.
-        if self._format_and_add_total_row(GENERAL):
-            self._add_row(TOTAL_GENERAL)
+        if self._format_and_add_total_row(DetailTotalVars.General):
+            self._add_row(DetailTotalVars.TotalGeneral)
 
         # Write CSV
         csvm.write_rows(self._out_rows, data_path=self._out_path, open_mode='w')
 
         # Check-check-double-check
-        if self._total_amounts[GENERAL]:
-            total_general = round(self._total_amounts[GENERAL][0], 2)
+        if self._total_amounts[DetailTotalVars.General]:
+            total_general = round(self._total_amounts[DetailTotalVars.General][0], 2)
             self._x_check(self._transactions_io.total_amount, total_general, 'Export naar CSV')
 
     @staticmethod
@@ -226,14 +224,15 @@ class AnnualAccount(TemplateBase):
              BEDRAG: 15.25}
         """
 
-        # Sum realisation totals per [type, maingroup, general]
+        # Sum realisation & budget totals per [type, maingroup, general]
         for i in range(self._c_first_amount, len(data_row)):
             amount_db = data_row[i]
             j = i - self._c_first_amount
-            # For this column i
+            # For all levels (type & maingroup & general)
             for level_name, amounts in self._total_amounts.items():
-                if j in self._total_amounts[level_name]:  # Per level (general, type, maingroup)
-                    self._total_amounts[level_name][j] += amount_db  # Per amount (real., budget, ...)
+                if amounts:
+                    # For this total column j (real., budget, or ...)
+                    self._total_amounts[level_name][j] += amount_db  # Add amount
 
         # Format and add the last columns (subgroup, amounts).
         [self._format_and_add_value(F.template_var_name, F.value)

@@ -4,6 +4,7 @@ import getopt
 import os
 import sys
 
+from src.BL.Functions import get_BBAN_from_IBAN
 from src.DL.Enums.Enums import Summary
 from src.GL.Const import QUIT, EMPTY
 from src.GL.Enums import Color
@@ -18,8 +19,9 @@ year = None
 build = False
 summary_type = Summary.AnnualAccountPlus
 template_name = None
+iban = EMPTY
 
-usage = 'usage: pm.py -i <inputdir> -o <outputdir> -y <year> -b <build> -s <summarytype> -t <templatename> -h'
+usage = 'usage: pm.py -i <inputdir> -o <outputdir> -y <year> -b <build> -s <summarytype> -t <templatename> -a <iban> -h'
 errorText = Color.RED + "Error:" + Color.NC + " "
 
 
@@ -29,13 +31,13 @@ errorText = Color.RED + "Error:" + Color.NC + " "
 
 
 def main(argv):
-    global input_dir, output_dir, year, build, summary_type, template_name
+    global input_dir, output_dir, year, build, summary_type, template_name, iban
 
     try:
         opts, args = getopt.getopt(
-            argv, "b:h:i:o:s:t:y:",
+            argv, "bha:i:o:s:t:y:",
             [
-                "bbuild=",
+                "aiban=",
                 "iinputdir=",
                 "ooutputdir=",
                 "ssummarytype=",
@@ -73,9 +75,7 @@ def main(argv):
                 exit_program('Parameter -y (year) is not valid.')
 
         elif opt in ("-b", "--build"):
-            build = arg
-            if not toBool(build) in (True, False):
-                exit_program('Parameter -b (build) is not valid.')
+            build = True
 
         elif opt in ("-s", "--summarytype"):
             summary_type = arg
@@ -86,6 +86,10 @@ def main(argv):
             template_name = arg
             if not isPathname(template_name):
                 exit_program(f'Parameter -t (template name) is not valid.')
+        elif opt in ("-a", "--iban"):
+            iban = arg
+            if not get_BBAN_from_IBAN(iban):
+                exit_program(f'Parameter -a (iban) is not a valid IBAN.')
 
     try:
         if not year:
@@ -93,7 +97,7 @@ def main(argv):
         template_names = {summary_type: template_name} if template_name else {}
 
         pmc = PMC(output_dir=output_dir, year=year, build=build, input_dir=input_dir)
-        pmc.create_summary(summary_type, year, template_names=template_names)
+        pmc.create_summary(summary_type, year, template_names=template_names, iban=iban)
 
     except GeneralException as e:
         exit_program(e.message)

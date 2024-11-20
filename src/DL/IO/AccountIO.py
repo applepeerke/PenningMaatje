@@ -5,7 +5,7 @@ from src.DL.IO.BaseIO import BaseIO
 from src.DL.Model import FD, Model
 from src.DL.Objects.Account import Account
 from src.DL.Table import Table
-from src.GL.Const import EMPTY, UNDEFINED
+from src.GL.Const import EMPTY
 from src.GL.GeneralException import GeneralException
 
 PGM = 'AccountIO'
@@ -39,27 +39,20 @@ class AccountIO(BaseIO):
         [self.insert(Account(bban, o.iban, o.description)) for bban, o in self._accounts_dict.items()]
 
     def get_current_iban(self, current_iban) -> str:
+        """ Used in import_transactions """
         iban = current_iban
-
         # If iban does not exist (in the new iban cache list), return the first one from cache (or empty)
         if not any(o.iban == current_iban for o in self._accounts_dict.values()):
-            # self._accounts_dict = {o.bban: o for o in self._get_objects()}
             iban = list(self._accounts_dict.values())[0].iban if self._accounts_dict else EMPTY
         return iban
 
-    def get_description(self, bban=None, dft=UNDEFINED) -> str:
-        self._accounts_dict = {o.bban: o for o in self._get_objects()}
-        # bban specified
-        if bban:
-            o = self._accounts_dict.get(bban)
-            return o.description if o else dft
-        # If only 1 account, return that description
-        elif len(self._accounts_dict) == 1:
-            for obj in self._accounts_dict.values():
-                return obj.description
-        # Multiple accounts: undefined.
-        else:
-            return dft
+    def get_description(self, iban) -> str:
+        """ Used in summaries. Iban must be known at this point."""
+        if not self._accounts_dict:
+            for o in self._get_objects():
+                self._accounts_dict[o.bban] = o
+        descriptions = [o.description for o in self._accounts_dict.values() if o.iban == iban]
+        return descriptions[0] if descriptions and len(descriptions) == 1 else EMPTY
 
     def _get_objects(self) -> list:
         rows = self._session.db.select(TABLE, mode=FetchMode.WholeTable)
@@ -68,6 +61,9 @@ class AccountIO(BaseIO):
 
     def get_ibans(self) -> list:
         return self._session.db.select(TABLE, name=FD.Iban)
+
+    def get_bbans(self) -> list:
+        return [get_BBAN_from_IBAN(iban) for iban in self.get_ibans()]
 
     def get_bban_iban_from_account_number(self, value) -> (str, str):
         account_number = sophisticate_account_number(value)

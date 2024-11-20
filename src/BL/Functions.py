@@ -1,7 +1,6 @@
 import base64
 import re
 
-from src.DL.Lexicon import TEMPLATE_ANNUAL_ACCOUNT, PERIODIC_ACCOUNTS, TEMPLATE_PERIODIC_ACCOUNT
 from src.DL.Model import EMPTY
 from src.GL.Const import BLANK, EXT_CSV
 from src.GL.Functions import is_valid_file
@@ -59,5 +58,6 @@ def sophisticate_account_number(value):
     return EMPTY.join(names)
 
 
-def get_summary_filename(year, max_month, title):
-    return f'{title} {year} tm maand {max_month}{EXT_CSV}'
+def get_summary_filename(template_filename, year, max_month):
+    suffix = f' tm maand {max_month}' if max_month > 0 else EMPTY
+    return f'{template_filename} {year}{suffix}{EXT_CSV}'

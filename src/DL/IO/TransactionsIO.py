@@ -2,6 +2,7 @@ from abc import ABC
 from copy import copy
 from typing import Optional
 
+from src.BL.Functions import get_BBAN_from_IBAN
 from src.DL.Config import CF_SEARCH_AMOUNT, CF_SEARCH_AMOUNT_TO, \
     CF_COMMA_REPRESENTATION_DB, CF_COMMA_REPRESENTATION_DISPLAY, CF_SEARCH_YEAR, CF_SEARCH_MONTH, \
     CF_SEARCH_TRANSACTION_CODE, CF_SEARCH_TEXT, CF_SEARCH_COUNTER_ACCOUNT, CF_SEARCH_REMARKS, CF_SEARCH_BOOKING_CODE
@@ -210,11 +211,12 @@ class TransactionsIO(BaseIO, ABC):
     """
     Summary
     """
-    def get_realisation_data(self, account_bban, year) -> list:
+    def get_realisation_data(self, iban, year) -> list:
         """ @return: [type, maingroup, subgroup, amount]"""
         self._total_amount = 0.0
         d = {}
         b_def = self._model.get_colno_per_att_name(Table.BookingCode, zero_based=False)
+        account_bban = get_BBAN_from_IBAN(iban)
         where = [Att(FD.Account_bban, account_bban), Att(FD.Year, year)]
         mutations = self._db.select(TABLE, where=where)
         for m_row in mutations:
@@ -245,12 +247,12 @@ class TransactionsIO(BaseIO, ABC):
         cr.append(amount)
         return cr
 
-    def get_transactions(self, account_bban, year, month_from, month_to=None, order_by=None) -> list:
+    def get_transactions(self, iban, year, month_from, month_to=None, order_by=None) -> list:
         """
         Either for 1 month or for multiple months (e.g. quarterly).
         Sorted on date (asc).
         """
-        where = [Att(FD.Account_bban, account_bban), Att(FD.Year, year)]
+        where = [Att(FD.Account_bban, get_BBAN_from_IBAN(iban)), Att(FD.Year, year)]
         if month_from == month_to or month_to is None:
             where.extend([Att(FD.Month, month_from)])
         else:
