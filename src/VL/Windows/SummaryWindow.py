@@ -10,17 +10,17 @@ from src.BL.Summary.SummaryDriver import SummaryDriver
 from src.DL.Config import CF_COMBO_SUMMARY, CF_SUMMARY_YEAR, CF_SUMMARY_MONTH_FROM, CF_SUMMARY_OPENING_BALANCE
 from src.DL.Enums.Enums import Summary
 from src.DL.IO.OpeningBalanceIO import OpeningBalanceIO
-from src.GL.Functions import FloatToStr
+from src.DL.Lexicon import SUMMARY
+from src.GL.BusinessLayer.ConfigManager import ConfigManager
+from src.GL.Enums import ResultCode
+from src.GL.Functions import try_amount_input
+from src.GL.Result import Result
 from src.VL.Data.Constants.Const import CMD_OK, CMD_CANCEL
 from src.VL.Data.Constants.Enums import WindowType
-from src.DL.Lexicon import SUMMARY
 from src.VL.Data.WTyp import WTyp
 from src.VL.Functions import get_name_from_key
 from src.VL.Views.SummaryView import SummaryView
 from src.VL.Windows.BaseWindow import BaseWindow
-from src.GL.BusinessLayer.ConfigManager import ConfigManager
-from src.GL.Enums import ResultCode
-from src.GL.Result import Result
 
 
 class SummaryWindow(BaseWindow):
@@ -72,8 +72,10 @@ class SummaryWindow(BaseWindow):
             visible=self._CM.get_config_item(CF_COMBO_SUMMARY) == Summary.PeriodicAccount)
         # Begin saldo
         self._window[self.gui_key(CF_SUMMARY_OPENING_BALANCE, WTyp.FR)].update(
-            visible=self._CM.get_config_item(CF_COMBO_SUMMARY) not in (Summary.SearchResult, Summary.AnnualAccount)
+            visible=self._CM.get_config_item(CF_COMBO_SUMMARY) in (Summary.PeriodicAccount, Summary.AnnualAccountPlus)
         )
+        # First time is float. After changing the amount string representation (with comma), convert to float first.
+        amount_str = self._CM.get_config_item(CF_SUMMARY_OPENING_BALANCE, '0,00')
+        amount_str = str(amount_str).replace(',', '.')
         self._window[self.gui_key(CF_SUMMARY_OPENING_BALANCE, WTyp.IN)].update(
-            value=FloatToStr(self._CM.get_config_item(CF_SUMMARY_OPENING_BALANCE, '0,00'))
-        )
+            value=try_amount_input(amount_str))

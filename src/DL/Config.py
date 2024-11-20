@@ -341,8 +341,8 @@ configDef = {
     # Summary
     CF_COMBO_SUMMARY: ConfigItem(f'Kies het soort {SUMMARY}'),
     CF_SUMMARY_YEAR: ConfigItem('Kies het Jaar', validation_method=isIntOrNone),
-    CF_SUMMARY_MONTH_FROM: ConfigItem('Maand vanaf', 0, validation_method=isIntOrNone),
-    CF_SUMMARY_MONTH_TO: ConfigItem('Maand t/m', 0, validation_method=isIntOrNone),
+    CF_SUMMARY_MONTH_FROM: ConfigItem(MONTH_FROM, 0, validation_method=isIntOrNone),
+    CF_SUMMARY_MONTH_TO: ConfigItem(MONTH_TO, 0, validation_method=isIntOrNone),
     CF_SUMMARY_OPENING_BALANCE: ConfigItem('Begin saldo', 0.0, validation_method=isAmount),
 
     # Commands

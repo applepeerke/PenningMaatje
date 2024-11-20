@@ -8,17 +8,17 @@
 # ---------------------------------------------------------------------------------------------------------------------
 from src.BL.Summary.SearchResults import SearchResults
 from src.BL.Summary.Templates.AnnualAccount import AnnualAccount
-from src.BL.Summary.Templates.Enums import HeaderVars
 from src.BL.Summary.Templates.PeriodicAccount import PeriodicAccount
 from src.BL.Summary.Templates.ResultPerBookingCode import ResultsPerBookingCode
 from src.DL.Config import CF_SUMMARY_YEAR, CF_SUMMARY_MONTH_FROM, CF_SUMMARY_MONTH_TO, \
     CF_SUMMARY_OPENING_BALANCE
 from src.DL.Enums.Enums import Summary
 from src.DL.Lexicon import TEMPLATE_ANNUAL_ACCOUNT, SEARCH_RESULT, PERIODIC_ACCOUNTS, YEAR, \
-    TEMPLATE_NAME, TEMPLATE_PERIODIC_ACCOUNT, TEMPLATE_REALISATION_PER_BOOKING_CODE
+    TEMPLATE_NAME, TEMPLATE_PERIODIC_ACCOUNT, TEMPLATE_REALISATION_PER_BOOKING_CODE, MONTH_FROM, MONTH_TO
 from src.GL.BusinessLayer.ConfigManager import ConfigManager
 from src.GL.BusinessLayer.SessionManager import Singleton as Session
 from src.GL.Enums import MessageSeverity
+from src.GL.Functions import toFloat
 from src.GL.GeneralException import GeneralException
 from src.GL.Result import Result
 
@@ -41,10 +41,9 @@ class SummaryDriver:
         self._summary_type = summary_type
         self._template_filenames = template_filenames
         self._CLI_mode = CLI_mode
+        self._result = Result()
 
         CM = ConfigManager()
-        if not self._result.OK:
-            return self._result
 
         year = CM.get_config_item(CF_SUMMARY_YEAR, 0)
         month_from = CM.get_config_item(CF_SUMMARY_MONTH_FROM, 0)
@@ -65,15 +64,21 @@ class SummaryDriver:
             elif summary_type == Summary.AnnualAccount:
                 self._produce_csv_files(summary_type, iban, year)
 
-            # B. Periodical account
+            # C. Periodical account
             elif summary_type == Summary.PeriodicAccount:
                 self._produce_csv_files(summary_type, iban, year, month_from, month_to)
 
-            # B. Annual account Plus
+            # D. Annual account Plus
             elif summary_type == Summary.AnnualAccountPlus:
                 self._produce_csv_files(Summary.AnnualAccount, iban, year)
                 self._produce_csv_files(Summary.RealisationPerBookingCode, iban, year)
                 self._produce_csv_files(Summary.PeriodicAccount, iban, year, 1, 12)
+
+            # E. Realisation per booking code
+            elif summary_type == Summary.RealisationPerBookingCode:
+                self._produce_csv_files(Summary.RealisationPerBookingCode, iban, year)
+            else:
+                raise GeneralException(f'Overzicht "{summary_type}" wordt niet ondersteund.')
 
         except GeneralException as e:
             self._result.add_message(e.message, severity=MessageSeverity.Error)
@@ -107,14 +112,14 @@ class SummaryDriver:
         # Periodic summary
         elif summary_type == Summary.PeriodicAccount:
             # Validation
-            self._required_parm(prefix, HeaderVars.MonthFrom, month_from)
-            self._required_parm(prefix, HeaderVars.MonthTo, month_to)
+            self._required_parm(prefix, MONTH_FROM, month_from)
+            self._required_parm(prefix, MONTH_TO, month_to)
             if not self._result.OK:
                 return
 
             # Export
             CM = ConfigManager()
-            opening_balance = CM.get_config_item(CF_SUMMARY_OPENING_BALANCE, 0.0)
+            opening_balance = toFloat(CM.get_config_item(CF_SUMMARY_OPENING_BALANCE, 0.0))
             self._PA = PeriodicAccount(iban, opening_balance, template_filename, self._CLI_mode)
             self._PA.export(year, month_from, month_to)
 
