@@ -22,6 +22,15 @@ class AccountIO(BaseIO):
     def __init__(self):
         super().__init__(TABLE)
         self._accounts_dict = {}
+        self._started = False
+
+    def _initialize(self, force=False):
+        if self._started and not force:
+            return
+        self._started = True
+        if not self._accounts_dict:
+            for o in self._get_objects():
+                self._accounts_dict[o.bban] = o
 
     def insert(self, obj: Account):
         """ Avoid duplicates """
@@ -40,6 +49,7 @@ class AccountIO(BaseIO):
 
     def get_current_iban(self, current_iban) -> str:
         """ Used in import_transactions """
+        self._initialize()
         iban = current_iban
         # If iban does not exist (in the new iban cache list), return the first one from cache (or empty)
         if not any(o.iban == current_iban for o in self._accounts_dict.values()):
@@ -48,9 +58,7 @@ class AccountIO(BaseIO):
 
     def get_description(self, iban) -> str:
         """ Used in summaries. Iban must be known at this point."""
-        if not self._accounts_dict:
-            for o in self._get_objects():
-                self._accounts_dict[o.bban] = o
+        self._initialize()
         descriptions = [o.description for o in self._accounts_dict.values() if o.iban == iban]
         return descriptions[0] if descriptions and len(descriptions) == 1 else EMPTY
 
@@ -60,10 +68,12 @@ class AccountIO(BaseIO):
         return self._objects
 
     def get_ibans(self) -> list:
-        return self._session.db.select(TABLE, name=FD.Iban)
+        self._initialize()
+        return [o.iban for o in self._accounts_dict.values()]
 
     def get_bbans(self) -> list:
-        return [get_BBAN_from_IBAN(iban) for iban in self.get_ibans()]
+        self._initialize()
+        return [o.bban for o in self._accounts_dict.values()]
 
     def get_bban_iban_from_account_number(self, value) -> (str, str):
         account_number = sophisticate_account_number(value)
