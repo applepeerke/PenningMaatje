@@ -149,11 +149,6 @@ class Singleton:
         def get_lk(booking_type, maingroup, subgroup):
             return f'{booking_type}|{maingroup}|{subgroup}'
 
-        @staticmethod
-        def get_booking_code_from_desc(description) -> str:
-            names = description.split()
-            return names[0] if names else EMPTY
-
         def get_booking_code_from_lk(self, booking_type, maingroup, subgroup) -> str:
             lk = self.get_lk(booking_type, maingroup, subgroup)
             booking_code = self._codes_by_lk.get(lk, EMPTY)

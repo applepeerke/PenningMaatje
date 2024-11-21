@@ -47,7 +47,7 @@ class SearchTermWindow(ListItemWindow):
         if event == self.gui_key(CMD_OK, WTyp.BT):
             self._model.object = SearchTerm(
                 search_term=values.get(self.gui_key(SEARCH_TERM, WTyp.IN)),
-                booking_code=BCM.get_booking_code_from_desc(
+                booking_code=BCM.get_code_from_combo_desc(
                     values.get(self.gui_key(SEARCH_TERM_BOOKING_DESCRIPTION, WTyp.CO))),
             )
         # Handle event

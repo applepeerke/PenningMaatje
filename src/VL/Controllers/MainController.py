@@ -305,7 +305,7 @@ class MainController(BaseController):
             self._diag_message(f'{diag_prefix}Counter account number selected')
             self._set_counter_account_booking_code(
                 self._main_model.models[Pane.TX].counter_account,
-                BCM.get_booking_code_from_desc(CM.get_config_item(CF_COUNTER_ACCOUNT_BOOKING_DESCRIPTION)))
+                BCM.get_code_from_combo_desc(CM.get_config_item(CF_COUNTER_ACCOUNT_BOOKING_DESCRIPTION)))
             if self._result.OK:
                 self._result = self._main_model.refresh_dashboard(
                     Pane.TE, CM.get_config_item(f'CF_ROW_NO_{Pane.TE}'), search_mode=self._search_mode)

@@ -1,13 +1,16 @@
 Categoriseren is het koppelen van {TRANSACTIONS} aan {BOOKING_CODES}.
 Dit doe je via het onderhouden van {BOOKING_CODES} in de lijsten met {BOOKING_CODES} en {SEARCH_TERMS}.
+Bij het inlezen van de {TRANSACTIONS} worden de koppelingen vastgelegd.
 
 Dit zijn de te volgen stappen:
 
     1. Om {COUNTER_ACCOUNTS} aan {BOOKING_CODES} te koppelen:
+
         a. Druk in {DASHBOARD} de knop "{CMD_SEARCH_FOR_EMPTY_BOOKING}".
         b. Kies de {BOOKING_CODE} bij de {COUNTER_ACCOUNT} in het paneel "{TRANSACTION}".
 
     2. Om {TRANSACTIONS} aan {BOOKING_CODES} te koppelen:
+
             a. Ga naar de lijst met {SEARCH_TERMS}.
             b. Koppel {SEARCH_TERMS} die in de Naam of Omschrijving van de {TRANSACTIONS} voorkomen aan {BOOKING_CODES}.
 
@@ -27,6 +30,7 @@ Deze lijsten kun je onderhouden door op te drukken op
 ------------------------
 Als je {BOOKING_CODES} of {SEARCH_TERMS} of andere gegevens gewijzigd hebt,
 worden deze bij het afsluiten van {APP} bewaard. Dit is een backup per dag.
+
 Je kunt een {BACKUP} terugzetten.
     o  Ga naar het {CONFIG} paneel.
     o  Kies een backup datum
