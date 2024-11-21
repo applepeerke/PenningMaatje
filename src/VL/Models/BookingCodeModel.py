@@ -24,4 +24,4 @@ class BookingCodeModel(ListItemModel):
         super().__init__(TABLE, command, obj)
         # Populate model attributes
         self._booking_types = Session().db.select(Table.FlatFiles, name=FD.Value, where=[Att(FD.Key, FD.Booking_type)])
-        self._transaction_count = DD.get_transaction_count(TABLE, self._object.booking_id)
+        self._transaction_count = DD.get_transaction_count(TABLE, self._object.booking_code)

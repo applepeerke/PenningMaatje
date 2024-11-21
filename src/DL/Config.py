@@ -287,27 +287,27 @@ configDef = {
         f'Maximum aantal combo box items', 30, _border(f'Het maximum aantal te tonen items in een combo box.'), isInt),
     CF_ROWS_ACCOUNT_WITHOUT_BOOKING: ConfigItem(None, 50, None, None),
     # Rekening
-    CF_IBAN: ConfigItem('Rekening', EMPTY, None, isAlphaNumeric),
+    CF_IBAN: ConfigItem(ACCOUNT_NUMBER, EMPTY, None, isAlphaNumeric),
     # Search
-    CF_SEARCH_YEAR: ConfigItem('Jaar', EMPTY, None, isIntOrNone),
-    CF_SEARCH_MONTH: ConfigItem('Maand', EMPTY, None, isIntOrNone),
-    CF_SEARCH_COUNTER_ACCOUNT: ConfigItem('Tegenrekening', EMPTY, None, isAlphaNumericOrEmpty),
-    CF_SEARCH_TRANSACTION_CODE: ConfigItem('TransactieCode', EMPTY, None, isAlphaNumeric),
-    CF_SEARCH_AMOUNT: ConfigItem('Bedrag', EMPTY, None, isAmount),
-    CF_SEARCH_AMOUNT_TO: ConfigItem('Bedrag t/m', EMPTY, None, isAmount),
-    CF_SEARCH_AMOUNT_TOTAL: ConfigItem('Totaal', EMPTY, None, isAmount),
-    CF_SEARCH_TRANSACTION_TYPE: ConfigItem('Mutatiesoort', EMPTY, None, isAlphaNumeric),
-    CF_SEARCH_BOOKING_CODE: ConfigItem('Boeking code', EMPTY, None, isAlphaNumericOrEmpty),
+    CF_SEARCH_YEAR: ConfigItem(YEAR, EMPTY, None, isIntOrNone),
+    CF_SEARCH_MONTH: ConfigItem(MONTH, EMPTY, None, isIntOrNone),
+    CF_SEARCH_COUNTER_ACCOUNT: ConfigItem(COUNTER_ACCOUNT, EMPTY, None, isAlphaNumericOrEmpty),
+    CF_SEARCH_TRANSACTION_CODE: ConfigItem(TRANSACTION_CODE, EMPTY, None, isAlphaNumeric),
+    CF_SEARCH_AMOUNT: ConfigItem(AMOUNT, EMPTY, None, isAmount),
+    CF_SEARCH_AMOUNT_TO: ConfigItem(f'{AMOUNT} t/m', EMPTY, None, isAmount),
+    CF_SEARCH_AMOUNT_TOTAL: ConfigItem(TOTAL, EMPTY, None, isAmount),
+    CF_SEARCH_TRANSACTION_TYPE: ConfigItem(MUTATION_TYPE, EMPTY, None, isAlphaNumeric),
+    CF_SEARCH_BOOKING_CODE: ConfigItem(BOOKING_CODE_DESCRIPTION, EMPTY, None, isAlphaNumericOrEmpty),
     CF_SEARCH_TEXT: ConfigItem(
-        'Naam *', EMPTY,
+        f'{NAME} *', EMPTY,
         _border(
             'Zoek in de naam, mededelingen en bijzonderheden van de begunstigde.  \n'
             '  Als wildcard kun je "*" gebruiken (alleen vóór en/of na de zoekterm). '), isCsvText),
     CF_SEARCH_REMARKS: ConfigItem(
-        'Bijzonderheden', EMPTY, _border('Zoek transacties waaraan je bijzonderheden hebt toegevoegd.'), isBool),
+        REMARKS, EMPTY, _border('Zoek transacties waaraan je bijzonderheden hebt toegevoegd.'), isBool),
     CF_COUNTER_ACCOUNT_BOOKING_DESCRIPTION: ConfigItem('Boeking', EMPTY, None, isAlphaNumericOrEmpty),
     # Booking
-    CF_BOOKING_TYPE: ConfigItem('Boeking type', EMPTY, None, isAlphaNumeric),
+    CF_BOOKING_TYPE: ConfigItem(BOOKING_TYPE, EMPTY, None, isAlphaNumeric),
     CF_BOOKING_MAINGROUP: ConfigItem('Hoofdgroep', EMPTY, None, isAlphaNumeric),
     CF_BOOKING_SUBGROUP: ConfigItem('Subgroep', EMPTY, None, isAlphaNumericOrEmpty),
     CF_BOOKING_CODE: ConfigItem('Code', EMPTY, None, isBookingCodeOrEmpty),

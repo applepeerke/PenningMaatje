@@ -24,6 +24,9 @@ class SearchController(BaseController):
         super().__init__()
         self._model = model
         self._transactions_IO = transactionIO
+        # Toggle Empty-Booking to Search-mode
+        if CM.is_search_for_empty_booking_mode():
+            CM.initialize_search_criteria()
 
     def handle_event(self, event):
         super().handle_event(event)

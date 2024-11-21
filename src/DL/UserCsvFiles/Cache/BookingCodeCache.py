@@ -35,15 +35,15 @@ class Singleton:
             return self._booking_codes
 
         @property
-        def booking_descriptions(self):
-            return self._booking_descriptions
+        def formatted_booking_descriptions(self):
+            return self._formatted_booking_descriptions
 
         def __init__(self):
             self._booking_codes = set()
-            self._booking_descriptions = set()
+            self._formatted_booking_descriptions = set()
             self._booking_codes_including_not_protected = []
-            self._booking_code_descriptions_including_not_protected = []
-            self._booking_code_descriptions = []
+            self._formatted_descriptions_including_not_protected = []
+            self._formatted_descriptions = []
             self._protected_maingroup_booking_codes = {}
             self._ids_by_key = {}
             self._ids_by_code = {}
@@ -73,12 +73,12 @@ class Singleton:
             self._initialized = True
 
             [self._process_booking_row(row, d) for row in rows]
-            self._booking_code_descriptions = [
-                self._get_desc(booking_code) for booking_code in self._booking_codes]
+            self._formatted_descriptions = [
+                self._get_formatted_desc(booking_code) for booking_code in self._booking_codes]
 
             self._booking_codes_including_not_protected = sorted([row[d[FD.Booking_code]] for row in rows])
-            self._booking_code_descriptions_including_not_protected = [
-                self._get_desc(booking_code) for booking_code in self._booking_codes_including_not_protected]
+            self._formatted_descriptions_including_not_protected = [
+                self._get_formatted_desc(booking_code) for booking_code in self._booking_codes_including_not_protected]
             self._protected_maingroup_booking_codes = {maingroup: EMPTY for maingroup in PROTECTED_BOOKINGS}
 
         def get_booking_code(self, name, comment, remark=None) -> str:
@@ -118,18 +118,28 @@ class Singleton:
 
             # Sets (after dicts, to be able to get the description)
             self._booking_codes.add(booking_code)
-            self._booking_descriptions.add(self._get_desc(booking_code))
+            self._formatted_booking_descriptions.add(self._get_formatted_desc(booking_code))
             if protected:
                 self._protected_maingroup_booking_codes[maingroup] = booking_code
 
         def get_booking_code_descriptions(self, include_protected=False):
             self.initialize()  # 1st time
-            return self._booking_code_descriptions if include_protected \
-                else self._booking_code_descriptions_including_not_protected
+            return self._formatted_descriptions if include_protected \
+                else self._formatted_descriptions_including_not_protected
 
-        def _get_desc(self, booking_code) -> str:
+        def _get_formatted_desc(self, booking_code) -> str:
             return (f'{self.get_value_from_booking_code(booking_code, FD.Booking_maingroup)} '
                     f'{self.get_value_from_booking_code(booking_code, FD.Booking_subgroup)}')
+
+        def get_code_from_combo_desc(self, formatted_desc) -> str:
+            """ SearchView combo booking description has a formatted description without the code. """
+            for lk, code in self._codes_by_lk.items():
+                keys = lk.split('|')
+                if (formatted_desc.startswith(keys[1]) and
+                        (keys[2] and formatted_desc.endswith(keys[2]) or
+                         (not keys[2] and formatted_desc.strip() == keys[1].strip()))):
+                    return code
+            return EMPTY
 
         @staticmethod
         def get_lk(booking_type, maingroup, subgroup):
@@ -172,7 +182,7 @@ class Singleton:
                 return self._codes_by_id.get(ID, dft)
             elif att_name == FD.Booking_description:
                 booking_code = self._codes_by_id.get(ID, dft)
-                return self._get_desc(booking_code)
+                return self._get_formatted_desc(booking_code)
             else:
                 return dft
 

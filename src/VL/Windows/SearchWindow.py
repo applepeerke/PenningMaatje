@@ -13,7 +13,7 @@ from src.DL.Config import CF_SEARCH_AMOUNT, \
 from src.DL.Config import CMD_SEARCH_RESET, CMD_EXPORT, FRAME_SEARCH_TOTAL, CF_SEARCH_AMOUNT_TOTAL
 from src.DL.Model import Model
 from src.DL.Table import Table
-from src.VL.Controllers.SearchController import SearchController
+from src.VL.Controllers.SearchController import SearchController, CM
 from src.VL.Data.Constants.Enums import WindowType, Pane
 from src.VL.Data.WTyp import WTyp
 from src.VL.Functions import get_name_from_key

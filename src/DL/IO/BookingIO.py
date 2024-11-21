@@ -95,6 +95,10 @@ class BookingIO(BaseIO):
             self._set_changed_flag(Mutation.Create)
 
         elif model.command == BoxCommand.Update:
+            # Warning
+            if not self._confirm('gewijzigd'):
+                return Result(action_code=ActionCode.Close)
+
             values = pk_new.copy()
             values.extend([
                 Att(FD.Booking_code, self._object.booking_code),
@@ -111,7 +115,7 @@ class BookingIO(BaseIO):
         elif model.command == BoxCommand.Delete:
             # Warning
             if not self._confirm('verwijderd'):
-                return Result(action_code=ActionCode.Cancel)
+                return Result(action_code=ActionCode.Close)
 
             # Clear booking Id in TransactionEnriched and CounterAccount
             Id = self._db.fetch_id(TABLE, where=pk_current)

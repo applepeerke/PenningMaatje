@@ -148,7 +148,7 @@ class TransactionsIO(BaseIO, ABC):
             self._where_atts.append(copy(att))
         # Booking and Counter-account: Convert values to ids
         # - BookingCode
-        booking_code = BCM.get_booking_code_from_desc(CM.get_config_item(CF_SEARCH_BOOKING_CODE))
+        booking_code = BCM.get_code_from_combo_desc(CM.get_config_item(CF_SEARCH_BOOKING_CODE))
         if booking_code:
             if booking_code == LEEG:
                 self._add_where_att(FD.Counter_account_id, 'int', 0, relation=oper.GT)
