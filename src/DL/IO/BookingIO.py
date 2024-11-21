@@ -163,9 +163,6 @@ class BookingIO(BaseIO):
         code_old = self._object_old.booking_code
         code_new = self._object.booking_code if pk_new else EMPTY
 
-        if pk_new and not code_new:
-            return Result(ResultCode.Error, 'Nieuwe boeking code is leeg.')
-
         # Update
         if code_old != code_new:
             where = [Att(FD.Booking_code, code_old)]
