@@ -148,7 +148,8 @@ class BookingIO(BaseIO):
                                       f'hoofdgroep "{self._object_old.booking_maingroup}" is beschermd. '
                                       f'{command} is niet mogelijk.')
         if command in (BoxCommand.Update, BoxCommand.Add):
-            if (self._object_old.booking_code != self._object.booking_code and
+            # New booking code may be empty...than it may already exist.
+            if (self._object.booking_code and self._object_old.booking_code != self._object.booking_code and
                     self._object.booking_code in BCM.booking_codes):
                 result = Result(
                     ResultCode.Error, f'Nieuwe {BOOKING_CODE} bestaat al. {command} is niet mogelijk.')

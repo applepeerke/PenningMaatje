@@ -35,6 +35,6 @@ Overboekingen;Kruisposten;;K5.0;410;False
 Overboekingen;Afdracht aan PGL (Verhuur 40%) ;;K5.1;420;False
 Uitgaven;Buurtinitiatief;;U6.1;350;False
 Uitgaven;HAVAD;;U6.2;360;False
-Inkomsten;Overige inkomsten;;I9.5;41;True
-Uitgaven;Overige uitgaven;;U7.0;361;True
-Overboekingen;Overboekingen;;K5.5;421;True
+Inkomsten;Overige inkomsten;;;41;True
+Uitgaven;Overige uitgaven;;;361;True
+Overboekingen;Overboekingen;;;421;True

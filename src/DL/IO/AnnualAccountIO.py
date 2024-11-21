@@ -13,6 +13,7 @@ from src.GL.GeneralException import GeneralException
 from src.GL.Result import Result
 from src.GL.Validate import isInt
 from src.DL.Lexicon import TEMPLATE_ANNUAL_ACCOUNT, ANNUAL_BUDGET, REALISATION, BUDGET, BOOKING_CODE
+from src.VL.Data.Constants.Const import PROTECTED_BOOKINGS
 
 PGM = 'AnnualAccountIO'
 
@@ -135,7 +136,7 @@ class AnnualAccountIO(BaseIO):
         missing_booking_keys = set()
 
         for AAA in self._transformed_rows:
-            if not AAA.booking_code:
+            if not AAA.booking_code and AAA.booking_type not in PROTECTED_BOOKINGS:  # Skip e.g. Overboeking
                 missing_booking_keys.add(f'"{AAA.booking_type} {AAA.booking_maingroup} {AAA.booking_subgroup}"')
         if missing_booking_keys:
             prefix = f'{PGM}: Ontbrekende {BOOKING_CODE}(s) "{os.path.basename(path)}".\n\n'
