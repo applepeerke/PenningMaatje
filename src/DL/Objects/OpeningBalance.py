@@ -14,7 +14,7 @@ class OpeningBalance(BaseObject):
     def opening_balance(self):
         return self._opening_balance
 
-    def __init__(self, year=EMPTY, opening_balance=EMPTY):
+    def __init__(self, year=EMPTY, opening_balance=0.0):
         self._year = year
         self._opening_balance = opening_balance
         super().__init__(Table.OpeningBalance)

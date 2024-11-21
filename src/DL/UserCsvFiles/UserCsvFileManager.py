@@ -19,6 +19,7 @@ from src.DL.IO.BookingIO import BookingIO
 from src.DL.IO.CounterAccountIO import CounterAccountIO
 from src.DL.IO.OpeningBalanceIO import OpeningBalanceIO
 from src.DL.IO.SearchTermIO import SearchTermIO
+from src.DL.Lexicon import CONFIG, BOOKING_CODE
 from src.DL.Objects.Account import Account
 from src.DL.Objects.Booking import Booking
 from src.DL.Objects.CounterAccount import CounterAccount
@@ -31,14 +32,13 @@ from src.DL.UserCsvFiles.Cache.SearchTermCache import Singleton as SearchTermCac
 from src.GL.BusinessLayer.ConfigManager import ConfigManager, get_label
 from src.GL.BusinessLayer.CsvManager import CsvManager
 from src.GL.BusinessLayer.SessionManager import Singleton as Session
-from src.GL.Const import RESOURCES, USER_MUTATIONS_FILE_NAME, EXT_CSV, MUTATION_PGM_TE, \
+from src.GL.Const import USER_MUTATIONS_FILE_NAME, EXT_CSV, MUTATION_PGM_TE, \
     MUTATION_PGM_BC, COMMA_SOURCE
 from src.GL.Enums import Color, MessageSeverity, ResultCode
 from src.GL.Functions import is_valid_file, toFloat
 from src.GL.Result import Result
 from src.GL.Validate import isCsvText, normalize_dir, isInt, toBool
 from src.VL.Data.Constants.Const import LABEL_WORK_WITH_BOOKINGS, PROTECTED_BOOKINGS
-from src.DL.Lexicon import CONFIG, BOOKING_CODE
 
 PGM = 'UserCsvFileManager'
 
@@ -491,7 +491,7 @@ class UserCsvFileManager(object):
 
         # b. Try the path in ../Data/resources.
         if not path:
-            dst_resources_dir = normalize_dir(f'{self._session.database_dir}{RESOURCES}', create=True)
+            dst_resources_dir = normalize_dir(f'{self._session.resources_dir}', create=True)
             if dst_resources_dir:
                 path = f'{dst_resources_dir}{file_name}'
 

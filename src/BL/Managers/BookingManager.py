@@ -13,27 +13,27 @@ from src.DL.Config import CF_RESTORE_BOOKING_DATA, get_label, TABLE_PROPERTIES, 
 from src.DL.DBDriver.Att import Att
 from src.DL.DBDriver.SQLOperator import SQLOperator
 from src.DL.IO.TransactionIO import TransactionIO
+from src.DL.Lexicon import SEARCH_TERMS, TRANSACTIONS, COUNTER_ACCOUNTS, BOOKING_CODES, \
+    BOOKING_CODE, COUNTER_ACCOUNT
 from src.DL.Model import FD, Model
 from src.DL.Table import Table
 from src.DL.UserCsvFiles.Cache.BookingCodeCache import Singleton as BookingCodeCache
 from src.DL.UserCsvFiles.Cache.CounterAccountCache import Singleton as CounterAccountCache
 from src.DL.UserCsvFiles.Cache.SearchTermCache import Singleton as SearchTermCache
 from src.DL.UserCsvFiles.UserCsvFileManager import UserCsvFileManager, GeneralException
-from src.GL.BusinessLayer.SessionManager import BACKUP
-from src.VL.Data.Constants.Const import LEEG
-from src.VL.Data.Constants.Enums import Pane
-from src.DL.Lexicon import SEARCH_TERMS, TRANSACTIONS, COUNTER_ACCOUNTS, BOOKING_CODES, \
-    BOOKING_CODE, COUNTER_ACCOUNT
-from src.VL.Views.PopUps.Dialog_with_transactions import DialogWithTransactions
-from src.VL.Views.PopUps.PopUp import PopUp
 from src.GL.BusinessLayer.ConfigManager import ConfigManager
 from src.GL.BusinessLayer.CsvManager import CsvManager
-from src.GL.Const import EMPTY, RESOURCES
+from src.GL.BusinessLayer.SessionManager import BACKUP
+from src.GL.Const import EMPTY
 from src.GL.Enums import MessageSeverity, ResultCode, ActionCode
 from src.GL.Functions import is_valid_file
 from src.GL.Result import Result
 # Working fields
 from src.GL.Validate import normalize_dir
+from src.VL.Data.Constants.Const import LEEG
+from src.VL.Data.Constants.Enums import Pane
+from src.VL.Views.PopUps.Dialog_with_transactions import DialogWithTransactions
+from src.VL.Views.PopUps.PopUp import PopUp
 
 PGM = 'BookingManager'
 
@@ -221,12 +221,13 @@ class BookingManager(BaseManager):
         # Not consistent
         PopUp().display(
                 title=f'Backup maken van {BOOKING_CODES}',
-                text=f'Backup van je {BOOKING_CODES} is niet mogelijk.'
-                     f'\n\nDe volgende {BOOKING_CODES} bestaan niet in tabel {Table.BookingCode}:{self._reason}.'
-                     f'\n\nRemedie:\nVerwijder de {BOOKING_CODES} referenties uit bovengenoemde tabel(len).'
-                     f'\n\nDit kun je bijvoorbeeld doen door de backups van deze bestanden uit de "{BACKUP}" folder '
-                     f'te verwijderen.\n\nCheck eventueel of deze bestanden in folder "{RESOURCES}" bestaande'
-                     f'{BOOKING_CODES} bevatten.')
+                text=f'Backup van je {BOOKING_CODES} is niet mogelijk: de database is niet consistent.'
+                     f'\n\n{BOOKING_CODES} in onderstaande tabel(len) refereren naar '
+                     f'niet bestaande {BOOKING_CODES} (in tabel {Table.BookingCode}):{self._reason}.'
+                     f'\n\nRemedie:\n  1. Voeg de ontbrekende {BOOKING_CODES} toe, of'
+                     f'\n  2. Verwijder uit de "{BACKUP}" folder backups van deze bestanden '
+                     f'(of verwijder/wijzig alleen de verkeerde referenties). '
+                     f'\n     importeer vervolgens de {TRANSACTIONS} opnieuw.')
         return Result(ResultCode.Canceled)
 
     def _get_non_existing_database_booking_codes(self):

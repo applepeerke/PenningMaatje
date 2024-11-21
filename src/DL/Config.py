@@ -86,6 +86,9 @@ CF_SUMMARY_MONTH_FROM = 'CF_SUMMARY_MONTH_FROM'
 CF_SUMMARY_MONTH_TO = 'CF_SUMMARY_MONTH_TO'
 CF_SUMMARY_OPENING_BALANCE = 'CF_SUMMARY_OPENING_BALANCE'
 
+CF_OPENING_BALANCE_YEAR = 'CF_OPENING_BALANCE_YEAR'
+CF_OPENING_BALANCE = 'CF_OPENING_BALANCE'
+
 # Hidden
 CF_ROW_NO_YS = f'CF_ROW_NO_{Pane.YS}'
 CF_ROW_NO_MS = f'CF_ROW_NO_{Pane.MS}'
@@ -343,7 +346,11 @@ configDef = {
     CF_SUMMARY_YEAR: ConfigItem('Kies het Jaar', validation_method=isIntOrNone),
     CF_SUMMARY_MONTH_FROM: ConfigItem(MONTH_FROM, 0, validation_method=isIntOrNone),
     CF_SUMMARY_MONTH_TO: ConfigItem(MONTH_TO, 0, validation_method=isIntOrNone),
-    CF_SUMMARY_OPENING_BALANCE: ConfigItem('Begin saldo', 0.0, validation_method=isAmount),
+    CF_SUMMARY_OPENING_BALANCE: ConfigItem(OPENING_BALANCE),
+
+    # Opening balance
+    CF_OPENING_BALANCE_YEAR: ConfigItem('Kies het Jaar', validation_method=isIntOrNone),
+    CF_OPENING_BALANCE: ConfigItem(OPENING_BALANCE),
 
     # Commands
     CMD_IMPORT_TE: ConfigItem(tooltip=_border(

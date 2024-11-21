@@ -13,7 +13,6 @@ from src.DL.IO.OpeningBalanceIO import OpeningBalanceIO
 from src.DL.Lexicon import SUMMARY
 from src.GL.BusinessLayer.ConfigManager import ConfigManager
 from src.GL.Enums import ResultCode
-from src.GL.Functions import try_amount_input
 from src.GL.Result import Result
 from src.VL.Data.Constants.Const import CMD_OK, CMD_CANCEL
 from src.VL.Data.Constants.Enums import WindowType
@@ -39,22 +38,19 @@ class SummaryWindow(BaseWindow):
 
         # Button clicks
         if event_key == CMD_OK:
-            summary_type = self._CM.get_config_item(CF_COMBO_SUMMARY)
-            # Validation
-            if not summary_type:
-                self._result = Result(ResultCode.Warning, f'Kies een soort {SUMMARY}.')
-                return
-            if (summary_type in (Summary.AnnualAccount, Summary.AnnualAccountPlus, Summary.PeriodicAccount) and
-                    not self._CM.get_config_item(CF_SUMMARY_YEAR)):
-                self._result = Result(ResultCode.Warning, 'Kies een jaar.')
+            if not self._is_valid_input():
                 return
 
             # Create summary
-            self._result = self._summary_manager.create_summary(summary_type, self._te_rows)
+            self._result = self._summary_manager.create_summary(
+                self._CM.get_config_item(CF_COMBO_SUMMARY),
+                self._te_rows)
             return
+
         elif event_key == CMD_CANCEL:
             self._result = Result(ResultCode.Canceled)
             return
+
         elif event_key == CF_SUMMARY_YEAR:
             # Get the selected year
             year = int(self._CM.get_config_item(CF_SUMMARY_YEAR, 0))
@@ -64,6 +60,7 @@ class SummaryWindow(BaseWindow):
         return
 
     def _appearance_before(self):
+        """ Dynamically format when typing."""
         # Jaar
         self._window[self.gui_key(CF_SUMMARY_YEAR, WTyp.FR)].update(
             visible=self._CM.get_config_item(CF_COMBO_SUMMARY) != Summary.SearchResult)
@@ -74,8 +71,33 @@ class SummaryWindow(BaseWindow):
         self._window[self.gui_key(CF_SUMMARY_OPENING_BALANCE, WTyp.FR)].update(
             visible=self._CM.get_config_item(CF_COMBO_SUMMARY) in (Summary.PeriodicAccount, Summary.AnnualAccountPlus)
         )
-        # First time is float. After changing the amount string representation (with comma), convert to float first.
-        amount_str = self._CM.get_config_item(CF_SUMMARY_OPENING_BALANCE, '0,00')
-        amount_str = str(amount_str).replace(',', '.')
-        self._window[self.gui_key(CF_SUMMARY_OPENING_BALANCE, WTyp.IN)].update(
-            value=try_amount_input(amount_str))
+        # In Config amount is str.
+        opening_balance = self._CM.get_config_item(CF_SUMMARY_OPENING_BALANCE)
+        self._window[self.gui_key(CF_SUMMARY_OPENING_BALANCE, WTyp.IN)].update(value=opening_balance)
+
+    def _is_valid_input(self) -> bool:
+        summary_type = self._CM.get_config_item(CF_COMBO_SUMMARY)
+
+        # Summary type
+        if not summary_type:
+            self._result = Result(ResultCode.Warning, f'Kies een soort {SUMMARY}.')
+            return False
+
+        if (summary_type in (
+                Summary.AnnualAccount,
+                Summary.AnnualAccountPlus,
+                Summary.PeriodicAccount)):
+
+            # Year
+            if not self._CM.get_config_item(CF_SUMMARY_YEAR):
+                self._result = Result(ResultCode.Warning, 'Kies een jaar.')
+                return False
+
+            # Opening balance
+            amount = self._CM.get_config_item(CF_SUMMARY_OPENING_BALANCE)
+            try:
+                float(amount)
+            except ValueError:
+                self._result = Result(ResultCode.Warning, f'"{str(amount)}" is geen geldig bedrag.')
+                return False
+        return True

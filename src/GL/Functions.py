@@ -139,9 +139,10 @@ def toFloat(value, comma_source=COMMA_SOURCE, default=0.0, round_decimals=True, 
         # If comma found, it should be 3rd from right position.
         if c > -1 and (c < p or value[-3] != comma_source):
             raise GeneralException(f'Komma staat verkeerd in "{value}".')
-        if (c == -1 and value[-4] != dec_point
+        if (c == -1 and (len(value) <= 5
+                or (len(value) > 5 and value[-4] != dec_point)
                 or (len(value) > 6 and value[-7] != dec_point)
-                or (len(value) > 10 and value[-11] != dec_point)):
+                or (len(value) > 10 and value[-11] != dec_point))):
             raise GeneralException(f'Decimale punt staat verkeerd in "{value}".')
     value = value.replace(dec_point, EMPTY).replace(',', '.')
 

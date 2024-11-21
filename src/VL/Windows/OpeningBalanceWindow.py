@@ -6,14 +6,19 @@
 # ---------- --- ------------------------------------------------------------------------------------------------------
 # 2022-06-06 PHe First creation
 # ---------------------------------------------------------------------------------------------------------------------
+from src.DL.Config import CF_OPENING_BALANCE, CF_OPENING_BALANCE_YEAR
 from src.DL.DBDriver.Att import Att
 from src.DL.IO.OpeningBalanceIO import OpeningBalanceIO
+from src.DL.Lexicon import OPENING_BALANCE
 from src.DL.Model import FD
 from src.DL.Objects.OpeningBalance import OpeningBalance
 from src.DL.Table import Table
+from src.GL.Enums import ResultCode
+from src.GL.Functions import toFloat
+from src.GL.GeneralException import GeneralException
+from src.GL.Result import Result
 from src.VL.Controllers.ListItemController import ListItemController
 from src.VL.Data.Constants.Const import CMD_OK
-from src.DL.Lexicon import OPENING_BALANCE, YEAR
 from src.VL.Data.WTyp import WTyp
 from src.VL.Models.ListItemModel import ListItemModel
 from src.VL.Views.OpeningBalanceView import OpeningBalanceView
@@ -37,12 +42,16 @@ class OpeningBalanceWindow(ListItemWindow):
         )
 
     def _event_handler(self, event, values):
-        # Set model
+        # Set model after pressing OK
         if event == self.gui_key(CMD_OK, WTyp.BT):
-            self._model.object = OpeningBalance(
-                year=values.get(self.gui_key(YEAR, WTyp.IN)),
-                opening_balance=values.get(self.gui_key(OPENING_BALANCE, WTyp.IN)),
-            )
+            try:
+                self._model.object = OpeningBalance(
+                    year=values.get(self.gui_key(CF_OPENING_BALANCE_YEAR, WTyp.IN)),
+                    opening_balance=toFloat(values.get(self.gui_key(CF_OPENING_BALANCE, WTyp.IN))),
+                )
+            except GeneralException as ge:
+                self._result = Result(ResultCode.Error, ge.message)
+                return
         # Handle event
         self._controller.handle_event(event)
         self._result = self._controller.result

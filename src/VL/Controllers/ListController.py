@@ -57,6 +57,8 @@ class ListController(BaseController):
         Item_window = self._item_window(command, Id)
         Item_window.display()
         self._result = Item_window.result
+        if self._result.CL:
+            self._result = Result(action_code=ActionCode.Go)  # Reset Close
 
         # Redisplay the list if an item has been added or deleted.
         if self._result.OK and command in (BoxCommand.Add, BoxCommand.Delete):
