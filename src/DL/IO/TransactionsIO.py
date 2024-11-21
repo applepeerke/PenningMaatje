@@ -151,7 +151,6 @@ class TransactionsIO(BaseIO, ABC):
         booking_code = BCM.get_code_from_combo_desc(CM.get_config_item(CF_SEARCH_BOOKING_CODE))
         if booking_code:
             if booking_code == LEEG:
-                self._add_where_att(FD.Counter_account_id, 'int', 0, relation=oper.GT)
                 Id = 0
             else:
                 Id = self._db.fetch_id(
@@ -160,10 +159,13 @@ class TransactionsIO(BaseIO, ABC):
         # - CounterAccount
         counter_account = CM.get_config_item(CF_SEARCH_COUNTER_ACCOUNT)
         if counter_account:
-            Id = 0 if counter_account == LEEG else \
-                self._db.fetch_id(
-                    Table.CounterAccount, where=[Att(FD.Counter_account_number, counter_account)])
-            self._add_where_att(FD.Counter_account_id, 'int', Id)
+            if counter_account == NIET_LEEG:
+                self._add_where_att(FD.Counter_account_id, 'int', 0, relation=oper.GT)
+            else:
+                Id = 0 if counter_account == LEEG else \
+                    self._db.fetch_id(
+                        Table.CounterAccount, where=[Att(FD.Counter_account_number, counter_account)])
+                self._add_where_att(FD.Counter_account_id, 'int', Id)
         # Nothing specified
         if self._dialog_mode and dialog and not self._where_atts and not self._dialog.confirm(
                 popup_key=f'{PGM}..get_where_from_config-2',

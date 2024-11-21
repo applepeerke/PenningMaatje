@@ -17,7 +17,7 @@ from src.GL.Const import EMPTY
 from src.GL.Enums import Color, MessageSeverity
 from src.GL.Result import Result
 from src.GL.Validate import toBool
-from src.VL.Data.Constants.Const import PROTECTED_BOOKINGS
+from src.VL.Data.Constants.Const import PROTECTED_BOOKINGS, NIET_LEEG
 
 model = Model()
 CM = ConfigManager()
@@ -133,6 +133,10 @@ class Singleton:
 
         def get_code_from_combo_desc(self, formatted_desc) -> str:
             """ SearchView combo booking description has a formatted description without the code. """
+            # Special values for Empty-booking-code mode
+            if formatted_desc in (LEEG, NIET_LEEG):
+                return formatted_desc
+
             for lk, code in self._codes_by_lk.items():
                 keys = lk.split('|')
                 if (formatted_desc.startswith(keys[1]) and
