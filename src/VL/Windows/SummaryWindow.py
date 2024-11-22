@@ -13,6 +13,7 @@ from src.DL.IO.OpeningBalanceIO import OpeningBalanceIO
 from src.DL.Lexicon import SUMMARY
 from src.GL.BusinessLayer.ConfigManager import ConfigManager
 from src.GL.Enums import ResultCode
+from src.GL.Functions import FloatToStr, maybeFloat
 from src.GL.Result import Result
 from src.VL.Data.Constants.Const import CMD_OK, CMD_CANCEL
 from src.VL.Data.Constants.Enums import WindowType
@@ -56,7 +57,7 @@ class SummaryWindow(BaseWindow):
             year = int(self._CM.get_config_item(CF_SUMMARY_YEAR, 0))
             # Get/set the opening balance
             opening_balance = self._OB_IO.get_opening_balance(year)
-            self._CM.set_config_item(CF_SUMMARY_OPENING_BALANCE, opening_balance)
+            self._CM.set_config_item(CF_SUMMARY_OPENING_BALANCE,  FloatToStr(str(opening_balance)))
         return
 
     def _appearance_before(self):
@@ -95,9 +96,7 @@ class SummaryWindow(BaseWindow):
 
             # Opening balance
             amount = self._CM.get_config_item(CF_SUMMARY_OPENING_BALANCE)
-            try:
-                float(amount)
-            except ValueError:
-                self._result = Result(ResultCode.Warning, f'"{str(amount)}" is geen geldig bedrag.')
+            if not maybeFloat(amount):
+                self._result = Result(ResultCode.Warning, f'"{amount}" is geen geldig bedrag.')
                 return False
         return True

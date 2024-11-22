@@ -18,6 +18,7 @@ from src.DL.Lexicon import TEMPLATE_ANNUAL_ACCOUNT, SEARCH_RESULT, PERIODIC_ACCO
 from src.GL.BusinessLayer.ConfigManager import ConfigManager
 from src.GL.BusinessLayer.SessionManager import Singleton as Session
 from src.GL.Enums import MessageSeverity
+from src.GL.Functions import toFloat
 from src.GL.GeneralException import GeneralException
 from src.GL.Result import Result
 
@@ -118,7 +119,7 @@ class SummaryDriver:
 
             # Export
             CM = ConfigManager()
-            opening_balance = CM.get_config_item(CF_SUMMARY_OPENING_BALANCE)
+            opening_balance = toFloat(CM.get_config_item(CF_SUMMARY_OPENING_BALANCE))
             self._PA = PeriodicAccount(iban, opening_balance, template_filename, self._CLI_mode)
             self._PA.export(year, month_from, month_to)
 

@@ -115,9 +115,9 @@ def toFloat(value, comma_source=COMMA_SOURCE, default=0.0, round_decimals=True, 
         return default
     if not maybeFloat(value) or len(value) > 20:
         if strict:
-            raise GeneralException(f'Waarde "{value}" kan niet naar een bedrag geconverteerd worden.')
+            raise GeneralException(f'Waarde "{value}" is geen geldig bedrag.')
         return default
-    
+
     # Minus sign
     if value.endswith('-'):
         value = f'-{value[:-1]}'
@@ -140,10 +140,10 @@ def toFloat(value, comma_source=COMMA_SOURCE, default=0.0, round_decimals=True, 
         if c > -1 and (c < p or value[-3] != comma_source):
             raise GeneralException(f'Komma staat verkeerd in "{value}".')
         if (c == -1 and (len(value) <= 5
-                or (len(value) > 5 and value[-4] != dec_point)
-                or (len(value) > 6 and value[-7] != dec_point)
-                or (len(value) > 10 and value[-11] != dec_point))):
-            raise GeneralException(f'Decimale punt staat verkeerd in "{value}".')
+                         or (len(value) > 5 and value[-4] != dec_point)
+                         or (len(value) > 6 and value[-7] != dec_point)
+                         or (len(value) > 10 and value[-11] != dec_point))):
+            raise GeneralException(f'Decimale punt staat verkeerd in "{value}". Misschien bedoel je een komma.')
     value = value.replace(dec_point, EMPTY).replace(',', '.')
 
     try:
@@ -477,10 +477,10 @@ def is_formatted_ymd(input_date) -> bool:
     input_date = make_string(input_date)
     return True \
         if input_date and len(input_date) == 10 \
-        and 1900 <= int(input_date[:4]) <= 3000 \
-        and 1 <= int(input_date[5:7]) <= 12 \
-        and 1 <= int(input_date[8:]) <= 31 \
-        and input_date[4] == '-' and input_date[7] == '-' \
+           and 1900 <= int(input_date[:4]) <= 3000 \
+           and 1 <= int(input_date[5:7]) <= 12 \
+           and 1 <= int(input_date[8:]) <= 31 \
+           and input_date[4] == '-' and input_date[7] == '-' \
         else False
 
 
