@@ -143,8 +143,9 @@ class AnnualAccountIO(BaseIO):
 
             bullets = EMPTY
             bullets = [f'{bullets} - {m}\n' for m in list(missing_booking_keys)]
-            raise GeneralException(
-                f'{prefix}De volgende boekingen hebben nog geen {BOOKING_CODE}:\n{bullets}')
+            self._result.add_message(
+                f'{prefix}De volgende boekingen hebben nog geen {BOOKING_CODE}:\n{bullets}',
+                severity=MessageSeverity.Warning)
 
     def _check_header(self, columns, year_columns):
         """
@@ -160,7 +161,8 @@ class AnnualAccountIO(BaseIO):
                     f'{PGM}: Verwachte titel is "{EXPECTED_TITLES[i]}", maar gevonden is "{title}".')
             if value < self._year_realisation or value > self._year_realisation + 1:
                 raise GeneralException(
-                    f'{PGM}: Verwacht jaar is {self._year_realisation} of {self._year_realisation + 1}, maar gevonden is "{value}".')
+                    f'{PGM}: Verwacht jaar is {self._year_realisation} of {self._year_realisation + 1}, '
+                    f'maar gevonden is "{value}".')
 
         # Preserve only the columns with amounts
         count = 0
@@ -172,12 +174,14 @@ class AnnualAccountIO(BaseIO):
         col_count = len(self._amount_columns)
         if col_count < 2 or col_count > 4:
             raise GeneralException(
-                f'{PGM}: Er is een onjuist ({col_count}) aantal bedrag-kolommen in de aangeleverde {TEMPLATE_ANNUAL_ACCOUNT}. '
+                f'{PGM}: Er is een onjuist ({col_count}) aantal bedrag-kolommen in de aangeleverde '
+                f'{TEMPLATE_ANNUAL_ACCOUNT}. '
                 f'Het moeten er 2 of 3 zijn (realisatie, begroting dit/vorig jaar).')
 
         if col_count < 3:
             self._result.add_message(
-                f'{PGM}: Er zijn {col_count} bedrag-kolommen aanwezig in de aangeleverde {TEMPLATE_ANNUAL_ACCOUNT}.\n'
+                f'{PGM}: Er zijn {col_count} bedrag-kolommen aanwezig in de aangeleverde '
+                f'{TEMPLATE_ANNUAL_ACCOUNT}.\n'
                 f'De tweede ("{self._amount_columns[1]["title"]})" wordt voor de {ANNUAL_BUDGET} gebruikt.',
                 MessageSeverity.Warning)
 

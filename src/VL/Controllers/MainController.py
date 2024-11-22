@@ -235,6 +235,12 @@ class MainController(BaseController):
 
         self._help_message()
 
+        # Other tab
+        if event == '-TAB_GROUP-':
+            # Changes made in e.g. BookingCode, then back up, re-import and refresh caches.
+            if any(changed for changed in self._session.user_tables_changed.values()):
+                self.import_transactions()
+
         # _________________
         # D a s h b o a r d
         # -----------------
@@ -454,7 +460,7 @@ class MainController(BaseController):
             self._start_log('Import')
 
             # - First save pending booking related data, and backup it in the csv folder of today.
-            self._save_and_backup(before_import=True)
+            self._save_and_backup(validate_db=False)
 
             # - Import
             result = self._IM.start(import_user_csv_files)
@@ -633,15 +639,15 @@ class MainController(BaseController):
         DD.delete_stale_files()
         self._result.add_messages(DD.result.messages)
 
-    def _save_and_backup(self, before_import=False):
+    def _save_and_backup(self, validate_db=True):
         """
         1. Save pending db changes (remarks)
         2. Backup booking related db data in csv files of the backup folder of today
         """
         self.save_pending_remarks()
-        self._export_user_updates(before_import)
+        self._export_user_updates(validate_db)
 
-    def _export_user_updates(self, before_import=False):
+    def _export_user_updates(self, validate_db=True):
         """
         Backup wijzigingen in "Boekingen, Zoektermen etc." in csv bestanden in een subdir.
         Backup wijzigingen in transacties ("Remarks, boeking") op generiek level.
@@ -651,7 +657,7 @@ class MainController(BaseController):
             return  # Nothing to do.
 
         # Db consistency check
-        if before_import:
+        if validate_db:
             # Between restoring user csv files and importing bank transactions a check is not needed.
             self._result = Result()
         else:
