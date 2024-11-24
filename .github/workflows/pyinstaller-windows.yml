@@ -22,7 +22,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Build application
-        run: pyinstaller PenningMaatje.py --onefile --windowed  --clean --noconfirm --add-data resources:resources
+        run: pyinstaller PenningMaatje.py --onefile --windowed  --clean --noconfirm -i src\logo.ico --add-data resources:resources
 
       - name: Upload EXE
         uses: actions/upload-artifact@v4
