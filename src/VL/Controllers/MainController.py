@@ -259,7 +259,7 @@ class MainController(BaseController):
         # - Search
         elif self._event_key == CMD_SEARCH:
             self._diag_message(f'{diag_prefix}Search button pressed')
-            CM.set_search_for_empty_booking_codes(on=False)  # Deactivate search empty_booking mode.
+            CM.set_search_for_empty_booking_codes_with_counter_account(on=False)  # Deactivate search empty_booking mode.
             self.search()
 
         # - Summary
@@ -499,7 +499,7 @@ class MainController(BaseController):
     def _search_for_empty_booking_codes(self):
         """ search for empty booking codes """
         self._search_mode = True
-        CM.set_search_for_empty_booking_codes()
+        CM.set_search_for_empty_booking_codes_with_counter_account()
         self._result = self._transactions_io.search(dialog_mode=False)
         if not self._transactions_io.rows:
             message_box(f'Gefeliciteerd!\nAlle {TRANSACTIONS} met {COUNTER_ACCOUNTS} zijn al gecategoriseerd.',

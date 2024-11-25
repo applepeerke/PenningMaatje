@@ -55,6 +55,7 @@ class ConfigManager:
             self._search_dict = {
                 CF_SEARCH_YEAR: EMPTY,
                 CF_SEARCH_MONTH: EMPTY,
+                CF_SEARCH_BOOKING_CODE: EMPTY,
                 CF_SEARCH_COUNTER_ACCOUNT: EMPTY,
                 CF_SEARCH_AMOUNT: EMPTY,
                 CF_SEARCH_AMOUNT_TO: EMPTY,
@@ -216,10 +217,10 @@ class ConfigManager:
         Search
         """
 
-        def set_search_for_empty_booking_codes(self, on=True):
+        def set_search_for_empty_booking_codes_with_counter_account(self, on=True):
             """
-            To search for empty booking codes, the only criteria must be that
-            Booking is empty and Counter account is not.
+            To search for empty booking codes having a counter account, the only criteria must be that
+            Booking code is empty and Counter account is not.
             """
             # ON
             if on:
@@ -230,6 +231,13 @@ class ConfigManager:
             elif self.get_config_item(CF_SEARCH_BOOKING_CODE) == LEEG:
                 self.set_config_item(CF_SEARCH_BOOKING_CODE, EMPTY)
                 self.set_config_item(CF_SEARCH_COUNTER_ACCOUNT, EMPTY)
+
+        def set_search_for_empty_booking_codes(self):
+            """
+            To search for empty booking codes, the only criteria must be that Booking code is empty.
+            """
+            self.initialize_search_criteria()
+            self.set_config_item(CF_SEARCH_BOOKING_CODE, LEEG)
 
         def initialize_search_criteria(self):
             for k, v in self._search_dict.items():

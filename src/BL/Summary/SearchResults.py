@@ -34,16 +34,21 @@ class SearchResults(SummaryBase):
             from src.VL.Views.PopUps.PopUp import PopUp
             self._dialog = PopUp()
 
-    def create_summary(self, te_rows, title=None) -> Result:
+    def create_summary(self, te_rows, title=None, timestamp=True) -> Result:
         super().create_summary(te_rows[1:])
         if not self._result.OK:
             return self._result
 
+        ts = EMPTY
         self._report = Report(Report.CsvExport)
 
         # Get file name
-        file_name = f'{datetime.now().strftime("%Y-%m-%d")} - {title}' if title else \
-            f'{datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]} - *NO TITLE'
+        title = title if title else '*NO TITLE'
+        if timestamp:
+            ts = f'{datetime.now().strftime("%Y-%m-%d")} - ' if title else \
+                f'{datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]} - '
+        file_name = f'{ts}{title}'
+
         # - CLI mode
         if not self._session.CLI_mode:
             from src.VL.Views.PopUps.Input import Input

@@ -20,8 +20,10 @@ build = False
 summary_type = Summary.AnnualAccountPlus
 template_name = None
 iban = EMPTY
+verbose = False
 
-usage = 'usage: pm.py -i <inputdir> -o <outputdir> -y <year> -b <build> -s <summarytype> -t <templatename> -a <iban> -h'
+usage = ('usage: pm.py -i <inputdir> -o <outputdir> -y <year> -s <summarytype> -t <templatename> -a <iban> -b <build> '
+         '-v  <verbose> -h')
 errorText = Color.RED + "Error:" + Color.NC + " "
 
 
@@ -31,11 +33,11 @@ errorText = Color.RED + "Error:" + Color.NC + " "
 
 
 def main(argv):
-    global input_dir, output_dir, year, build, summary_type, template_name, iban
+    global input_dir, output_dir, year, build, summary_type, template_name, iban, verbose
 
     try:
         opts, args = getopt.getopt(
-            argv, "bha:i:o:s:t:y:",
+            argv, "bhva:i:o:s:t:y:",
             [
                 "aiban=",
                 "iinputdir=",
@@ -77,6 +79,9 @@ def main(argv):
         elif opt in ("-b", "--build"):
             build = True
 
+        elif opt in ("-v", "--verbose"):
+            verbose = True
+
         elif opt in ("-s", "--summarytype"):
             summary_type = arg
             if summary_type not in Summary.values():
@@ -96,8 +101,8 @@ def main(argv):
             year = datetime.datetime.now().year
         template_names = {summary_type: template_name} if template_name else {}
 
-        pmc = PMC(output_dir=output_dir, year=year, build=build, input_dir=input_dir)
-        pmc.create_summary(summary_type, year, template_names=template_names, iban=iban)
+        pmc = PMC(output_dir=output_dir, year=year, build=build, input_dir=input_dir, iban=iban, verbose=verbose)
+        pmc.create_summary(summary_type, year, template_names=template_names)
 
     except GeneralException as e:
         exit_program(e.message)

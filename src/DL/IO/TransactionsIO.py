@@ -66,8 +66,8 @@ class TransactionsIO(BaseIO, ABC):
     Search
     """
 
-    def search(self, dialog_mode=True) -> Result:
-        self._dialog_mode = dialog_mode
+    def search(self, dialog_mode=True, title=EMPTY) -> Result:
+        self._dialog_mode = False if self._session.CLI_mode else dialog_mode
 
         # A. Search for AND relations
         try:
@@ -90,7 +90,7 @@ class TransactionsIO(BaseIO, ABC):
             self._rows = self._deduplicate_rows(self._rows)
 
         if not self._rows:
-            result = Result(text=f'Geen {TRANSACTIONS} gevonden.')
+            result = Result(text=f'{title}Geen {TRANSACTIONS} gevonden.')
         else:
             if CM.is_search_for_empty_booking_mode():
                 # Sort (list counter_account with most rows first)
@@ -109,7 +109,7 @@ class TransactionsIO(BaseIO, ABC):
                     self._rows.extend(rows)
             else:
                 self._rows = sorted(self._rows, key=lambda row: row[0], reverse=True)
-            result = Result(text=f'{len(self._rows)} {TRANSACTIONS} gevonden.')
+            result = Result(text=f'{title}{len(self._rows)} {TRANSACTIONS} gevonden.')
 
         # C. Total amount
         self._total = self.get_total()
