@@ -7,7 +7,7 @@
 # 2018-12-20 PHe First creation
 # ---------------------------------------------------------------------------------------------------------------------
 from src.DL.Config import CF_IMPORT_PATH_BOOKINGS, CF_IMPORT_PATH_COUNTER_ACCOUNTS, \
-    configDef, LEEG, CF_IMPORT_PATH_SEARCH_TERMS
+    configDef, LEEG, CF_IMPORT_PATH_SEARCH_TERMS, CF_SHOW_BOOKING_CODE_AT_DESCRIPTION
 from src.DL.DBDriver.Enums import FetchMode
 from src.DL.Model import Model, FD
 from src.DL.Table import Table
@@ -116,7 +116,7 @@ class Singleton:
             self._seqno_by_lk[lk] = seqno
             self._ids_by_code[booking_code] = row[0]
 
-            # Sets (after dicts, to be able to get the description)
+            # Sets (set the sets after the dicts, to be able to get the description)
             self._booking_codes.add(booking_code)
             self._formatted_booking_descriptions.add(self._get_formatted_desc(booking_code))
             if protected:
@@ -128,8 +128,12 @@ class Singleton:
                 else self._formatted_descriptions_including_not_protected
 
         def _get_formatted_desc(self, booking_code) -> str:
-            return (f'{self.get_value_from_booking_code(booking_code, FD.Booking_maingroup)} '
+            """ return "(<booking_code> - )<maingroup> <subgroup>" """
+            desc = (f'{self.get_value_from_booking_code(booking_code, FD.Booking_maingroup)} '
                     f'{self.get_value_from_booking_code(booking_code, FD.Booking_subgroup)}')
+            if CM.get_config_item(CF_SHOW_BOOKING_CODE_AT_DESCRIPTION):
+                desc = f'{booking_code} - {desc}'
+            return desc
 
         def get_code_from_combo_desc(self, formatted_desc) -> str:
             """ SearchView combo booking description has a formatted description without the code. """

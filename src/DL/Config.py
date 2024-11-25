@@ -48,6 +48,7 @@ CF_COL_SALDO_MINUS_CORRECTION = 'CF_COL_SALDO_MINUS_CORRECTION'
 CF_LOG_LEVEL = 'CF_LOG_LEVEL'
 CF_VERBOSE = 'CF_VERBOSE'
 CF_SHOW_ALL_POPUPS = 'CF_SHOW_ALL_POPUPS'
+CF_SHOW_BOOKING_CODE_AT_DESCRIPTION = 'CF_SHOW_BOOKING_CODE_AT_DESCRIPTION'
 CF_UNIT_TEST = 'CF_UNIT_TEST'
 CF_AUTO_CLOSE_TIME_S = 'CF_AUTO_CLOSE_TIME_S'
 CF_BACKUP_RETENTION_MONTHS = 'CF_BACKUP_RETENTION_MONTHS'
@@ -234,6 +235,10 @@ configDef = {
         'Toon alle meldingen', False,
         _border('Bij sommige meldingen heb je misschien aangegeven dat de melding niet meer moet verschijnen.  \n'
                 'Als je deze optie aanvinkt verschijnen ze weer.'),
+        isBool),
+    CF_SHOW_BOOKING_CODE_AT_DESCRIPTION: ConfigItem(
+        f'Toon {BOOKING_CODE} bij beschrijving', False,
+        _border(f'Toon de {BOOKING_CODE} bij de beschrijving.'),
         isBool),
     CF_UNIT_TEST: ConfigItem('Unit test', False, EMPTY, isBool),
     CF_AUTO_CLOSE_TIME_S: ConfigItem(

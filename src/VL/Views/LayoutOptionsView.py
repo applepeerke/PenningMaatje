@@ -6,7 +6,7 @@ from src.DL.Config import EXPAND, \
     FRAME_LAYOUT, CF_SHOW_ALL_POPUPS, CF_ROWS_BOOKING, CF_ROWS_SEARCH_TERM, CF_THEME, CF_FONT, CF_FONT_SIZE, \
     CF_FONT_TABLE, CF_FONT_TABLE_SIZE, FRAME_LAYOUT_OPTIONAL_COLUMNS, CF_COL_OVERBOOKING, \
     CF_COL_SALDO_MINUS_CORRECTION, CF_ROWS_COMBO_MAX, CF_COL_COSTS, \
-    CF_COL_REVENUES, CF_IMAGE_SUBSAMPLE
+    CF_COL_REVENUES, CF_IMAGE_SUBSAMPLE, CF_SHOW_BOOKING_CODE_AT_DESCRIPTION
 from src.VL.Data.Constants.Const import FRAME_LAYOUT_IMAGE, CMD_SEARCH
 from src.VL.Models.LayoutOptionsModel import LayoutOptionsModel
 from src.VL.Views.BaseView import BaseView, CM
@@ -30,6 +30,7 @@ class LayoutOptionsView(BaseView):
                    len(self._get_label(CF_TOOL_TIP)),
                    len(self._get_label(CF_VERBOSE)),
                    len(self._get_label(CF_SHOW_ALL_POPUPS)),
+                   len(self._get_label(CF_SHOW_BOOKING_CODE_AT_DESCRIPTION)),
                    len(self._get_label(CF_ROWS_YEAR)),
                    len(self._get_label(CF_ROWS_MONTH)),
                    len(self._get_label(CF_ROWS_TRANSACTION)),
@@ -52,6 +53,7 @@ class LayoutOptionsView(BaseView):
                 self.cbx(CF_TOOL_TIP, x=x_CX),
                 self.cbx(CF_VERBOSE, x=x_CX),
                 self.cbx(CF_SHOW_ALL_POPUPS, x=x_CX),
+                self.cbx(CF_SHOW_BOOKING_CODE_AT_DESCRIPTION, x=x_CX),
                 self.combo(CF_ROWS_YEAR, [x for x in range(1, 15, 1)], x=x_CX),
                 self.combo(CF_ROWS_MONTH, [x for x in range(1, 12, 1)], x=x_CX),
                 self.combo(CF_ROWS_TRANSACTION, [x for x in range(5, 50, 1)], x=x_CX),

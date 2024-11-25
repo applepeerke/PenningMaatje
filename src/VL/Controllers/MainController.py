@@ -235,12 +235,6 @@ class MainController(BaseController):
 
         self._help_message()
 
-        # Other tab
-        if event == '-TAB_GROUP-':
-            # Changes made in e.g. BookingCode, then back up, re-import and refresh caches.
-            if any(changed for changed in self._session.user_tables_changed.values()):
-                self.import_transactions()
-
         # _________________
         # D a s h b o a r d
         # -----------------
@@ -326,14 +320,13 @@ class MainController(BaseController):
         # ---------------------------
         # Work with bookings
         elif self._event_key == CMD_WORK_WITH_BOOKING_CODES:
-            self._diag_message(f'{diag_prefix}Work with {BOOKING_CODES} button pressed')
-            self._maintain_list(BookingCodesWindow)
+            self._maintain_booking_code_related(diag_prefix, BOOKING_CODES, BookingCodesWindow)
+
         elif self._event_key == CMD_WORK_WITH_SEARCH_TERMS:
-            self._diag_message(f'{diag_prefix}Work with {SEARCH_TERMS} button pressed')
-            self._maintain_list(SearchTermsWindow)
+            self._maintain_booking_code_related(diag_prefix, SEARCH_TERMS, SearchTermsWindow)
+
         elif self._event_key == CMD_WORK_WITH_OPENING_BALANCES:
-            self._diag_message(f'{diag_prefix}Work with {OPENING_BALANCES} button pressed')
-            self._maintain_list(OpeningBalancesWindow)
+            self._maintain_booking_code_related(diag_prefix, OPENING_BALANCES, OpeningBalancesWindow, refresh=False)
 
         # _____________
         # T a b   L o g
@@ -351,6 +344,13 @@ class MainController(BaseController):
         elif self._is_a_transaction_saved_in_this_iteration:
             self._main_model.refresh_dashboard(
                 Pane.TE, CM.get_config_item(f'CF_ROW_NO_{Pane.TE}'), search_mode=self._search_mode)
+
+    def _maintain_booking_code_related(self, prefix, table_desc, window, refresh=True):
+        self._diag_message(f'{prefix}Work with {table_desc} button pressed')
+        self._maintain_list(window)
+        # Changes made in BookingCodes, then back up, re-import and refresh caches.
+        if refresh and any(changed for changed in self._session.user_tables_changed.values()):
+            self.import_transactions()
 
     def _start_config(self, unit_test):
         try:
@@ -623,8 +623,9 @@ class MainController(BaseController):
     """
 
     def close(self):
-        # Main display is to be closed, so a separate messagebox (if any messages)
-        message_box(self._result.get_messages_as_message(), severity=self._result.severity, key='before_close')
+        # Main display is to be closed, so a separate messagebox (if any serious messages)
+        if not self._result.OK:
+            message_box(self._result.get_messages_as_message(), severity=self._result.severity, key='before_close')
         self._result = Result()
         try:
             self._save_and_backup()

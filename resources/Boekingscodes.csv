@@ -1,7 +1,7 @@
 Boekingstype;Hoofdgroep;Subgroep;Boekingscode;Volgnr;Beschermd
 Inkomsten;Levend geld;;I9.1;10;False
 Inkomsten;Bijzondere giften;;I9.2;20;False
-Inkomsten;Verhuur na aftrek PGL;;I9.3;30;False
+Inkomsten;Verhuur;;I9.3;30;False
 Inkomsten;Rente en diversen;;I9.4;40;False
 Uitgaven;Bloemenfonds;Bloemenfonds zondagse vieringen;U1.1;50;False
 Uitgaven;Commissie Eredienst;Liturgie;U1.2;60;False

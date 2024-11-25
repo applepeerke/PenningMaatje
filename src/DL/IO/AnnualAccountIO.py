@@ -139,12 +139,14 @@ class AnnualAccountIO(BaseIO):
             if not AAA.booking_code and AAA.booking_type not in PROTECTED_BOOKINGS:  # Skip e.g. Overboeking
                 missing_booking_keys.add(f'"{AAA.booking_type} {AAA.booking_maingroup} {AAA.booking_subgroup}"')
         if missing_booking_keys:
-            prefix = f'{PGM}: Ontbrekende {BOOKING_CODE}(s) "{os.path.basename(path)}".\n\n'
+            prefix = f'{PGM}: Ontbrekende {BOOKING_CODE}(s) in "{os.path.basename(path)}".\n\n'
 
-            bullets = EMPTY
-            bullets = [f'{bullets} - {m}\n' for m in list(missing_booking_keys)]
+            bullets = []
+            for m in list(missing_booking_keys):
+                bullets.append(f' - {m}')
+            bullet_text = '\n'.join(bullets)
             self._result.add_message(
-                f'{prefix}De volgende boekingen hebben nog geen {BOOKING_CODE}:\n{bullets}',
+                f'{prefix}De volgende boekingen hebben nog geen {BOOKING_CODE}:\n{bullet_text}\n',
                 severity=MessageSeverity.Warning)
 
     def _check_header(self, columns, year_columns):
