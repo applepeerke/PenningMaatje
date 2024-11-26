@@ -10,7 +10,7 @@ import os
 import shutil
 from os import listdir
 
-from src.DL.Config import CF_IMPORT_PATH_BOOKINGS, CF_IMPORT_PATH, TABLE_PROPERTIES, FILE_NAME
+from src.DL.Config import CF_IMPORT_PATH_BOOKING_CODES, CF_IMPORT_PATH, TABLE_PROPERTIES, FILE_NAME
 from src.DL.DBDriver.AttType import AttType
 from src.DL.DBDriver.Audit import Program_mutation
 from src.DL.IO.AccountIO import AccountIO
@@ -72,6 +72,7 @@ class UserCsvFileManager(object):
         self._session = Session()
         self._error_title = EMPTY
         self._bookings_ok = False
+        self._booking_codes = set()
         self._existing_booking_codes = set()
         self._backup_sub_dirs = get_backup_dirs()
 
@@ -91,15 +92,16 @@ class UserCsvFileManager(object):
         self._annual_account_io = AnnualAccountIO()
         self._opening_balance_io = OpeningBalanceIO()
 
-    def validate_resource_files(self, full_check=False) -> Result:
+    def validate_csv_files(self, full_check=False) -> Result:
         """
-        Validate resource .csv files.
+        Validate backup or resource .csv files.
             "Rekeningen.csv",
             "Boekingscodes.csv",
             "Tegenrekeningen.csv",
             "Zoektermen.csv",
             "Jaarrekening.csv",
             "Beginsaldi.csv"
+        This is done before import (input validation) and in consistency check.
         They are not required to exist, ask paths via dialogue.
         Coulance when starting the app Strict when importing the files.
         Strict mode: Detail rows are validated too.
@@ -116,13 +118,17 @@ class UserCsvFileManager(object):
 
         # B. Deep check on booking related csv files.
         # If no valid file exists (in backup folder), copy it from "<app_dir>/resources" to user Data folder.
-        # First bookings, they occur in the other files.
+
+        #   1. First bookings, they occur in the other files.
+        self._booking_codes = set()
         self.validate_csv_file(Table.BookingCode, full_check)
+
+        #   2. Then the related csv files
         if self._result.OK:
             self._bookings_ok = True
             [self.validate_csv_file(t, full_check) for t in model.booking_code_related_tables]
 
-        # C. Delete rows with non-existent booking codes in user csv files
+        # C. CleanUp rows with non-existent booking codes in user csv file
         if self._result.OK:
             [self._rename_and_clean_booking_code_in_user_csv_file(
                 Table.TransactionEnriched, self._user_mutations_path, c_booking_code, from_name=nec, to_name=EMPTY,
@@ -189,7 +195,7 @@ class UserCsvFileManager(object):
                 self._existing_booking_codes.add(booking_code)
             # Booking
             if table_name == Table.BookingCode:
-                pass
+                self._booking_codes.add(booking_code)
             # Counter account, SearchTerm
             elif table_name in (Table.CounterAccount, Table.SearchTerm):
                 self._validate_booking_code(path, booking_code, i)
@@ -238,7 +244,7 @@ class UserCsvFileManager(object):
             self._result.add_message(
                 f'{Color.RED}Fout in bestand{Color.NC} "{path}:\n'
                 f'Boeking "{booking_code}" in regel {row_no} kolom 1 moet bestaan in '
-                f'"{CM.get_config_item(CF_IMPORT_PATH_BOOKINGS)}".',
+                f'"{CM.get_config_item(CF_IMPORT_PATH_BOOKING_CODES)}".',
                 severity=MessageSeverity.Error)
 
     def is_valid_csv_header(self, table_name, path, message_prefix=EMPTY, has_id=False) -> bool:
@@ -302,10 +308,10 @@ class UserCsvFileManager(object):
         return Result() if result_ok else Result(ResultCode.Canceled)
 
     def _get_non_existent_booking_codes_from_user_csv(self) -> set:
-        booking_codes = self._booking_io.fetch_booking_codes()  # including empty
+        # booking_codes = self._booking_io.fetch_booking_codes()  # including empty
         return {
             row[c_booking_code] for row in csvm.get_rows(data_path=self._user_mutations_path)
-            if row[c_booking_code] not in booking_codes
+            if row[c_booking_code] not in self._booking_codes
         }
 
     def _rename_and_clean_booking_code_in_user_csv_file(
@@ -451,7 +457,7 @@ class UserCsvFileManager(object):
         """
         file_name = TABLE_PROPERTIES[table_name][FILE_NAME]
         path = self._get_most_recent_path_name(table_name)
-        # If not yet present, try to copy csv file from ../<app_dir>/resources folder to ../Data/resources.
+        # If not yet present, try to copy csv file from ../<app_dir>/resources folder.
         if path and not os.path.exists(path):
             shutil.copyfile(src=f'{self._session.resources_dir}{file_name}', dst=path)
 
@@ -509,7 +515,7 @@ class UserCsvFileManager(object):
 
     def export_transaction_user_updates(self) -> bool:
         """
-        Backup Booking, Remarks. Merge with existing backup.
+        Backup Booking code, Remarks. Merge with existing backup.
         Precondition: Db rows are in the same format as Csv rows (incl. Id).
         """
         table_name = Table.TransactionEnriched
@@ -563,5 +569,5 @@ class UserCsvFileManager(object):
         """
         cell = row[c_booking_id]
         if cell and isInt(cell):
-            row[c_booking_id] = BCM.get_value_from_id(cell, FD.Booking_code)
+            row[c_booking_code] = BCM.get_value_from_id(cell, FD.Booking_code)
         return row

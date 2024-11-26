@@ -13,6 +13,7 @@ from src.BL.Summary.Templates.ResultPerBookingCode import ResultsPerBookingCode
 from src.DL.Config import CF_SUMMARY_YEAR, CF_SUMMARY_MONTH_FROM, CF_SUMMARY_MONTH_TO, \
     CF_SUMMARY_OPENING_BALANCE
 from src.DL.Enums.Enums import Summary
+from src.DL.IO.OpeningBalanceIO import OpeningBalanceIO
 from src.DL.Lexicon import TEMPLATE_ANNUAL_ACCOUNT, SEARCH_RESULT, PERIODIC_ACCOUNTS, YEAR, \
     TEMPLATE_NAME, TEMPLATE_PERIODIC_ACCOUNT, TEMPLATE_REALISATION_PER_BOOKING_CODE, MONTH_FROM, MONTH_TO
 from src.GL.BusinessLayer.ConfigManager import ConfigManager
@@ -118,8 +119,12 @@ class SummaryDriver:
                 return
 
             # Export
-            CM = ConfigManager()
-            opening_balance = toFloat(CM.get_config_item(CF_SUMMARY_OPENING_BALANCE))
+            if self._CLI_mode:
+                opening_balance = OpeningBalanceIO().get_opening_balance(year)
+            else:
+                CM = ConfigManager()
+                opening_balance = toFloat(CM.get_config_item(CF_SUMMARY_OPENING_BALANCE))
+
             self._PA = PeriodicAccount(iban, opening_balance, template_filename, self._CLI_mode)
             self._PA.export(year, month_from, month_to)
 

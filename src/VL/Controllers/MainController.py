@@ -165,7 +165,7 @@ class MainController(BaseController):
         # Warning mode.
         # Now the GUI can be built. Even when there is no data.
         self._diag_message('Validating Booking related csv files')
-        self._result = self._UM.validate_resource_files(full_check=False)
+        self._result = self._UM.validate_csv_files(full_check=False)
 
         # sg window.
         self._diag_message('Starting GUI')

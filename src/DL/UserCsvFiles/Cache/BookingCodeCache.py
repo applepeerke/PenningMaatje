@@ -6,8 +6,8 @@
 # ---------- --- ------------------------------------------------------------------------------------------------------
 # 2018-12-20 PHe First creation
 # ---------------------------------------------------------------------------------------------------------------------
-from src.DL.Config import CF_IMPORT_PATH_BOOKINGS, CF_IMPORT_PATH_COUNTER_ACCOUNTS, \
-    configDef, LEEG, CF_IMPORT_PATH_SEARCH_TERMS, CF_SHOW_BOOKING_CODE_AT_DESCRIPTION
+from src.DL.Config import CF_IMPORT_PATH_BOOKING_CODES, CF_IMPORT_PATH_COUNTER_ACCOUNTS, \
+    configDef, LEEG, CF_IMPORT_PATH_SEARCH_TERMS, CF_SHOW_BOOKING_CODE_AT_DESCRIPTION, CF_IMPORT_PATH_OPENING_BALANCE
 from src.DL.DBDriver.Enums import FetchMode
 from src.DL.Model import Model, FD
 from src.DL.Table import Table
@@ -212,9 +212,10 @@ class Singleton:
 
         def is_valid_config(self) -> Result:
             self._result = Result()
-            self._check_config_item(CF_IMPORT_PATH_BOOKINGS)
+            self._check_config_item(CF_IMPORT_PATH_BOOKING_CODES)
             self._check_config_item(CF_IMPORT_PATH_COUNTER_ACCOUNTS)
             self._check_config_item(CF_IMPORT_PATH_SEARCH_TERMS)
+            self._check_config_item(CF_IMPORT_PATH_OPENING_BALANCE)
             return self._result
 
         def _check_config_item(self, key):

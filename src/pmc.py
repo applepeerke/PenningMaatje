@@ -4,7 +4,7 @@ from datetime import datetime
 from src.BL.Managers.ImportManager import ImportManager
 from src.BL.Summary.SearchResults import SearchResults
 from src.BL.Summary.SummaryDriver import SummaryDriver
-from src.DL.Config import CF_OUTPUT_DIR, CF_INPUT_DIR, CF_IMPORT_PATH_BOOKINGS, CF_IMPORT_PATH_COUNTER_ACCOUNTS, \
+from src.DL.Config import CF_OUTPUT_DIR, CF_INPUT_DIR, CF_IMPORT_PATH_BOOKING_CODES, CF_IMPORT_PATH_COUNTER_ACCOUNTS, \
     CF_IMPORT_PATH_SEARCH_TERMS, BOOKING_CODES_CSV, COUNTER_ACCOUNTS_CSV, SEARCH_TERMS_CSV, \
     CF_IMPORT_PATH_OPENING_BALANCE, OPENING_BALANCE_CSV, CF_SUMMARY_YEAR, CF_SUMMARY_MONTH_FROM, CF_SUMMARY_MONTH_TO, \
     ACCOUNTS_CSV, CF_IMPORT_PATH_ACCOUNTS, CF_VERBOSE
@@ -90,7 +90,7 @@ class PMC:
 
         resources_dir = session.resources_dir
         self._CM.set_config_item(CF_IMPORT_PATH_ACCOUNTS, f'{resources_dir}{ACCOUNTS_CSV}')
-        self._CM.set_config_item(CF_IMPORT_PATH_BOOKINGS, f'{resources_dir}{BOOKING_CODES_CSV}')
+        self._CM.set_config_item(CF_IMPORT_PATH_BOOKING_CODES, f'{resources_dir}{BOOKING_CODES_CSV}')
         self._CM.set_config_item(CF_IMPORT_PATH_COUNTER_ACCOUNTS, f'{resources_dir}{COUNTER_ACCOUNTS_CSV}')
         self._CM.set_config_item(CF_IMPORT_PATH_OPENING_BALANCE, f'{resources_dir}{OPENING_BALANCE_CSV}')
         self._CM.set_config_item(CF_IMPORT_PATH_SEARCH_TERMS, f'{resources_dir}{SEARCH_TERMS_CSV}')

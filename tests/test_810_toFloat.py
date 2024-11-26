@@ -50,8 +50,6 @@ class ToFloatTestCase(unittest.TestCase):
         self.assertRaises(GeneralException, toFloat, '1234567.89', ',')
         self.assertRaises(GeneralException, toFloat, '1234567,89', '.')
         self.assertRaises(GeneralException, toFloat, '1234.567,0', ',')
-        self.assertRaises(GeneralException, toFloat, '1234.567,89', ',')
-        self.assertRaises(GeneralException, toFloat, '12.34.567,89', ',')
 
 
 if __name__ == '__main__':

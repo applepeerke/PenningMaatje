@@ -10,7 +10,8 @@ import PySimpleGUI as sg
 
 from src.DL.Config import CF_ROWS_YEAR, \
     CF_ROWS_MONTH, CF_ROWS_TRANSACTION, CF_TOOL_TIP, CF_ROWS_BOOKING, CF_ROWS_SEARCH_TERM, CF_THEME, CF_FONT, \
-    CF_FONT_SIZE, CF_COL_OVERBOOKING, CF_COL_SALDO_MINUS_CORRECTION, CF_ROWS_COMBO_MAX, CF_IMAGE_SUBSAMPLE
+    CF_FONT_SIZE, CF_COL_OVERBOOKING, CF_COL_SALDO_MINUS_CORRECTION, CF_ROWS_COMBO_MAX, CF_IMAGE_SUBSAMPLE, \
+    CF_SHOW_BOOKING_CODE_AT_DESCRIPTION
 from src.GL.Const import EMPTY
 from src.GL.Enums import ActionCode
 from src.GL.Result import Result
@@ -47,6 +48,7 @@ class LayoutOptionsWindow(BaseWindow):
         self._set_value_before(CF_COL_OVERBOOKING, RQD)
         self._set_value_before(CF_COL_SALDO_MINUS_CORRECTION, RQD)
         self._set_value_before(CF_TOOL_TIP, OPT)
+        self._set_value_before(CF_SHOW_BOOKING_CODE_AT_DESCRIPTION, OPT)
 
     def _set_value_before(self, cf_code, return_value):
         self._restart_dict[return_value][cf_code] = self._CM.get_config_item(cf_code, EMPTY)

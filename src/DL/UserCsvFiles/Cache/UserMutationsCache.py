@@ -52,11 +52,11 @@ class Singleton:
             self._initialized = False
 
         def get_booking_code(self, account_number_bban, date, counter_account_number, comments) -> str:
-            """ return: booking from cache if this exists, else empty. """
+            """ return: booking code from cache if this exists, else empty. """
             self.initialize()  # 1st time
             te_key = get_te_key(account_number_bban, date, counter_account_number, comments)
             row = self._mutations_by_te_key.get(te_key, EMPTY)
-            return row[row_def[FD.Booking_id]] if row else EMPTY
+            return row[row_def[FD.Booking_code]] if row else EMPTY
 
         def get_remarks(self, te_key) -> str:
             self.initialize()  # 1st time
@@ -84,7 +84,7 @@ class Singleton:
             self._mutations_by_te_key[te_key] = row
 
             # Booking codes
-            self._booking_codes.add(row[row_def[FD.Booking_id]])
+            self._booking_codes.add(row[row_def[FD.Booking_code]])
 
             # Remarks
             remarks = row[row_def[FD.Remarks]]

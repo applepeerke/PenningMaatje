@@ -20,6 +20,7 @@ from src.DL.UserCsvFiles.Cache.CounterAccountCache import Singleton as CounterAc
 from src.DL.UserCsvFiles.Cache.SearchTermCache import Singleton as SearchTermCache
 from src.DL.UserCsvFiles.Cache.UserMutationsCache import Singleton as UserMutationsCache
 from src.DL.Lexicon import TRANSACTIONS, COUNTER_ACCOUNTS, BOOKING_CODE, SEARCH_TERMS
+from src.DL.UserCsvFiles.UserCsvFileManager import UserCsvFileManager
 from src.VL.Functions import progress_meter
 from src.GL.BusinessLayer.ConfigManager import ConfigManager
 from src.GL.BusinessLayer.CsvManager import CsvManager
@@ -59,6 +60,7 @@ class ConsistencyManager(BaseManager):
         self._progress_steps_total = 0
         self._non_existent_bookings = {}
         self._reason = EMPTY
+        self._UCM = UserCsvFileManager()
 
     def run(self) -> Result:
         self._result = Result()
@@ -90,9 +92,16 @@ class ConsistencyManager(BaseManager):
             f'Consistentie check\n'
             f'------------------\n', MessageSeverity.Info)
 
-        # Validate booking-related csv files (cache)
+        # Validate caches from tables if booking-related csv files
         self._progress(1, f'{BOOKING_CODE} in "{CM.get_config_item(CF_IMPORT_PATH_COUNTER_ACCOUNTS)}"')
-        self._validate_bookings_imported_from_csv_files()
+
+        # Input validation (csv files)
+        self._csv_validation()
+        if not self._is_consistent:
+            return self._result
+
+        # Validate caches
+        self._cache_validation()
 
         # Validate ME
         if transaction_enriched_count != transaction_count:
@@ -142,35 +151,50 @@ class ConsistencyManager(BaseManager):
 
         return self._result
 
-    def _validate_bookings_imported_from_csv_files(self):
-        """ Validate booking-related csv files (before import) """
+    def _csv_validation(self):
+        """ User maintainable csv files """
+        self._UCM.validate_csv_files(full_check=True)
+
+    def _cache_validation(self):
+        """ Tables imported from user data """
+        self._validate_caches()
+        if any(values for values in self._non_existent_bookings):
+            self._is_consistent = False
+
+    def _validate_caches(self):
+        """ Validate booking-related csv files - (before import) """
         ACM.initialize(force=self._initialize_singletons)
         BCM.initialize(force=self._initialize_singletons)
         STM.initialize(force=self._initialize_singletons)
         UMC.initialize(force=self._initialize_singletons)
+
         # Gevulde Tegenrekening-boeking-code moet bestaan in BoekingsCode
         [self._validate_booking(k, booking_code, COUNTER_ACCOUNTS_CSV, FD.Counter_account_number)
          for k, booking_code in ACM.booking_codes.items()]
+
         self._completion_message(f'Er zijn {len(ACM.booking_codes.items())} {COUNTER_ACCOUNTS} gecontroleerd.')
         # Gevulde Zoekterm-boeking-code moet bestaan in BoekingsCode
         [self._validate_booking(k, booking_code, SEARCH_TERMS_CSV, FD.SearchTerm)
          for k, booking_code in STM.search_terms.items()]
+
         # Gevulde UserMutations-boeking-code moet bestaan in BoekingsCode
         [self._validate_booking(EMPTY, booking_code, f'{USER_MUTATIONS_FILE_NAME}{EXT_CSV}', FD.Booking_code)
          for booking_code in UMC.booking_codes]
+
         self._completion_message(f'Er zijn {len(STM.search_terms.items())} {SEARCH_TERMS} gecontroleerd.')
 
     def _validate_booking(self, key, booking_code, table_name, key_name):
         """ Save booking names that don't exist in BookingCode. """
         if table_name not in self._non_existent_bookings:
             self._non_existent_bookings[table_name] = set()
+
         if (not booking_code or
                 booking_code in BCM.booking_codes or
                 booking_code in self._non_existent_bookings[table_name]
         ):
             return
         # Boeking not found and not listed yet.
-        warning = f'\nBestand {table_name}: {key_name} {key} {BOOKING_CODE} ' \
+        warning = f'\nBestand {table_name}: {key_name} {key} ' \
                   f'"{Color.ORANGE}{booking_code}{Color.NC}" bestaat niet. ' \
                   f'Pas {key_name} in het bestand aan of voeg de {BOOKING_CODE} toe.'
         self._result.add_message(warning, MessageSeverity.Warning)

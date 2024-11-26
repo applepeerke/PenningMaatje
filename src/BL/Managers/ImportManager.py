@@ -104,18 +104,20 @@ class ImportManager(BaseManager):
             from src.VL.Views.PopUps.PopUp import PopUp
             popup = PopUp()
 
-        # Validate transactions folder
+        # Validate input
         self._progress_steps_total = 6
-        #  Validate import transactions .csv files: Check file headers.
+
+        # - Transactions .csv files: Check file headers.
         self._result = self._validation_manager.validate_config_dir(CF_INPUT_DIR)
         if not self._result.OK:
             self._result.add_message('\nImporteren is afgebroken.', MessageSeverity.Error)
             return self._result
 
-        # Validate optional user data: base tables (bookings, accounts, search-terms)
+        # - Optional user data (booking codes, accounts, search-terms, opening balance)
         if import_user_csv_files:
-            self._result = self._user_csv_manager.validate_resource_files(full_check=True)
-            if self._result.ER:  # Warnings allowed
+            self._result = self._user_csv_manager.validate_csv_files(full_check=True)
+            # Warnings are allowed in app-mode. Otherwise the display will not start up.
+            if self._result.ER or (self._result.WA and self._session.CLI_mode):
                 return self._result
 
         # Validate bookings paths to csv files (warning only)
@@ -154,6 +156,7 @@ class ImportManager(BaseManager):
         count = 0
         if self._has_consecutive_doubles(rows):
             count = self.export_doubles(rows)
+
         # - Completion
         count_text = f'{Color.GREEN}geen{Color.NC}' if count == 0 else f'{Color.ORANGE}{count}{Color.NC}'
         ref_text = f'\nZie "{DOUBLES_CSV}" in "{self._session.output_dir}"' if count > 0 else EMPTY

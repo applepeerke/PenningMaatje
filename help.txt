@@ -2,7 +2,7 @@
 PenningMaatje
 ----------------------------------------------------------------------------------------
 Author : Peter Heijligers
-Version: 1.0
+Version: 1.2
 Python : >= 3.8
 ----------------------------------------------------------------------------------------
 usage:
@@ -19,19 +19,29 @@ Parameters (optional)
 ---------------------
 To see the CLI input parameters, run "python pm -h".
 
+-a = account number
+    Specify the IBAN of the account you want to select to process. This may be useful when you have multiple accounts.
+
+
+-b = build
+    Use this flag to rebuild the database from the csv files in the ../Output/backup or else ../resources folder.
+
 -i = input directory
-Bank transactions directory. This folder must contain bank transaction csv files only.
+    Specify the bank transactions directory. This folder must contain bank transaction csv files only.
 
 -o = output directory
-Output directory for the database, log, backup, exports.
+    Specify the output directory for the database, log, backup, exports.
 
 -s = summary type
+    Specify one of the following values:
+    - "Jaarrekening plus periodieke overzichten" (default)
+    - "Periodieke overzichten"
+    - "Jaarrekening"
+    - "Realisatie per boekingscode"
 
-This must be one of the following values:
-- "Jaarrekening plus periodieke overzichten" (default)
-- "Periodieke overzichten"
-- "Jaarrekening"
+-v = verbose
+    Use this flag to export failures in the referential integrity check of the csv files. E.g. missing booking codes.
 
 -y = year to export (optional).
-Default is the current year.
+    Specify the year to export. Default is the current year.
 

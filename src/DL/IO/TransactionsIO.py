@@ -214,7 +214,7 @@ class TransactionsIO(BaseIO, ABC):
     Summary
     """
     def get_realisation_data(self, iban, year) -> list:
-        """ @return: [type, maingroup, subgroup, amount]"""
+        """ @return: [type, maingroup, subgroup, amount] """
         self._total_amount = 0.0
         d = {}
         b_def = self._model.get_colno_per_att_name(Table.BookingCode, zero_based=False)
@@ -229,7 +229,8 @@ class TransactionsIO(BaseIO, ABC):
                 booking_id = self._db.fetch_id(Table.BookingCode, where=[Att(FD.Booking_maingroup, booking_maingroup)])
                 if not booking_id:
                     raise GeneralException(
-                        f'{PGM}: Gereserveerde boeking {booking_maingroup} is niet gevonden in tabel {Table.BookingCode}.')
+                        f'{PGM}: Gereserveerde boeking {booking_maingroup} is niet gevonden '
+                        f'in tabel {Table.BookingCode}.')
             b_row = self._db.fetch_one(Table.BookingCode, where=[Att(FD.ID, booking_id)])
             amount = m_row[self._te_dict[FD.Amount_signed]]
             self._total_amount += amount
