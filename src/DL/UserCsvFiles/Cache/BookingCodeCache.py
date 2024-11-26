@@ -82,8 +82,7 @@ class Singleton:
             self._protected_maingroup_booking_codes = {maingroup: EMPTY for maingroup in PROTECTED_BOOKINGS}
 
         def get_booking_code(self, name, comment, remark=None) -> str:
-            self.initialize()
-
+            self.initialize()  # 1st time
             booking_code = self.get_booking_code_from_item(name)
             if not booking_code:
                 booking_code = self.get_booking_code_from_item(comment)
@@ -93,6 +92,7 @@ class Singleton:
 
         def get_booking_code_from_item(self, item) -> str:
             """ Get the booking_code present in the 1st matching item """
+            self.initialize()  # 1st time
             booking_codes = [booking_code for booking_code in self._booking_codes
                              if len(booking_code) > 2 and booking_code in item]
             return booking_codes[0] if booking_codes else EMPTY
@@ -138,6 +138,7 @@ class Singleton:
         def get_code_from_combo_desc(self, formatted_desc) -> str:
             """ SearchView combo booking description has a formatted description without the code. """
             # Special values for Empty-booking-code mode
+            self.initialize()  # 1st time
             if formatted_desc in (LEEG, NIET_LEEG):
                 return formatted_desc
 
@@ -149,11 +150,12 @@ class Singleton:
                     return code
             return EMPTY
 
-        @staticmethod
-        def get_lk(booking_type, maingroup, subgroup):
+        def get_lk(self, booking_type, maingroup, subgroup):
+            self.initialize()  # 1st time
             return f'{booking_type}|{maingroup}|{subgroup}'
 
         def get_booking_code_from_lk(self, booking_type, maingroup, subgroup) -> str:
+            self.initialize()  # 1st time
             lk = self.get_lk(booking_type, maingroup, subgroup)
             booking_code = self._codes_by_lk.get(lk, EMPTY)
             # Items without maingroup (like "Overboeking") may get type as maingroup (like "Overboeking Overboeking")
@@ -168,6 +170,7 @@ class Singleton:
             return booking_code
 
         def get_seqno_from_lk(self, lk) -> int:
+            self.initialize()  # 1st time
             return self._seqno_by_lk.get(lk, 9999)
 
         def get_value_from_id(self, ID, att_name, dft=EMPTY) -> EMPTY:
