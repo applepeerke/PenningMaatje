@@ -161,7 +161,7 @@ def _border(text):
 
 def get_text_file(filename):
     session = Session()
-    path = f'{session.resources_dir}{filename}.txt'
+    path = f'{session.text_dir}{filename}.txt'
     if not is_valid_file(path):
         return EMPTY
     with open(path) as txtFile:

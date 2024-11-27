@@ -24,7 +24,7 @@ To see the CLI input parameters, run "python pm -h".
 
 
 -b = build
-    Use this flag to rebuild the database from the csv files in the ../Output/backup or else ../resources folder.
+    Use this flag to rebuild the database from the csv files in the ../Output/backup or else ../resources/userdata folder.
 
 -i = input directory
     Specify the bank transactions directory. This folder must contain bank transaction csv files only.

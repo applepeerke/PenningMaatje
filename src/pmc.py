@@ -88,12 +88,12 @@ class PMC:
         self._CM.set_config_item(CF_OUTPUT_DIR, output_dir)
         self._CM.set_config_item(CF_VERBOSE, verbose)
 
-        resources_dir = session.resources_dir
-        self._CM.set_config_item(CF_IMPORT_PATH_ACCOUNTS, f'{resources_dir}{ACCOUNTS_CSV}')
-        self._CM.set_config_item(CF_IMPORT_PATH_BOOKING_CODES, f'{resources_dir}{BOOKING_CODES_CSV}')
-        self._CM.set_config_item(CF_IMPORT_PATH_COUNTER_ACCOUNTS, f'{resources_dir}{COUNTER_ACCOUNTS_CSV}')
-        self._CM.set_config_item(CF_IMPORT_PATH_OPENING_BALANCE, f'{resources_dir}{OPENING_BALANCE_CSV}')
-        self._CM.set_config_item(CF_IMPORT_PATH_SEARCH_TERMS, f'{resources_dir}{SEARCH_TERMS_CSV}')
+        userdata_dir = session.userdata_dir
+        self._CM.set_config_item(CF_IMPORT_PATH_ACCOUNTS, f'{userdata_dir}{ACCOUNTS_CSV}')
+        self._CM.set_config_item(CF_IMPORT_PATH_BOOKING_CODES, f'{userdata_dir}{BOOKING_CODES_CSV}')
+        self._CM.set_config_item(CF_IMPORT_PATH_COUNTER_ACCOUNTS, f'{userdata_dir}{COUNTER_ACCOUNTS_CSV}')
+        self._CM.set_config_item(CF_IMPORT_PATH_OPENING_BALANCE, f'{userdata_dir}{OPENING_BALANCE_CSV}')
+        self._CM.set_config_item(CF_IMPORT_PATH_SEARCH_TERMS, f'{userdata_dir}{SEARCH_TERMS_CSV}')
 
         # Write the json config
         self._CM.write_config()

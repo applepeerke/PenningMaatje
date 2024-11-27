@@ -26,6 +26,9 @@ OUTPUT = 'Output'
 IMAGES = 'images'
 RESOURCES = 'resources'
 TEMPLATES = 'templates'
+USERDATA = 'userdata'
+TEXT = 'text'
+
 DB_EXT = '.db'
 OUTPUT_SUBDIRS = (BACKUP, DATA, LOG, EXPORT)
 
@@ -71,6 +74,14 @@ class Singleton:
         @property
         def templates_dir(self):
             return self._templates_dir
+
+        @property
+        def userdata_dir(self):
+            return self._userdata_dir
+
+        @property
+        def text_dir(self):
+            return self._text_dir
 
         @property
         def database_path(self):
@@ -156,6 +167,8 @@ class Singleton:
             self._export_dir = None
             self._images_dir = None
             self._templates_dir = None
+            self._userdata_dir = None
+            self._text_dir = None
             self._database_path = None
             self._suffix = None
             self._unit_test = False
@@ -177,7 +190,9 @@ class Singleton:
             self._app_src_dir = get_app_root_dir()
             self._resources_dir = normalize_dir(f'{self._app_src_dir}{RESOURCES}')
             self._templates_dir = normalize_dir(f'{self._resources_dir}{TEMPLATES}')
+            self._userdata_dir = normalize_dir(f'{self._resources_dir}{USERDATA}')
             self._images_dir = normalize_dir(f'{self._resources_dir}{IMAGES}')
+            self._text_dir = normalize_dir(f'{self._resources_dir}{TEXT}')
 
             self._app_initialized = True
 
@@ -196,6 +211,7 @@ class Singleton:
                 self._output_dir = normalize_dir(f'{self._root_dir}{UT}{slash()}{OUTPUT}') if not output_dir else output_dir
                 self._resources_dir = normalize_dir(f'{self._root_dir}{UT}{slash()}{RESOURCES}')
                 self._templates_dir = normalize_dir(f'{self._resources_dir}{TEMPLATES}')
+                self._userdata_dir = normalize_dir(f'{self._resources_dir}{USERDATA}')
 
             if self._output_dir:
                 self.set_suffix()
@@ -224,6 +240,7 @@ class Singleton:
                     or not self._log_dir \
                     or not self._backup_dir \
                     or not self._templates_dir \
+                    or not self._userdata_dir \
                     or not self._images_dir:
                 self._error_message = f'Niet alle folder paden konden ingesteld worden.'
                 return False

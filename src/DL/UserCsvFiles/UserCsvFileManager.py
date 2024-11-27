@@ -117,7 +117,7 @@ class UserCsvFileManager(object):
                 return self._result
 
         # B. Deep check on booking related csv files.
-        # If no valid file exists (in backup folder), copy it from "<app_dir>/resources" to user Data folder.
+        # If no valid file exists (in backup folder), copy it from "<app_dir>/resources/userdata".
 
         #   1. First bookings, they occur in the other files.
         self._booking_codes = set()
@@ -453,13 +453,13 @@ class UserCsvFileManager(object):
         """
         Get user csv file from
         a. ../Backup, else from
-        b. ../<app_dir>/resources
+        b. ../<app_dir>/resources/userdata
         """
         file_name = TABLE_PROPERTIES[table_name][FILE_NAME]
         path = self._get_most_recent_path_name(table_name)
-        # If not yet present, try to copy csv file from ../<app_dir>/resources folder.
+        # If not yet present, try to copy csv file from ../<app_dir>/resources/userdata folder.
         if path and not os.path.exists(path):
-            shutil.copyfile(src=f'{self._session.resources_dir}{file_name}', dst=path)
+            shutil.copyfile(src=f'{self._session.userdata_dir}{file_name}', dst=path)
 
         # Set the path (or empty) in config
         cf_code = TABLE_PROPERTIES[table_name][CF_IMPORT_PATH]
@@ -482,8 +482,8 @@ class UserCsvFileManager(object):
     def _get_most_recent_path_name(self, table_name) -> str:
         """
         Get user csv file name from
-        A. ../Backup, else from
-        B. ../<app_dir>/resources
+        a. ../Backup, else from
+        b. ../<app_dir>/resources/userdata
         """
         path = EMPTY
         file_name = TABLE_PROPERTIES[table_name][FILE_NAME]
@@ -495,15 +495,9 @@ class UserCsvFileManager(object):
                 path = f'{dirname}{file_name}'
                 break
 
-        # b. Try the path in ../Data/resources.
-        if not path:
-            dst_resources_dir = normalize_dir(f'{self._session.resources_dir}', create=True)
-            if dst_resources_dir:
-                path = f'{dst_resources_dir}{file_name}'
-
-        # c. Try ../<app_dir>/resources folder to ../Data/resources.
+        # b. Try ../<app_dir>/resources/userdata folder.
         if path and not os.path.exists(path):
-            src = f'{self._session.resources_dir}{file_name}'
+            src = f'{self._session.userdata_dir}{file_name}'
             if src and is_valid_file(src):
                 path = src
 

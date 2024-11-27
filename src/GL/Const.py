@@ -48,8 +48,6 @@ CREATION_DATE = 'CreationDate'
 EXT_CSV = '.csv'
 EXT_HTML = '.html'
 
-RESOURCES = 'resources'
-
 RESTART_ASK = 'Ask'
 RESTART_REQUIRED = 'Force'
 RESTART_NO = 'No'

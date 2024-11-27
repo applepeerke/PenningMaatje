@@ -44,7 +44,7 @@ Als je niets opgeeft worden de bankafschriften geïmporteerd uit folder `..Penni
 De overzichten worden dan gemaakt in `../PenningMaatje/Output`.
 
 Er wordt een jaarrekening gemaakt in een csv bestand. Hierin komt de realisatie te staan over de maanden die in de bankafschriften aanwezig zijn. 
-Als er in input bestand `resources/Jaarrekening.csv` ook begrotingen staan worden deze geïntegreerd. 
+Als er in input bestand `resources/userdata/Jaarrekening.csv` ook begrotingen staan worden deze geïntegreerd. 
 
 Daarnaast worden de bankafschriften per maand en per kwartaal geëxporteerd in csv bestanden. 
 
