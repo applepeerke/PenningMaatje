@@ -22,7 +22,7 @@ class SearchTermView(BaseView):
         self._model = model
 
     def get_view(self) -> list:
-        booking_descriptions = [x for x in BCM.get_booking_code_descriptions(include_protected=True)]
+        booking_descriptions = [x for x in BCM.get_booking_code_descriptions(include_protected=False)]
         x_desc = max(len(d) for d in booking_descriptions)
         x = max(
             len(SEARCH_TERM),

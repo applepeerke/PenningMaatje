@@ -110,6 +110,7 @@ class MainView(BaseView):
                                   font=self.get_font('TABLE'))],
                     ], border_width=1, p=0),
                 ], border_width=1),
+
                 # Transactie
                 self.frame(FRAME_PANE_TRANSACTION, [
                     [self.label(name=PANE_TRANSACTION, font=self.get_font(addition=2))],
@@ -131,7 +132,7 @@ class MainView(BaseView):
                             # - Boeking
                             self.frame(FRAME_TRANSACTION_BOOKING, [
                                 self.combo(CF_COUNTER_ACCOUNT_BOOKING_DESCRIPTION,
-                                           [x for x in BCM.get_booking_code_descriptions(include_protected=True)],
+                                           [x for x in BCM.get_booking_code_descriptions(include_protected=False)],
                                            dft=VM_TX.booking_description, x=x_TX,
                                            background_color=COLOR_BACKGROUND_DISABLED),
                             ], p=0, border_width=0),

@@ -41,8 +41,8 @@ class Singleton:
         def __init__(self):
             self._booking_codes = set()
             self._formatted_booking_descriptions = set()
-            self._booking_codes_including_not_protected = []
-            self._formatted_descriptions_including_not_protected = []
+            self._booking_codes_excluding_protected = []
+            self._formatted_descriptions_excluding_protected = []
             self._formatted_descriptions = []
             self._protected_maingroup_booking_codes = {}
             self._ids_by_key = {}
@@ -76,9 +76,13 @@ class Singleton:
             self._formatted_descriptions = [
                 self._get_formatted_desc(booking_code) for booking_code in self._booking_codes]
 
-            self._booking_codes_including_not_protected = sorted([row[d[FD.Booking_code]] for row in rows])
-            self._formatted_descriptions_including_not_protected = [
-                self._get_formatted_desc(booking_code) for booking_code in self._booking_codes_including_not_protected]
+            self._booking_codes_excluding_protected = sorted(
+                [row[d[FD.Booking_code]] for row in rows if not toBool(row[d[FD.Protected]])]
+            )
+            self._formatted_descriptions_excluding_protected = [
+                self._get_formatted_desc(booking_code)
+                for booking_code in self._booking_codes_excluding_protected]
+
             self._protected_maingroup_booking_codes = {maingroup: EMPTY for maingroup in PROTECTED_BOOKINGS}
 
         def get_booking_code(self, name, comment, remark=None) -> str:
@@ -125,7 +129,7 @@ class Singleton:
         def get_booking_code_descriptions(self, include_protected=False):
             self.initialize()  # 1st time
             return self._formatted_descriptions if include_protected \
-                else self._formatted_descriptions_including_not_protected
+                else self._formatted_descriptions_excluding_protected
 
         def _get_formatted_desc(self, booking_code) -> str:
             """ return "(<booking_code> - )<maingroup> <subgroup>" """
