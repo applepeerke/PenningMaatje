@@ -13,7 +13,7 @@ from src.DL.Config import CF_RESTORE_BOOKING_DATA, get_label, TABLE_PROPERTIES, 
 from src.DL.DBDriver.Att import Att
 from src.DL.DBDriver.SQLOperator import SQLOperator
 from src.DL.IO.TransactionIO import TransactionIO
-from src.DL.Lexicon import SEARCH_TERMS, TRANSACTIONS, COUNTER_ACCOUNTS, BOOKING_CODES, \
+from src.DL.Lexicon import SEARCH_TERMS, TRANSACTIONS, BOOKING_CODES, \
     BOOKING_CODE, COUNTER_ACCOUNT
 from src.DL.Model import FD, Model
 from src.DL.Table import Table
@@ -48,7 +48,7 @@ STM = SearchTermCache()
 UM = UserCsvFileManager()
 
 
-class BookingManager(BaseManager):
+class BookingCodeManager(BaseManager):
 
     @property
     def is_consistent(self):
@@ -71,6 +71,7 @@ class BookingManager(BaseManager):
 
     def link_booking(self, counter_account_number, booking_code) -> Result:
         """ Link counter-account-number to booking code """
+
         # Validatie
         warning = ResultCode.Warning
         if not counter_account_number:
@@ -122,7 +123,7 @@ class BookingManager(BaseManager):
 
         # D. Go!
         if update_all:
-            # D1. Update booking in CounterAccount and in all TransactionEnriched
+            # D1. Update booking in all TransactionEnriched
             TE_id = 0
             result = self._update_all_transactions(counter_account_id, booking_new_id)
         else:
@@ -143,28 +144,22 @@ class BookingManager(BaseManager):
         self._db.update(
             Table.TransactionEnriched, where=[Att(FD.ID, transaction_id)],
             values=[Att(FD.Booking_id, booking_id)], pgm=PGM)
+
         return Result(
             text=f'{BOOKING_CODE} "{BCM.get_value_from_id(booking_id, FD.Booking_code)}" '
                  f'is toegekend aan de transactie.')
 
     def _update_all_transactions(self, counter_account_id, booking_id) -> Result:
         """
-        Update booking name in CounterAccount, and booking id in MutationsEnriched
-        for all transactions.
+        Update booking id in MutationsEnriched for all transactions.
         """
-        # A. CounterAccount
-        booking_code = BCM.get_value_from_id(booking_id, FD.Booking_code)
-        self._db.update(
-            Table.CounterAccount, where=[Att(FD.ID, counter_account_id)],
-            values=[Att(FD.Booking_code, booking_code)], pgm=PGM)
-        # B. Transactions_enriched: update booking_id (use MUTATION_PGM for user file backup)
+        # Transactions_enriched: update booking_id (use MUTATION_PGM for user file backup)
         count = self._transaction_io.update_booking(
             values=[Att(FD.Booking_id, booking_id)],
             where=[Att(FD.Counter_account_id, counter_account_id)])
-        # C. Wrap up
-        # - Set flag to back up the table
-        self._session.set_user_table_changed(Table.CounterAccount)
+
         # - Output
+        booking_code = BCM.get_value_from_id(booking_id, FD.Booking_code)
         result = Result(
             text=f'{BOOKING_CODE} "{booking_code}" is toegekend aan {count} transacties van rekening '
                  f'{ACM.get_iban_from_id(counter_account_id)}.')
@@ -236,7 +231,6 @@ class BookingManager(BaseManager):
         self._reason = EMPTY
         where = [Att(FD.Booking_code, EMPTY, relation=SQLOperator().NE)]
         self._booking_codes_db = set(self._db.select(Table.BookingCode, name=FD.Booking_code, where=where))
-        self._validate_booking_codes_in_table(Table.CounterAccount, where, COUNTER_ACCOUNTS)
         self._validate_booking_codes_in_table(Table.SearchTerm, where, SEARCH_TERMS)
 
     def _validate_booking_codes_in_table(self, table_name, where, descriptive_name):

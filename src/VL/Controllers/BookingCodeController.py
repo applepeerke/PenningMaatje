@@ -37,10 +37,10 @@ class BookingCodeController(ListItemController):
 
     def edit(self):
         super().edit()
-        if not self._result.OK or self._model.command not in (BoxCommand.Delete, BoxCommand.Rename):
+        if not self._result.OK or self._model.command not in (BoxCommand.Delete, BoxCommand.Rename, BoxCommand.Update):
             return
 
-        # Delete/Rename: Update booking code in csv files of most recent backup/restore folder.
+        # Delete/Rename/Update: Update booking code in csv files of most recent backup/restore folder.
         to_name = EMPTY if self._model.command == BoxCommand.Delete else self._model.object.booking_code
         self._result = self._UM.rename_and_clean_booking_in_user_csv_files(
             from_name=self._model.object_old.booking_code, to_name=to_name)

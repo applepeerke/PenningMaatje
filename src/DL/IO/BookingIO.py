@@ -1,24 +1,28 @@
 from src.DL.DBDriver.Att import Att
 from src.DL.IO.BaseIO import BaseIO
+from src.DL.Lexicon import TRANSACTIONS, BOOKING_CODE
 from src.DL.Model import FD, Model
 from src.DL.Objects.Booking import Booking
 from src.DL.Table import Table
-from src.VL.Data.Constants.Const import PROTECTED_BOOKINGS
-from src.VL.Data.Constants.Enums import BoxCommand
-from src.DL.Lexicon import TRANSACTIONS, BOOKING_CODE
-from src.VL.Models.BookingCodeModel import BookingCodeModel
-from src.GL.Const import EMPTY, MUTATION_PGM_BC
+from src.DL.UserCsvFiles.Cache.BookingCodeCache import Singleton as BookingCodeCache
+from src.GL.BusinessLayer.CsvManager import CsvManager
+from src.GL.Const import EMPTY, MUTATION_PGM_BC, USER_MUTATIONS_FILE_NAME, EXT_CSV
 from src.GL.Enums import ActionCode, Mutation, ResultCode
 from src.GL.Result import Result
 from src.GL.Validate import toBool
-from src.DL.UserCsvFiles.Cache.BookingCodeCache import Singleton as BookingCodeCache
+from src.VL.Data.Constants.Const import PROTECTED_BOOKINGS
+from src.VL.Data.Constants.Enums import BoxCommand
+from src.VL.Models.BookingCodeModel import BookingCodeModel
 
 TABLE = Table.BookingCode
-d = Model().get_colno_per_att_name(TABLE, zero_based=False)
 PGM = MUTATION_PGM_BC
 
-BCM = BookingCodeCache()
+model = Model()
+d = model.get_colno_per_att_name(TABLE, zero_based=False)
+c_TE_booking_code = model.get_column_number(Table.TransactionEnriched, FD.Booking_code)
 
+BCM = BookingCodeCache()
+csvm = CsvManager()
 
 class BookingIO(BaseIO):
 
@@ -158,7 +162,6 @@ class BookingIO(BaseIO):
     def _update_imported_files(self, pk_new=None) -> Result():
         """
         Update booking codes in imported files. Also, to EMPTY if it is a Delete.
-            CounterAccount,
             SearchTerms
         """
         code_old = self._object_old.booking_code
@@ -169,9 +172,34 @@ class BookingIO(BaseIO):
             where = [Att(FD.Booking_code, code_old)]
             values = [Att(FD.Booking_code, code_new)]
 
-            self._db.update(Table.CounterAccount, where=where, values=values, pgm=PGM)
             self._db.update(Table.SearchTerm, where=where, values=values, pgm=PGM)
+
+            # UserMutations.csv is a special. It is not backupped as a whole copy of TE.
+            self._set_booking_code_in_TE_csv(code_old, code_new)
+
         return Result()
+
+    def _set_booking_code_in_TE_csv(self, code_old, code_new) -> bool:
+        """ Set the Booking code in UserMutations.csv """
+        user_mutations_path = f'{self._session.backup_dir}{USER_MUTATIONS_FILE_NAME}{EXT_CSV}' \
+            if self._session.backup_dir else EMPTY
+
+        # Update booking code in csv
+        out_rows = []
+        changed = False
+        for row in csvm.get_rows(data_path=user_mutations_path, include_header_row=False):
+            if row[c_TE_booking_code] == code_old:
+                row[c_TE_booking_code] = code_new
+                changed = True
+            out_rows.append(row)
+        # Write csv
+        if changed:
+            csvm.write_rows(
+                rows=out_rows,
+                col_names=model.get_report_colhdg_names(Table.TransactionEnriched),
+                open_mode='w',
+                data_path=user_mutations_path)
+        return True
 
     def _confirm(self, action) -> bool:
         if self._transaction_count == 0:

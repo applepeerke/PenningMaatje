@@ -6,6 +6,7 @@
 # ---------- --- ------------------------------------------------------------------------------------------------------
 # 2022-06-06 PHe First creation
 # ---------------------------------------------------------------------------------------------------------------------
+from src.DL.Config import CF_ROWS_SEARCH_TERM, CF_ROWS_BOOKING_CODE
 from src.DL.Table import Table
 from src.VL.Controllers.ListController import ListController
 from src.VL.Data.Constants.Enums import WindowType, Pane
@@ -85,7 +86,11 @@ class BookingCodesWindow(ListWindow):
 
     def __init__(self):
         super().__init__(
-            view=ListView(Pane.BS, ListModel(Table.BookingCode, f'{MAINTAIN} {BOOKING_CODES}')),
+            view=ListView(Pane.BS, ListModel(
+                Table.BookingCode,
+                f'{MAINTAIN} {BOOKING_CODES}',
+                key_num_rows=CF_ROWS_BOOKING_CODE
+            )),
             controller=ListController(BookingCodeWindow)
         )
 
@@ -94,7 +99,11 @@ class SearchTermsWindow(ListWindow):
 
     def __init__(self):
         super().__init__(
-            view=ListView(Pane.SS, model=ListModel(Table.SearchTerm, f'{MAINTAIN} {SEARCH_TERMS}')),
+            view=ListView(Pane.SS, model=ListModel(
+                Table.SearchTerm,
+                f'{MAINTAIN} {SEARCH_TERMS}',
+                key_num_rows=CF_ROWS_SEARCH_TERM
+            )),
             controller=ListController(SearchTermWindow)
         )
 

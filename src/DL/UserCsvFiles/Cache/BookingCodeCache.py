@@ -23,7 +23,7 @@ model = Model()
 CM = ConfigManager()
 
 PGM = 'BookingCodeCache'
-
+CODE_DESC_SEP = ' - '
 
 class Singleton:
     """ Singleton """
@@ -132,13 +132,18 @@ class Singleton:
             desc = (f'{self.get_value_from_booking_code(booking_code, FD.Booking_maingroup)} '
                     f'{self.get_value_from_booking_code(booking_code, FD.Booking_subgroup)}')
             if CM.get_config_item(CF_SHOW_BOOKING_CODE_AT_DESCRIPTION):
-                desc = f'{booking_code} - {desc}'
+                desc = f'{booking_code}{CODE_DESC_SEP}{desc}'
             return desc
 
         def get_code_from_combo_desc(self, formatted_desc) -> str:
-            """ SearchView combo booking description has a formatted description without the code. """
+            """ SearchView combo booking description has a formatted description. """
             # Special values for Empty-booking-code mode
             self.initialize()  # 1st time
+
+            # Code - description
+            if CM.get_config_item(CF_SHOW_BOOKING_CODE_AT_DESCRIPTION) and CODE_DESC_SEP in formatted_desc:
+                booking_code, formatted_desc = formatted_desc.split(CODE_DESC_SEP)
+
             if formatted_desc in (LEEG, NIET_LEEG):
                 return formatted_desc
 
@@ -175,6 +180,7 @@ class Singleton:
 
         def get_value_from_id(self, ID, att_name, dft=EMPTY) -> EMPTY:
             """ Get a value from the id """
+            ID = int(ID)
             if ID == 0:
                 return dft
             self.initialize()  # 1st time

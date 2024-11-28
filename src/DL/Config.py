@@ -59,7 +59,7 @@ CF_COMMA_REPRESENTATION_DISPLAY = 'CF_COMMA_REPRESENTATION_DISPLAY'
 CF_ROWS_YEAR = 'CF_ROWS_YEAR'
 CF_ROWS_MONTH = 'CF_ROWS_MONTH'
 CF_ROWS_TRANSACTION = 'CF_ROWS_TRANSACTION'
-CF_ROWS_BOOKING = 'CF_ROWS_BOOKING'
+CF_ROWS_BOOKING_CODE = 'CF_ROWS_BOOKING_CODE'
 CF_ROWS_SEARCH_TERM = 'CF_ROWS_SEARCH_TERMS'
 CF_ROWS_COMBO_MAX = 'CF_ROWS_COMBO_MAX'
 CF_ROWS_ACCOUNT_WITHOUT_BOOKING = 'CF_ROWS_ACCOUNT_WITHOUT_BOOKING'
@@ -284,7 +284,7 @@ configDef = {
         f'Aantal te tonen {MONTHS}', 12, _border(f'Het aantal rijen in de {MONTH} lijst.'), isInt),
     CF_ROWS_TRANSACTION: ConfigItem(
         f'Aantal te tonen {TRANSACTIONS}', 20, _border(f'Het aantal rijen in de {TRANSACTION} lijst.'), isInt),
-    CF_ROWS_BOOKING: ConfigItem(
+    CF_ROWS_BOOKING_CODE: ConfigItem(
         f'Aantal te tonen {BOOKING_CODES}', 20, _border(f'Het aantal rijen in de {BOOKING_CODE} lijst.'), isInt),
     CF_ROWS_SEARCH_TERM: ConfigItem(
         f'Aantal te tonen {SEARCH_TERMS}', 20, _border(f'Het aantal rijen in de {SEARCH_TERMS} lijst.'), isInt),

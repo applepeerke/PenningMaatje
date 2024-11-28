@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 
-from src.BL.Managers.BookingManager import BookingManager
+from src.BL.Managers.BookingCodeManager import BookingCodeManager
 from src.BL.Managers.ConsistencyManager import ConsistencyManager
 from src.BL.Managers.ImportManager import ImportManager
 from src.BL.Validator import Validator, slash
@@ -218,7 +218,7 @@ class MainController(BaseController):
         self._IM = ImportManager()
         self._UM = UserCsvFileManager()
         self._consistency_manager = ConsistencyManager()
-        self._booking_manager = BookingManager()
+        self._booking_manager = BookingCodeManager()
         if self._result.OK:
             self._managers_started = True
 
@@ -441,6 +441,9 @@ class MainController(BaseController):
     def import_transactions(self, import_user_csv_files=True):
         self._result = Result()
 
+        # - First save pending booking related data, and backup it in the csv folder of today.
+        self._save_and_backup(validate_db=False)
+
         # Ask user confirmation
         if import_user_csv_files and not self._is_import_confirmed():
             return
@@ -458,9 +461,6 @@ class MainController(BaseController):
                 raise GeneralException(self._result.get_messages_as_message())
 
             self._start_log('Import')
-
-            # - First save pending booking related data, and backup it in the csv folder of today.
-            self._save_and_backup(validate_db=False)
 
             # - Import
             result = self._IM.start(import_user_csv_files)
@@ -666,20 +666,19 @@ class MainController(BaseController):
         if not self._result.OK:
             return
 
-        # A. Main tables (Booking and SearchTerm and ...).
-        # If any of the main user tables is changed, or user_mutations.csv must be updated,
-        # backup all user maintenance tables.
-        # N.B. Strictly speaking this full backup is only needed when booking has been changed.
-        [self._session.set_user_table_changed(table_name) for table_name in model.user_maintainable_tables]
+        # A. Main tables (BookingCode and SearchTerm and ...).
+        #   N.B. Full backup when booking code has been changed.
+        if self._session.user_tables_changed.get(Table.BookingCode, False) is True:
+            [self._session.set_user_table_changed(table_name) for table_name in model.user_maintainable_tables]
         DD.export_user_tables()
         self._result.add_message(f'Er is een backup gemaakt van handmatige wijzigingen.')
 
-        # When the user updates e.g. the booking main table, user_mutations.csv is updated already.
+        # When the user updates e.g. the BookingCode main table, user_mutations.csv is updated already.
         # So backup user_mutations.csv only when the user has updated a transaction.
         if not self._session.is_a_transaction_saved:
             return
 
-        # B. Transaction updates (Remarks, Booking)
+        # B. Transaction updates (Remarks, Booking code)
         self._session.is_a_transaction_saved = False
         if self._UM.export_transaction_user_updates():
             self._result.add_message(

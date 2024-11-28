@@ -19,12 +19,7 @@ class Singleton:
 
     class CounterAccountCache(object):
 
-        @property
-        def booking_codes(self):
-            return self._booking_codes
-
         def __init__(self):
-            self._booking_codes = {}
             self._ibans_by_id = {}
             self._bbans_by_id = {}
             self._ids_by_iban = {}
@@ -43,9 +38,6 @@ class Singleton:
                 iban = row[d[FD.Counter_account_number]]
                 bban = self.get_BBAN_from_IBAN(iban)
                 Id = row[0]
-                # Boeking
-                if bban not in self._booking_codes:
-                    self._booking_codes[bban] = row[d[FD.Booking_code]]
                 self._ibans_by_id[Id] = iban
                 self._bbans_by_id[Id] = bban
                 self._ids_by_iban[row[d[FD.Counter_account_number]]] = Id
@@ -65,10 +57,6 @@ class Singleton:
         def get_BBAN_from_IBAN(self, value):
             self.initialize()
             return get_BBAN_from_IBAN(value)
-
-        def get_booking_code(self, bban):
-            self.initialize()
-            return self.booking_codes.get(bban, EMPTY)
 
     # storage for the instance reference
     __instance = None

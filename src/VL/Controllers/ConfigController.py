@@ -9,7 +9,7 @@
 import os
 import shutil
 
-from src.BL.Managers.BookingManager import BookingManager
+from src.BL.Managers.BookingCodeManager import BookingCodeManager
 from src.BL.Summary.Templates.Const import ACCOUNT_NAME_LABEL
 from src.BL.Validator import Validator
 from src.DL.Config import OUTPUT_DIR, CF_INPUT_DIR, CF_OUTPUT_DIR, \
@@ -47,7 +47,7 @@ class ConfigController(BaseController):
         self._model = model
         self._validation_manager = Validator()  # Used in start_config
         self._UM = UserCsvFileManager()
-        self._booking_manager = BookingManager()
+        self._booking_manager = BookingCodeManager()
 
         self._prv_values = {
             CF_INPUT_DIR: CM.get_config_item(CF_INPUT_DIR),

@@ -3,7 +3,7 @@ import PySimpleGUI as sg
 from src.DL.Config import EXPAND, \
     STATUS_MESSAGE, CF_TOOL_TIP, \
     CF_VERBOSE, CF_ROWS_YEAR, CF_ROWS_MONTH, CF_ROWS_TRANSACTION, CF_AUTO_CLOSE_TIME_S, CF_BACKUP_RETENTION_MONTHS, \
-    FRAME_LAYOUT, CF_SHOW_ALL_POPUPS, CF_ROWS_BOOKING, CF_ROWS_SEARCH_TERM, CF_THEME, CF_FONT, CF_FONT_SIZE, \
+    FRAME_LAYOUT, CF_SHOW_ALL_POPUPS, CF_ROWS_BOOKING_CODE, CF_ROWS_SEARCH_TERM, CF_THEME, CF_FONT, CF_FONT_SIZE, \
     CF_FONT_TABLE, CF_FONT_TABLE_SIZE, FRAME_LAYOUT_OPTIONAL_COLUMNS, CF_COL_OVERBOOKING, \
     CF_COL_SALDO_MINUS_CORRECTION, CF_ROWS_COMBO_MAX, CF_COL_COSTS, \
     CF_COL_REVENUES, CF_IMAGE_SUBSAMPLE, CF_SHOW_BOOKING_CODE_AT_DESCRIPTION
@@ -34,7 +34,7 @@ class LayoutOptionsView(BaseView):
                    len(self._get_label(CF_ROWS_YEAR)),
                    len(self._get_label(CF_ROWS_MONTH)),
                    len(self._get_label(CF_ROWS_TRANSACTION)),
-                   len(self._get_label(CF_ROWS_BOOKING)),
+                   len(self._get_label(CF_ROWS_BOOKING_CODE)),
                    len(self._get_label(CF_ROWS_SEARCH_TERM)),
                    len(self._get_label(CF_AUTO_CLOSE_TIME_S)),
                    len(self._get_label(CF_BACKUP_RETENTION_MONTHS)),
@@ -57,7 +57,7 @@ class LayoutOptionsView(BaseView):
                 self.combo(CF_ROWS_YEAR, [x for x in range(1, 15, 1)], x=x_CX),
                 self.combo(CF_ROWS_MONTH, [x for x in range(1, 12, 1)], x=x_CX),
                 self.combo(CF_ROWS_TRANSACTION, [x for x in range(5, 50, 1)], x=x_CX),
-                self.combo(CF_ROWS_BOOKING, [x for x in range(5, 50, 1)], x=x_CX),
+                self.combo(CF_ROWS_BOOKING_CODE, [x for x in range(5, 50, 1)], x=x_CX),
                 self.combo(CF_ROWS_SEARCH_TERM, [x for x in range(5, 50, 1)], x=x_CX),
                 self.combo(CF_ROWS_COMBO_MAX, [x for x in range(10, 50, 1)], x=x_CX),
                 self.combo(CF_THEME, themes, x=x_CX),

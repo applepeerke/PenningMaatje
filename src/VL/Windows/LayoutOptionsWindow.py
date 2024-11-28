@@ -9,7 +9,7 @@
 import PySimpleGUI as sg
 
 from src.DL.Config import CF_ROWS_YEAR, \
-    CF_ROWS_MONTH, CF_ROWS_TRANSACTION, CF_TOOL_TIP, CF_ROWS_BOOKING, CF_ROWS_SEARCH_TERM, CF_THEME, CF_FONT, \
+    CF_ROWS_MONTH, CF_ROWS_TRANSACTION, CF_TOOL_TIP, CF_ROWS_BOOKING_CODE, CF_ROWS_SEARCH_TERM, CF_THEME, CF_FONT, \
     CF_FONT_SIZE, CF_COL_OVERBOOKING, CF_COL_SALDO_MINUS_CORRECTION, CF_ROWS_COMBO_MAX, CF_IMAGE_SUBSAMPLE, \
     CF_SHOW_BOOKING_CODE_AT_DESCRIPTION
 from src.GL.Const import EMPTY
@@ -42,7 +42,7 @@ class LayoutOptionsWindow(BaseWindow):
         self._set_value_before(CF_ROWS_YEAR, OPT)
         self._set_value_before(CF_ROWS_MONTH, OPT)
         self._set_value_before(CF_ROWS_TRANSACTION, OPT)
-        self._set_value_before(CF_ROWS_BOOKING, OPT)
+        self._set_value_before(CF_ROWS_BOOKING_CODE, OPT)
         self._set_value_before(CF_ROWS_SEARCH_TERM, OPT)
         self._set_value_before(CF_ROWS_COMBO_MAX, OPT)
         self._set_value_before(CF_COL_OVERBOOKING, RQD)

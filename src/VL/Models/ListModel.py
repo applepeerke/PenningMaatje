@@ -11,8 +11,8 @@ class ListModel(BaseModelTable):
     def pk(self):
         return self._pk
 
-    def __init__(self, table_name, title, pk=None):
-        super().__init__(table_name)
+    def __init__(self, table_name, title, pk=None, key_num_rows=None):
+        super().__init__(table_name, key_num_rows)
         self._pk = pk
         self._title = title
         self.set_data(DD.fetch_set(table_name, pk))

@@ -17,11 +17,12 @@ from src.DL.DBDriver.Enums import FetchMode
 from src.DL.IO.AccountIO import AccountIO
 from src.DL.IO.CounterAccountIO import CounterAccountIO
 from src.DL.IO.YearMonthIO import YearMonthIO
+from src.DL.Lexicon import TRANSACTIONS, AMOUNT_PLUS, \
+    AMOUNT_MINUS, BOOKING_CODES
 from src.DL.Model import FD, Model
 from src.DL.Objects.CounterAccount import CounterAccount
 from src.DL.Table import Table
 from src.DL.UserCsvFiles.Cache.BookingCodeCache import Singleton as BookingCodeCache
-from src.DL.UserCsvFiles.Cache.CounterAccountCache import Singleton as CounterAccountCache
 from src.DL.UserCsvFiles.Cache.SearchTermCache import Singleton as SearchTermCache
 from src.DL.UserCsvFiles.Cache.UserMutationsCache import Singleton as UserMutationsCache, get_te_key
 from src.DL.UserCsvFiles.UserCsvFileManager import UserCsvFileManager
@@ -35,9 +36,6 @@ from src.GL.GeneralException import GeneralException
 from src.GL.Result import Result
 from src.GL.Validate import isInt
 from src.VL.Data.Constants.Const import LEEG, NIET_LEEG, OTHER_COSTS, OTHER_REVENUES
-from src.DL.Lexicon import TRANSACTIONS, AMOUNT_PLUS, \
-    AMOUNT_MINUS, BOOKING_CODES
-
 
 error_prefix = f'{Color.RED}Fout:{Color.NC} '
 error_message = None
@@ -55,7 +53,6 @@ csvm = CsvManager()
 CM = ConfigManager()
 
 BCM = BookingCodeCache()
-ACM = CounterAccountCache()
 STM = SearchTermCache()
 UMC = UserMutationsCache()
 
@@ -392,7 +389,6 @@ class ImportManager(BaseManager):
 
             # Tegenrekening (FK)
             counter_account_number = row[TX_dict_1[FD.Counter_account_number]]
-            counter_account_bban = ACM.get_BBAN_from_IBAN(counter_account_number)
             counter_account_id = db.fetch_id(
                 Table.CounterAccount, where=[Att(FD.Counter_account_number, counter_account_number)])
             out_row[c_counter_account_id] = counter_account_id
@@ -428,10 +424,8 @@ class ImportManager(BaseManager):
                 protected_maingroup = OTHER_COSTS if sign else OTHER_REVENUES
                 booking_code = BCM.get_protected_booking_code(protected_maingroup)
             else:
-                # - Initialiseer eerst vanuit UserMutations, dan CounterAccount, dan SearchTerms, dan BookingCode
+                # - Initialiseer eerst vanuit UserMutations, dan SearchTerms, dan BookingCode
                 booking_code = UMC.get_booking_code(bban, str(date_target), counter_account_number, comments)
-                if not booking_code:
-                    booking_code = ACM.get_booking_code(counter_account_bban)
                 if not booking_code:
                     booking_code = STM.get_booking_code(row[TX_dict_1[FD.Name]], row[TX_dict_1[FD.Comments]])
                 if not booking_code:

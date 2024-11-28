@@ -17,9 +17,8 @@ from src.DL.Model import Model, FD
 from src.DL.Objects.Month import Month
 from src.DL.Table import Table
 from src.DL.UserCsvFiles.Cache.BookingCodeCache import Singleton as BookingCodeCache
-from src.DL.UserCsvFiles.Cache.CounterAccountCache import Singleton as AccountCache
 from src.DL.YearMonthTransactionsMax import YearMonthTransactionsMax
-from src.DL.Lexicon import OVERBOOKING, COSTS, REVENUES, OVERBOOKINGS
+from src.DL.Lexicon import COSTS, REVENUES, OVERBOOKINGS
 from src.GL.BusinessLayer.ConfigManager import ConfigManager
 from src.GL.BusinessLayer.SessionManager import Singleton as Session
 from src.GL.Enums import Color, MessageSeverity
@@ -35,7 +34,6 @@ error_prefix = f'{PGM} {Color.RED}Error{Color.NC}:'
 
 model = Model()
 BCM = BookingCodeCache()
-ACM = AccountCache()
 CM = ConfigManager()
 TE_dict = model.get_colno_per_att_name(Table.TransactionEnriched, zero_based=False)
 mo_dict = model.get_colno_per_att_name(Table.Month)

@@ -47,6 +47,7 @@ CM = ConfigManager()
 csvm = CsvManager()
 BCM = BookingCodeCache()
 
+c_bban = model.get_column_number(Table.TransactionEnriched, FD.Account_bban)
 c_booking_id = model.get_column_number(Table.TransactionEnriched, FD.Booking_id)
 c_booking_code = model.get_column_number(Table.TransactionEnriched, FD.Booking_code)
 c_remarks = model.get_column_number(Table.TransactionEnriched, FD.Remarks)
@@ -119,9 +120,9 @@ class UserCsvFileManager(object):
         # B. Deep check on booking related csv files.
         # If no valid file exists (in backup folder), copy it from "<app_dir>/resources/userdata".
 
-        #   1. First bookings, they occur in the other files.
+        #   1. First bookings, they occur in the other files. Always full check to populate the booking codes.
         self._booking_codes = set()
-        self.validate_csv_file(Table.BookingCode, full_check)
+        self.validate_csv_file(Table.BookingCode, full_check=True)
 
         #   2. Then the related csv files
         if self._result.OK:
@@ -130,7 +131,7 @@ class UserCsvFileManager(object):
 
         # C. CleanUp rows with non-existent booking codes in user csv file
         if self._result.OK:
-            [self._rename_and_clean_booking_code_in_user_csv_file(
+            [self.rename_and_clean_booking_code_in_user_csv_file(
                 Table.TransactionEnriched, self._user_mutations_path, c_booking_code, from_name=nec, to_name=EMPTY,
                 delete_empty=True)
                 for nec in self._get_non_existent_booking_codes_from_user_csv()]
@@ -295,7 +296,7 @@ class UserCsvFileManager(object):
         #   Get most recent restore folder
         restore_dir = normalize_dir(f'{Session().backup_dir}{self._backup_sub_dirs[0]}')
         for table_name in model.csv_tables:
-            self._rename_and_clean_booking_code_in_user_csv_file(
+            self.rename_and_clean_booking_code_in_user_csv_file(
                 table_name,
                 path=f'{restore_dir}{table_name}{EXT_CSV}',
                 col_no=model.get_column_number(table_name, FD.Booking_id),
@@ -303,22 +304,29 @@ class UserCsvFileManager(object):
                 to_name=to_name)
 
         # B. User_mutations.csv
-        result_ok = self._rename_and_clean_booking_code_in_user_csv_file(
+        result_ok = self.rename_and_clean_booking_code_in_user_csv_file(
             Table.TransactionEnriched, self._user_mutations_path, c_booking_code, from_name, to_name)
         return Result() if result_ok else Result(ResultCode.Canceled)
 
     def _get_non_existent_booking_codes_from_user_csv(self) -> set:
-        # booking_codes = self._booking_io.fetch_booking_codes()  # including empty
+        """ Use BookingCodes.csv to derive the bookingcodes. """
         return {
             row[c_booking_code] for row in csvm.get_rows(data_path=self._user_mutations_path)
             if row[c_booking_code] not in self._booking_codes
         }
 
-    def _rename_and_clean_booking_code_in_user_csv_file(
-            self, table_name, path, col_no, from_name, to_name, delete_empty=False) -> bool:
+    def rename_and_clean_booking_code_in_user_csv_file(
+            self, table_name, path=None, col_no=0, from_name=EMPTY, to_name=EMPTY, delete_empty=False) -> bool:
         """ Delete rows with empty booking and rename Booking code """
+        # TE
+        if table_name == Table.TransactionEnriched:
+            path = self._user_mutations_path
+            col_no = c_booking_code
+
+        # All files
         rows = csvm.get_rows(data_path=path, include_header_row=False)
         # Update
+        changed = False
         out_rows = []
         for row in rows:
             skip = False
@@ -329,12 +337,15 @@ class UserCsvFileManager(object):
                 if table_name == Table.TransactionEnriched and row[c_remarks]:
                     skip = False
             if skip:
+                changed = True
                 continue
             # Update
             if row[col_no] == from_name:
                 row[col_no] = to_name
+                changed = True
             out_rows.append(row)
-        self._write_rows(path, table_name, out_rows)
+        if changed:
+            self._write_rows(path, table_name, out_rows)
         return True
 
     """
@@ -359,6 +370,9 @@ class UserCsvFileManager(object):
         # B. then booking dependent and other ones.
         [self._import_rows(table_name, restore_paths)
          for table_name in model.csv_tables if table_name != Table.BookingCode]
+
+        # C Reset the changed flags (set during import)
+        [self._session.set_user_table_changed(table_name, value=False) for table_name in model.csv_tables]
 
         # Initialize caches
         CounterAccountCache().initialize(force=True)  # CounterAccounts
@@ -400,8 +414,7 @@ class UserCsvFileManager(object):
                             CounterAccount(
                                 counter_account_number=d[FD.Counter_account_number.title()],
                                 account_name=d[FD.Name.title()],
-                                first_comment=d[FD.FirstComment.title()],
-                                booking_code=d[FD.Booking_code.title()]
+                                first_comment=d[FD.FirstComment.title()]
                             )
                         )
                     elif table_name == Table.SearchTerm:
@@ -496,7 +509,7 @@ class UserCsvFileManager(object):
                 break
 
         # b. Try ../<app_dir>/resources/userdata folder.
-        if path and not os.path.exists(path):
+        if not path or not os.path.exists(path):
             src = f'{self._session.userdata_dir}{file_name}'
             if src and is_valid_file(src):
                 path = src

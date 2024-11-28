@@ -47,9 +47,9 @@ class BaseModelTable(BaseModel):
     def col_widths(self):
         return self._col_widths
 
-    def __init__(self, table_name):
+    def __init__(self, table_name, key_num_rows=None):
         self._table_name = table_name
-        self._num_rows = 50
+        self._num_rows = int(CM.get_config_item(key_num_rows)) if key_num_rows else 50
         self._max_col_width = 60
         self._col_widths_def = {}
         self._visible_column_map = []

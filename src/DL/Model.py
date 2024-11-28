@@ -179,6 +179,7 @@ class Model(object):
         return [t for t in self._user_maintainable_tables
                 if t not in (Table.Account,
                              Table.BookingCode,
+                             Table.CounterAccount,
                              Table.OpeningBalance)]
 
     def __init__(self):
@@ -321,8 +322,7 @@ class Model(object):
         self._CounterAccount = OrderedDict({
             1: Att(FD.Counter_account_number),
             2: Att(FD.Name),
-            3: Att(FD.FirstComment),
-            4: Att(FD.Booking_code)
+            3: Att(FD.FirstComment)
         })
         self._Log = OrderedDict({
             1: Att(FD.Log_entry),

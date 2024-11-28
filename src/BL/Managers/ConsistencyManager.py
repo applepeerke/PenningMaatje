@@ -8,25 +8,23 @@
 # ---------------------------------------------------------------------------------------------------------------------
 from src.BL.Functions import get_BBAN_from_IBAN
 from src.BL.Managers.BaseManager import BaseManager
-from src.DL.Config import CF_VERBOSE, CF_IMPORT_PATH_COUNTER_ACCOUNTS, CF_IBAN, COUNTER_ACCOUNTS_CSV, \
-    SEARCH_TERMS_CSV
+from src.DL.Config import CF_VERBOSE, CF_IMPORT_PATH_COUNTER_ACCOUNTS, CF_IBAN, SEARCH_TERMS_CSV
 from src.DL.DBDriver.Att import Att
 from src.DL.DBDriver.AttType import AttType
 from src.DL.IO.YearMonthIO import YearMonthIO
+from src.DL.Lexicon import TRANSACTIONS, COUNTER_ACCOUNTS, BOOKING_CODE, SEARCH_TERMS
 from src.DL.Model import FD, Model
 from src.DL.Table import Table
 from src.DL.UserCsvFiles.Cache.BookingCodeCache import Singleton as BookingCodeCache
-from src.DL.UserCsvFiles.Cache.CounterAccountCache import Singleton as CounterAccountCache
 from src.DL.UserCsvFiles.Cache.SearchTermCache import Singleton as SearchTermCache
 from src.DL.UserCsvFiles.Cache.UserMutationsCache import Singleton as UserMutationsCache
-from src.DL.Lexicon import TRANSACTIONS, COUNTER_ACCOUNTS, BOOKING_CODE, SEARCH_TERMS
 from src.DL.UserCsvFiles.UserCsvFileManager import UserCsvFileManager
-from src.VL.Functions import progress_meter
 from src.GL.BusinessLayer.ConfigManager import ConfigManager
 from src.GL.BusinessLayer.CsvManager import CsvManager
 from src.GL.Const import EMPTY, USER_MUTATIONS_FILE_NAME, EXT_CSV
 from src.GL.Enums import Color, MessageSeverity
 from src.GL.Result import Result
+from src.VL.Functions import progress_meter
 
 # Working fields
 PGM = 'Consistentie'
@@ -38,7 +36,6 @@ model = Model()
 CM = ConfigManager()
 CsvM = CsvManager()
 BCM = BookingCodeCache()
-ACM = CounterAccountCache()
 STM = SearchTermCache()
 UMC = UserMutationsCache()
 TE_dict = model.get_colno_per_att_name(Table.TransactionEnriched, zero_based=False)
@@ -163,16 +160,10 @@ class ConsistencyManager(BaseManager):
 
     def _validate_caches(self):
         """ Validate booking-related csv files - (before import) """
-        ACM.initialize(force=self._initialize_singletons)
         BCM.initialize(force=self._initialize_singletons)
         STM.initialize(force=self._initialize_singletons)
         UMC.initialize(force=self._initialize_singletons)
 
-        # Gevulde Tegenrekening-boeking-code moet bestaan in BoekingsCode
-        [self._validate_booking(k, booking_code, COUNTER_ACCOUNTS_CSV, FD.Counter_account_number)
-         for k, booking_code in ACM.booking_codes.items()]
-
-        self._completion_message(f'Er zijn {len(ACM.booking_codes.items())} {COUNTER_ACCOUNTS} gecontroleerd.')
         # Gevulde Zoekterm-boeking-code moet bestaan in BoekingsCode
         [self._validate_booking(k, booking_code, SEARCH_TERMS_CSV, FD.SearchTerm)
          for k, booking_code in STM.search_terms.items()]
