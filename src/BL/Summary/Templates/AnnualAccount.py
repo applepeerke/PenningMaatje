@@ -62,8 +62,11 @@ class AnnualAccount(TemplateBase):
         # Output naar CSV.
         self._construct(sorted_bookings)
 
-        return Result(text=f'De {TEMPLATE_ANNUAL_ACCOUNT} van {self._year} is geëxporteerd naar "{self._out_path}"') \
-            if self._result.OK else self._result
+        # Wrap up
+        if self._result.OK:
+            self._export_count = 1
+            return Result(text=f'De {TEMPLATE_ANNUAL_ACCOUNT} van {self._year} is geëxporteerd naar "{self._out_path}"')
+        return self._result
 
     def _substitute_header_var(self, cell) -> str:
         return super()._substitute_header_var(cell)

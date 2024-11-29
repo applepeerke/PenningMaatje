@@ -55,9 +55,13 @@ class ResultsPerBookingCode(TemplateBase):
         # Output naar CSV.
         self._construct(transactions)
 
-        return Result(
-            text=f'De {TEMPLATE_REALISATION_PER_BOOKING_CODE} van {self._year} is geëxporteerd '
-                 f'naar "{self._out_path}"') if self._result.OK else self._result
+        # Wrap up
+        if self._result.OK:
+            self._export_count = 1
+            return Result(
+                text=f'De {TEMPLATE_REALISATION_PER_BOOKING_CODE} van {self._year} is geëxporteerd naar '
+                     f'"{self._out_path}"')
+        return self._result
 
     """
     Construction

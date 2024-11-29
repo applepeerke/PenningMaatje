@@ -9,13 +9,16 @@
 import os
 
 from src.BL.Managers.BaseManager import BaseManager
-from src.DL.Config import CF_RESTORE_BOOKING_DATA, get_label, TABLE_PROPERTIES, FILE_NAME, CF_RADIO_ALL
+from src.DL.Config import CF_RESTORE_BOOKING_DATA, get_label, TABLE_PROPERTIES, FILE_NAME, CF_RADIO_ALL, \
+    CF_POPUP_INPUT_VALUE
 from src.DL.DBDriver.Att import Att
 from src.DL.DBDriver.SQLOperator import SQLOperator
+from src.DL.IO.SearchTermIO import SearchTermIO
 from src.DL.IO.TransactionIO import TransactionIO
 from src.DL.Lexicon import SEARCH_TERMS, TRANSACTIONS, BOOKING_CODES, \
-    BOOKING_CODE, COUNTER_ACCOUNT
+    BOOKING_CODE, COUNTER_ACCOUNT, SEARCH_TERM
 from src.DL.Model import FD, Model
+from src.DL.Objects.SearchTerm import SearchTerm
 from src.DL.Table import Table
 from src.DL.UserCsvFiles.Cache.BookingCodeCache import Singleton as BookingCodeCache
 from src.DL.UserCsvFiles.Cache.CounterAccountCache import Singleton as CounterAccountCache
@@ -62,6 +65,7 @@ class BookingCodeManager(BaseManager):
         super().__init__()
         self._dialog = PopUp()
         self._transaction_io = TransactionIO()
+        self._search_term_io = SearchTermIO()
         self._undo_stack = []
         self._is_consistent = False
         self._non_existent_booking_codes = {}
@@ -69,73 +73,123 @@ class BookingCodeManager(BaseManager):
         self._reason = EMPTY
         self._restore_paths = {}
 
-    def link_booking(self, counter_account_number, booking_code) -> Result:
-        """ Link counter-account-number to booking code """
+        self._booking_code = None
+        self._booking_old_ids = []
+        self._booking_old_ids_unique = []
+        self._TE_id = 0
+        self._entity_key = EMPTY
+        self._entity_value = None
 
-        # Validatie
+    def link_name_to_new_search_term(self, search_term, booking_code) -> Result:
+        """ Link transactions without Counter account to a search term """
+        self._entity_key = SEARCH_TERM
+        self._entity_value = search_term
+        self._booking_code = booking_code
+
+        # Validation
+        if not search_term:
+            return Result(ResultCode.Warning, f'{SEARCH_TERM} is verplicht.')
+        if search_term in STM.search_terms:
+            return Result(ResultCode.Warning, f'{SEARCH_TERM} {search_term} bestaat al.')
+
+        # List transactions while specifying a proper search term.
+        self._result = Result(action_code=ActionCode.Retry)
+        while self._result.RT:
+            self._result = self._dialog_handling(where=[Att(FD.Name, search_term, relation=SQLOperator().LIKE)])
+
+        # Insert searchterm
+        if self._result.GO:
+            # Insert the new search term.
+            if self._search_term_io.insert(SearchTerm(
+                    search_term=CM.get_config_item(CF_POPUP_INPUT_VALUE),
+                    booking_code=booking_code)):
+                # Success: Refresh search term cache.
+                STM.initialize(force=True)
+
+        # No Undo here
+        return self._result
+
+    def link_booking_to_counter_account(self, counter_account_number, booking_code) -> Result:
+        """ Link counter-account-number to booking code """
+        self._entity_key = COUNTER_ACCOUNT
+        self._entity_value = counter_account_number
+        self._booking_code = booking_code
+
+        # Validation
         warning = ResultCode.Warning
         if not counter_account_number:
-            return Result(warning, f'{COUNTER_ACCOUNT} {counter_account_number} is verplicht.')
-
-        booking_new_id = BCM.get_id_from_code(booking_code)
-        if booking_new_id == 0 and booking_code:
-            return Result(warning, f'{BOOKING_CODE} "{booking_code}" is niet gevonden.')
+            return Result(warning, f'{COUNTER_ACCOUNT} is verplicht.')
 
         counter_account_id = ACM.get_id_from_iban(counter_account_number)
         if not counter_account_id:
             return Result(warning, f'{COUNTER_ACCOUNT} {counter_account_number} is niet gevonden.')
 
         where = [Att(FD.Counter_account_id, counter_account_id)]
-        booking_old_ids = self._db.select(Table.TransactionEnriched, name=FD.Booking_id, where=where)
-        booking_old_ids_unique = {Id for Id in booking_old_ids}
+        result = self._dialog_handling(where)
+        if not result.OK:
+            return result
 
-        transactions_count = len(booking_old_ids)
-        bookings_count_incl_empty = len(booking_old_ids_unique)
+        # Add Undo
+        booking_id = list(self._booking_old_ids)[0] if self._booking_old_ids else 0
+        self._add_undo(counter_account_id, self._TE_id, booking_id)
+        return result
 
-        # A. Booking is already fully linked to the same
-        booking_old_id = list(booking_old_ids_unique)[0]
-        if bookings_count_incl_empty == 1 and booking_old_id == booking_new_id:
-            return Result(warning,
-                          f'{BOOKING_CODE} "{booking_code}" is al gekoppeld aan {COUNTER_ACCOUNT} '
-                          f'"{counter_account_number}".')
+    def _dialog_handling(self, where) -> Result:
+        # A. Validation
+        # a. Target Booking code exists?
+        booking_new_id = BCM.get_id_from_code(self._booking_code)
+        if booking_new_id == 0 and self._booking_code:
+            return Result(ResultCode.Warning, f'{BOOKING_CODE} "{self._booking_code}" is niet gevonden.')
 
-        # B. Multiple transactions for the specified counter_account: Ask confirmation.
+        # b. Booking code already fully linked to the entity? Nothing to do.
+        #   Get the unique booking ids that are already linked to the entity (counter account or search term)
+        self._booking_old_ids = self._db.select(Table.TransactionEnriched, name=FD.Booking_id, where=where)
+        self._booking_old_ids_unique = {Id for Id in self._booking_old_ids}
+        if len(self._booking_old_ids_unique) == 1 and list(self._booking_old_ids_unique)[0] == booking_new_id:
+            return Result(
+                ResultCode.Warning,
+                f'{BOOKING_CODE} "{self._booking_code}" is al gekoppeld '
+                f'aan {self._entity_key} "{self._entity_value}".')
+
+        # B. Multiple booking ids exist for the specified entity: Ask confirmation.
         update_all = True
         # if existing_bookings_count > 1:
-        if transactions_count > 1:
-            booking_codes = BCM.get_codes_from_ids(booking_old_ids_unique)
-            if bookings_count_incl_empty > 1:
-                booking_code_bullets = "\n  o  ".join(booking_codes)
-                booking_text = f' met {BOOKING_CODES}:\n  o  {booking_code_bullets}'
-            else:
-                if not booking_codes or booking_codes[0] == LEEG:
-                    booking_text = f'zonder {BOOKING_CODE}'
-                else:
-                    booking_text = f' met {BOOKING_CODE} {booking_codes[0]}'
-            dialog = DialogWithTransactions(where=where, radio=True)
+        if len(self._booking_old_ids) > 1:
+            booking_description = BCM.get_value_from_booking_code(self._booking_code, FD.Booking_description)
+            dialog_text = (
+                f'Er zijn {len(self._booking_old_ids)} {TRANSACTIONS} gevonden '
+                f'bij {self._entity_key} "{self._entity_value}"{self._get_booking_text()}.\n\n'
+                f'Deze kunnen allemaal gewijzigd worden in "{booking_description}".\nDoorgaan?')
+
+            input_label = SEARCH_TERM if self._entity_key == SEARCH_TERM else EMPTY
+            dialog = DialogWithTransactions(where=where, has_radio=True, input_label=input_label)
             if not dialog.confirm(
-                    f'{PGM}.set_counter_account_booking',
-                    f'Er zijn {transactions_count} {TRANSACTIONS} gevonden '
-                    f'bij tegenrekening {counter_account_number}{booking_text}.\n\n'
-                    f'Deze kunnen allemaal gewijzigd worden in "{booking_code}".\nDoorgaan?', hide_option=False):
+                    f'{PGM}.set_counter_account_booking_code', dialog_text, hide_option=False):
                 return Result(action_code=ActionCode.Cancel)
             update_all = CM.get_config_item(CF_RADIO_ALL, True)
 
-        # D. Go!
+        # C. Go!
         if update_all:
-            # D1. Update booking in all TransactionEnriched
-            TE_id = 0
-            result = self._update_all_transactions(counter_account_id, booking_new_id)
+            # D1. Update booking in all TransactionEnriched where counter account or search term is matched.
+            self._TE_id = 0
+            result = self._update_all_transactions(where, booking_new_id)
         else:
             # D2. Update booking-id,  in the current transaction only
-            TE_id = CM.get_config_item(f'CF_ID_{Pane.TE}', 0)
-            result = self._update_one_transaction(TE_id, booking_new_id)
-
-        # E. Add Undo
-        if result.OK:
-            booking_id = list(booking_old_ids)[0] if booking_old_ids else 0
-            self._add_undo(counter_account_id, TE_id, booking_id)
+            self._TE_id = CM.get_config_item(f'CF_ID_{Pane.TE}', 0)
+            result = self._update_one_transaction(self._TE_id, booking_new_id)
         return result
+
+    def _get_booking_text(self):
+        booking_codes = BCM.get_codes_from_ids(self._booking_old_ids_unique)
+        if len(self._booking_old_ids_unique) > 1:
+            booking_code_bullets = "\n  o  ".join(booking_codes)
+            booking_text = f' met {BOOKING_CODES}:\n  o  {booking_code_bullets}'
+        else:
+            if not booking_codes or booking_codes[0] == LEEG:
+                booking_text = f' zonder {BOOKING_CODE}'
+            else:
+                booking_text = f' met {BOOKING_CODE} {booking_codes[0]}'
+        return booking_text
 
     def _update_one_transaction(self, transaction_id, booking_id) -> Result:
         """
@@ -149,37 +203,42 @@ class BookingCodeManager(BaseManager):
             text=f'{BOOKING_CODE} "{BCM.get_value_from_id(booking_id, FD.Booking_code)}" '
                  f'is toegekend aan de transactie.')
 
-    def _update_all_transactions(self, counter_account_id, booking_id) -> Result:
+    def _update_all_transactions(self, where, booking_id) -> Result:
         """
         Update booking id in MutationsEnriched for all transactions.
         """
         # Transactions_enriched: update booking_id (use MUTATION_PGM for user file backup)
         count = self._transaction_io.update_booking(
             values=[Att(FD.Booking_id, booking_id)],
-            where=[Att(FD.Counter_account_id, counter_account_id)])
+            where=where)
 
         # - Output
         booking_code = BCM.get_value_from_id(booking_id, FD.Booking_code)
         result = Result(
-            text=f'{BOOKING_CODE} "{booking_code}" is toegekend aan {count} transacties van rekening '
-                 f'{ACM.get_iban_from_id(counter_account_id)}.')
+            text=f'{BOOKING_CODE} "{booking_code}" is toegekend aan {count} {TRANSACTIONS} '
+                 f'van {self._entity_key} {self._entity_value}.')
         return result
 
     """
-    Undo
+    Undo - Counter account 
     """
 
-    def undo(self) -> Result:
+    def undo_counter_account(self) -> Result:
         """ Undo update (only last one) """
         if not self.has_undo:
             return Result(text='There is nothing to undo.')
 
         undo_dict = self._undo_stack.pop()
         if undo_dict[FD.ID] == 0:
+            Id = undo_dict[FD.Counter_account_id]
+            self._entity_key = COUNTER_ACCOUNT
+            self._entity_value = ACM.get_iban_from_id(Id)
+            # All transactions
             result = self._update_all_transactions(
-                counter_account_id=undo_dict[FD.Counter_account_id],
+                where=[Att(FD.Counter_account_id, Id)],
                 booking_id=undo_dict[FD.Booking_id])
         else:
+            # 1 transaction
             result = self._update_one_transaction(
                 transaction_id=undo_dict[FD.ID],
                 booking_id=undo_dict[FD.Booking_id])
@@ -215,14 +274,14 @@ class BookingCodeManager(BaseManager):
 
         # Not consistent
         PopUp().display(
-                title=f'Backup maken van {BOOKING_CODES}',
-                text=f'Backup van je {BOOKING_CODES} is niet mogelijk: de database is niet consistent.'
-                     f'\n\n{BOOKING_CODES} in onderstaande tabel(len) refereren naar '
-                     f'niet bestaande {BOOKING_CODES} (in tabel {Table.BookingCode}):{self._reason}.'
-                     f'\n\nRemedie:\n  1. Voeg de ontbrekende {BOOKING_CODES} toe, of'
-                     f'\n  2. Verwijder uit de "{BACKUP}" folder backups van deze bestanden '
-                     f'(of verwijder/wijzig alleen de verkeerde referenties). '
-                     f'\n     importeer vervolgens de {TRANSACTIONS} opnieuw.')
+            title=f'Backup maken van {BOOKING_CODES}',
+            text=f'Backup van je {BOOKING_CODES} is niet mogelijk: de database is niet consistent.'
+                 f'\n\n{BOOKING_CODES} in onderstaande tabel(len) refereren naar '
+                 f'niet bestaande {BOOKING_CODES} (in tabel {Table.BookingCode}):{self._reason}.'
+                 f'\n\nRemedie:\n  1. Voeg de ontbrekende {BOOKING_CODES} toe, of'
+                 f'\n  2. Verwijder uit de "{BACKUP}" folder backups van deze bestanden '
+                 f'(of verwijder/wijzig alleen de verkeerde referenties). '
+                 f'\n     importeer vervolgens de {TRANSACTIONS} opnieuw.')
         return Result(ResultCode.Canceled)
 
     def _get_non_existing_database_booking_codes(self):

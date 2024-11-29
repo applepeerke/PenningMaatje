@@ -6,7 +6,7 @@ from src.BL.Managers.ConsistencyManager import ConsistencyManager
 from src.BL.Managers.ImportManager import ImportManager
 from src.BL.Validator import Validator, slash
 from src.DL.Config import CF_IBAN, TAB_LOG, CMD_IMPORT_TE, CMD_WORK_WITH_BOOKING_CODES, \
-    CMD_WORK_WITH_SEARCH_TERMS, CF_COUNTER_ACCOUNT_BOOKING_DESCRIPTION
+    CMD_WORK_WITH_SEARCH_TERMS, CF_COUNTER_ACCOUNT_BOOKING_DESCRIPTION, CF_POPUP_INPUT_VALUE
 from src.DL.Config import CF_OUTPUT_DIR, CF_VERBOSE, \
     CF_INPUT_DIR, CMD_HELP_WITH_BOOKING, get_label, CMD_HELP_WITH_OUTPUT_DIR, INPUT_DIR, CMD_FACTORY_RESET, \
     CF_REMARKS, get_text_file
@@ -14,8 +14,8 @@ from src.DL.IO.CounterAccountIO import CounterAccountIO
 from src.DL.IO.TransactionIO import TransactionIO
 from src.DL.IO.TransactionsIO import TransactionsIO
 from src.DL.Lexicon import (
-    OUTPUT_DIR, TRANSACTIONS, CMD_SEARCH_FOR_EMPTY_BOOKING_CODE, COUNTER_ACCOUNTS, BOOKING_CODES, to_text_key,
-    CMD_WORK_WITH_OPENING_BALANCES, SEARCH_TERMS, OPENING_BALANCES)
+    OUTPUT_DIR, TRANSACTIONS, CMD_SEARCH_FOR_EMPTY_BOOKING_CODE, BOOKING_CODES, to_text_key,
+    CMD_WORK_WITH_OPENING_BALANCES, SEARCH_TERMS, OPENING_BALANCES, BOOKING_CODE)
 from src.DL.Model import Model
 from src.DL.Table import Table
 from src.DL.UserCsvFiles.Cache.BookingCodeCache import Singleton as BookingCodeCache
@@ -40,6 +40,7 @@ from src.VL.Models.BaseModelTable import BaseModelTable
 from src.VL.Views.PopUps.Info import Info
 from src.VL.Views.PopUps.Input import Input
 from src.VL.Views.PopUps.PopUp import PopUp
+from src.VL.Views.PopUps.PopuUpRadio import PopUpRadio
 from src.VL.Windows.ConfigWindow import ConfigWindow
 from src.VL.Windows.General.Boxes import confirm_factory_reset, info_box
 from src.VL.Windows.General.MessageBox import message_box
@@ -259,7 +260,8 @@ class MainController(BaseController):
         # - Search
         elif self._event_key == CMD_SEARCH:
             self._diag_message(f'{diag_prefix}Search button pressed')
-            CM.set_search_for_empty_booking_codes_with_counter_account(on=False)  # Deactivate search empty_booking mode.
+            CM.set_search_for_empty_booking_codes_with_counter_account(
+                on=False)  # Deactivate search empty_booking mode.
             self.search()
 
         # - Summary
@@ -270,9 +272,9 @@ class MainController(BaseController):
         # - Undo
         elif self._event_key == CMD_UNDO:
             self._diag_message(f'{diag_prefix}Undo button pressed')
-            self._result = self._booking_manager.undo()
+            self._result = self._booking_manager.undo_counter_account()
             if self._result.OK:
-                self._search_for_empty_booking_codes()
+                self._search_for_empty_booking_codes(ask_mode=False)
 
         # - Search for empty booking
         elif self._event_key == CMD_SEARCH_FOR_EMPTY_BOOKING_CODE:
@@ -302,10 +304,14 @@ class MainController(BaseController):
         # Transaction pane
         # - Booking
         elif self._event_key == get_name_from_text(CF_COUNTER_ACCOUNT_BOOKING_DESCRIPTION):
-            self._diag_message(f'{diag_prefix}Counter account number selected')
-            self._set_counter_account_booking_code(
-                self._main_model.models[Pane.TX].counter_account,
-                BCM.get_code_from_combo_desc(CM.get_config_item(CF_COUNTER_ACCOUNT_BOOKING_DESCRIPTION)))
+            self._diag_message(f'{diag_prefix}Counter account booking description selected')
+            iban = self._main_model.models[Pane.TX].counter_account
+            name = self._main_model.models[Pane.TX].name
+            booking_code = BCM.get_code_from_combo_desc(CM.get_config_item(CF_COUNTER_ACCOUNT_BOOKING_DESCRIPTION))
+            if iban:
+                self._link_transactions_to_booking_code_via_iban(iban, booking_code)
+            else:
+                self._link_transactions_to_booking_code_via_search_term(name, booking_code)
             if self._result.OK:
                 self._result = self._main_model.refresh_dashboard(
                     Pane.TE, CM.get_config_item(f'CF_ROW_NO_{Pane.TE}'), search_mode=self._search_mode)
@@ -348,8 +354,9 @@ class MainController(BaseController):
     def _maintain_booking_code_related(self, prefix, table_desc, window, refresh=True):
         self._diag_message(f'{prefix}Work with {table_desc} button pressed')
         self._maintain_list(window)
-        # Changes made in BookingCodes, then back up, re-import and refresh caches.
+        # Changes made in BookingCode related files, then back up, re-import and refresh caches.
         if refresh and any(changed for changed in self._session.user_tables_changed.values()):
+            self._save_and_backup()
             self.import_transactions()
 
     def _start_config(self, unit_test):
@@ -496,15 +503,29 @@ class MainController(BaseController):
             return False
         return True
 
-    def _search_for_empty_booking_codes(self):
+    def _search_for_empty_booking_codes(self, ask_mode=True):
         """ search for empty booking codes """
+
+        # Select "All" empty or "Only linked to counter account".
+        if ask_mode:
+            popup = PopUpRadio()
+            if not popup.confirm(f'{PGM}.set_empty_booking_code_scope', 'Kies een bereik', hide_option=False):
+                return
+
+        # Set the mode
         self._search_mode = True
         CM.set_search_for_empty_booking_codes_with_counter_account()
+
+        # Get the transactions
         self._result = self._transactions_io.search(dialog_mode=False)
+
+        # Gefeliciteerd!
         if not self._transactions_io.rows:
-            message_box(f'Gefeliciteerd!\nAlle {TRANSACTIONS} met {COUNTER_ACCOUNTS} zijn al gecategoriseerd.',
-                        key='all_booking_codes_set')
+            message_box(
+                f'Gefeliciteerd!\nAlle {TRANSACTIONS} binnen het gekozen bereik hebben een {BOOKING_CODE}.',
+                key='all_booking_codes_set')
             return
+
         # Update Transactions pane: set header, formatted rows
         rows = [Model().get_report_colhdg_names(Table.TransactionEnriched)]
         rows.extend(self._transactions_io.rows)
@@ -528,11 +549,22 @@ class MainController(BaseController):
         self._is_a_transaction_saved_in_this_iteration = True
         self._result = Result(ResultCode.Ok, message or 'Gegevens zijn gewijzigd.')
 
-    def _set_counter_account_booking_code(self, iban, booking_code):
+    def _link_transactions_to_booking_code_via_iban(self, iban, booking_code):
         """
-        Update the booking code of a counter_account via the transaction pane
+        Update booking code of a counter_account - Account number (via the transaction pane)
         """
-        self._result = self._booking_manager.link_booking(iban, booking_code)
+        self._result = self._booking_manager.link_booking_to_counter_account(iban, booking_code)
+        if not self._result.OK:
+            return
+        self._flag_transaction_saved()
+
+    def _link_transactions_to_booking_code_via_search_term(self, search_term, booking_code):
+        """
+        Update booking code of a counter_account by adding a search term (via the transaction pane)
+        """
+        # Add search term
+        CM.set_config_item(CF_POPUP_INPUT_VALUE, search_term)
+        self._result = self._booking_manager.link_name_to_new_search_term(search_term, booking_code)
         if not self._result.OK:
             return
         self._flag_transaction_saved()

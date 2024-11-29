@@ -100,8 +100,11 @@ CF_ID_ME = f'CF_ID_{Pane.TE}'
 CF_HIDDEN_POPUPS = 'CF_HIDDEN_POPUPS'
 CF_WINDOW_LOCATIONS = 'CF_WINDOW_LOCATIONS'
 
+CF_POPUP_INPUT_VALUE = 'CF_POPUP_INPUT_VALUE'
 CF_RADIO_ALL = 'CF_RADIO_ALL'
 CF_RADIO_ONLY_THIS_ONE = 'CF_RADIO_ONLY_THIS_ONE'
+CF_RADIO_MISSING_BOOKING_CODES_ALL = 'CF_RADIO_MISSING_BOOKING_CODES_ALL'
+CF_RADIO_MISSING_BOOKING_CODES_WITH_COUNTER_ACCOUNT = 'CF_RADIO_MISSING_BOOKING_CODES_WITH_COUNTER_ACCOUNT'
 
 CF_BOOKING_TYPE = 'CF_BOOKING_TYPE'
 CF_BOOKING_MAINGROUP = 'CF_BOOKING_MAINGROUP'
@@ -330,6 +333,12 @@ configDef = {
     CF_RADIO_ONLY_THIS_ONE: ConfigItem(
         f'Alleen de gekozen {TRANSACTION} wijzigen', False,
         _border(f'Als je deze kiest wordt alleen deze {TRANSACTION} gewijzigd'), isBool),
+    CF_RADIO_MISSING_BOOKING_CODES_ALL: ConfigItem(
+        f'Alle ontbrekende {BOOKING_CODES}', False,
+        _border(f'Als je deze kiest worden alle bijbehorende {TRANSACTIONS} gewijzigd'), isBool),
+    CF_RADIO_MISSING_BOOKING_CODES_WITH_COUNTER_ACCOUNT: ConfigItem(
+        f'Alleen {BOOKING_CODES} met een {COUNTER_ACCOUNT}', True,
+        _border(f'Als je deze kiest wordt alleen deze {TRANSACTION} gewijzigd'), isBool),
     # Hidden
     CF_IMPORT_PATH_ACCOUNTS: ConfigItem(f'Pad naar {ACCOUNTS_CSV}'),
     CF_IMPORT_PATH_ANNUAL_ACCOUNT: ConfigItem(f'Pad naar {ANNUAL_ACCOUNT_CSV}'),
@@ -345,6 +354,7 @@ configDef = {
     CF_ID_ME: ConfigItem(),
     CF_HIDDEN_POPUPS: ConfigItem(),
     CF_WINDOW_LOCATIONS: ConfigItem(),
+    CF_POPUP_INPUT_VALUE: ConfigItem(),
 
     # Summary
     CF_COMBO_SUMMARY: ConfigItem(f'Kies het soort {SUMMARY}'),

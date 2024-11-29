@@ -176,13 +176,20 @@ class ConfigManager:
             self._config_dict[key] = value
 
         def set_radio_button(self, key, value):
-            # Used in Dialog
+            # Used in Dialog with transactions
             if key == CF_RADIO_ALL:
                 self.set_config_item(key, value)
                 self.set_config_item(CF_RADIO_ONLY_THIS_ONE, not value)
             elif key == CF_RADIO_ONLY_THIS_ONE:
                 self.set_config_item(key, value)
                 self.set_config_item(CF_RADIO_ALL, not value)
+            # Missing booking codes
+            elif key == CF_RADIO_MISSING_BOOKING_CODES_ALL:
+                self.set_config_item(key, value)
+                self.set_config_item(CF_RADIO_MISSING_BOOKING_CODES_WITH_COUNTER_ACCOUNT, not value)
+            elif key == CF_RADIO_MISSING_BOOKING_CODES_WITH_COUNTER_ACCOUNT:
+                self.set_config_item(key, value)
+                self.set_config_item(CF_RADIO_MISSING_BOOKING_CODES_ALL, not value)
             else:
                 pass
 
@@ -220,13 +227,15 @@ class ConfigManager:
         def set_search_for_empty_booking_codes_with_counter_account(self, on=True):
             """
             To search for empty booking codes having a counter account, the only criteria must be that
-            Booking code is empty and Counter account is not.
+            o  "With-counter-account" mode: Booking code is empty and Counter account is not.
+            o  "All" mode: Booking code is empty.
             """
             # ON
             if on:
                 self.initialize_search_criteria()
                 self.set_config_item(CF_SEARCH_BOOKING_CODE, LEEG)
-                self.set_config_item(CF_SEARCH_COUNTER_ACCOUNT, NIET_LEEG)
+                if self.get_config_item(CF_RADIO_MISSING_BOOKING_CODES_WITH_COUNTER_ACCOUNT):
+                    self.set_config_item(CF_SEARCH_COUNTER_ACCOUNT, NIET_LEEG)
             # OFF
             elif self.get_config_item(CF_SEARCH_BOOKING_CODE) == LEEG:
                 self.set_config_item(CF_SEARCH_BOOKING_CODE, EMPTY)
