@@ -7,6 +7,7 @@ from src.DL.Config import CF_SEARCH_AMOUNT, CF_SEARCH_AMOUNT_TO, \
     CF_COMMA_REPRESENTATION_DB, CF_COMMA_REPRESENTATION_DISPLAY, CF_SEARCH_YEAR, CF_SEARCH_MONTH, \
     CF_SEARCH_TRANSACTION_CODE, CF_SEARCH_TEXT, CF_SEARCH_COUNTER_ACCOUNT, CF_SEARCH_REMARKS, CF_SEARCH_BOOKING_CODE
 from src.DL.DBDriver.Att import Att
+from src.DL.DBDriver.AttType import AttType
 from src.DL.DBDriver.SQLOperator import SQLOperator
 from src.DL.IO.BaseIO import BaseIO
 from src.DL.Model import FD, Model
@@ -65,6 +66,10 @@ class TransactionsIO(BaseIO, ABC):
     """
     Search
     """
+
+    def is_done(self) -> bool:
+        """ Do all rows already have a booking code? """
+        return self._db.count(TABLE, where=[Att(FD.Booking_id, 0, type=AttType.Int)]) == 0
 
     def search(self, dialog_mode=True, title=EMPTY) -> Result:
         self._dialog_mode = False if self._session.CLI_mode else dialog_mode

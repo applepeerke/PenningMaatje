@@ -144,12 +144,17 @@ class Att(object):
 
     def set_relation(self, relation=None):
         # Set relation LIKE
-        if isinstance(self._value, str) and self._value and len(self._value) > 1 \
+        if isinstance(self._value, str) and self._value and len(self._value) > 0 \
                 and (self._value.startswith('%') or self._value.endswith('%')):
             self._relation = oper.LIKE
             return
         elif relation:
             self._relation = relation
+
+        # Add % if LIKE and % not present
+        if self._relation == oper.LIKE and isinstance(self._value, str) and self._value and len(self._value) > 0 \
+                and not self._value.startswith('%') and not self._value.endswith('%'):
+            self._value = f'%{self._value}%'
 
     def _set_user_representation(self):
         """ Called from value setter """

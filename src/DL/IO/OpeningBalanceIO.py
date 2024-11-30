@@ -19,10 +19,10 @@ class OpeningBalanceIO(BaseIO):
     def __init__(self):
         super().__init__(TABLE)
 
-    def insert(self, obj: OpeningBalance):
+    def insert(self, obj: OpeningBalance) -> bool:
         """ Avoid duplicates """
         where = [Att(FD.Year, obj.year)]
-        self._insert(obj, where, pgm=PGM)
+        return self._insert(obj, where, pgm=PGM)
 
     def _error(self, action):
         self._result = Result(

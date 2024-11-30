@@ -91,9 +91,9 @@ class BaseIO:
 
     """ C """
 
-    def insert(self, obj):
+    def insert(self, obj) -> bool:
         where = None
-        self._insert(obj, where, pgm=PGM)
+        return self._insert(obj, where, pgm=PGM)
 
     def _insert(self, obj, where=None, pgm=PGM) -> bool:
         """ Avoid duplicates """

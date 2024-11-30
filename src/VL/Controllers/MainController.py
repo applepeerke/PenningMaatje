@@ -506,6 +506,13 @@ class MainController(BaseController):
     def _search_for_empty_booking_codes(self, ask_mode=True):
         """ search for empty booking codes """
 
+        # Gefeliciteerd! (all transactions have booking code).
+        if self._transactions_io.is_done():
+            message_box(
+                f'Gefeliciteerd!\n\nAlle {TRANSACTIONS} hebben een {BOOKING_CODE}.',
+                key='all_booking_codes_set')
+            return
+
         # Select "All" empty or "Only linked to counter account".
         if ask_mode:
             popup = PopUpRadio()
@@ -522,8 +529,8 @@ class MainController(BaseController):
         # Gefeliciteerd!
         if not self._transactions_io.rows:
             message_box(
-                f'Gefeliciteerd!\nAlle {TRANSACTIONS} binnen het gekozen bereik hebben een {BOOKING_CODE}.',
-                key='all_booking_codes_set')
+                f'Gefeliciteerd!\n\nAlle {TRANSACTIONS} binnen het gekozen bereik hebben een {BOOKING_CODE}.',
+                key='all_booking_codes_in_scope_set')
             return
 
         # Update Transactions pane: set header, formatted rows

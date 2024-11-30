@@ -79,6 +79,7 @@ class BookingCodeManager(BaseManager):
         self._TE_id = 0
         self._entity_key = EMPTY
         self._entity_value = None
+        self._update_all = False
 
     def link_name_to_new_search_term(self, search_term, booking_code) -> Result:
         """ Link transactions without Counter account to a search term """
@@ -95,13 +96,14 @@ class BookingCodeManager(BaseManager):
         # List transactions while specifying a proper search term.
         self._result = Result(action_code=ActionCode.Retry)
         while self._result.RT:
-            self._result = self._dialog_handling(where=[Att(FD.Name, search_term, relation=SQLOperator().LIKE)])
+            self._result = self._dialog_handling(where=[Att(FD.Name, self._entity_value, relation=SQLOperator().LIKE)])
+            self._entity_value = CM.get_config_item(CF_POPUP_INPUT_VALUE)
 
-        # Insert searchterm
+        # Insert search term.
         if self._result.GO:
             # Insert the new search term.
             if self._search_term_io.insert(SearchTerm(
-                    search_term=CM.get_config_item(CF_POPUP_INPUT_VALUE),
+                    search_term=self._entity_value,
                     booking_code=booking_code)):
                 # Success: Refresh search term cache.
                 STM.initialize(force=True)
@@ -135,6 +137,8 @@ class BookingCodeManager(BaseManager):
         return result
 
     def _dialog_handling(self, where) -> Result:
+        self._update_all = False
+
         # A. Validation
         # a. Target Booking code exists?
         booking_new_id = BCM.get_id_from_code(self._booking_code)
@@ -152,24 +156,41 @@ class BookingCodeManager(BaseManager):
                 f'aan {self._entity_key} "{self._entity_value}".')
 
         # B. Multiple booking ids exist for the specified entity: Ask confirmation.
-        update_all = True
-        # if existing_bookings_count > 1:
-        if len(self._booking_old_ids) > 1:
-            booking_description = BCM.get_value_from_booking_code(self._booking_code, FD.Booking_description)
+        self._update_all = True
+        booking_description = BCM.get_value_from_booking_code(self._booking_code, FD.Booking_description)
+        if self._entity_key == SEARCH_TERM:
+            input_label = SEARCH_TERM
+            extra_text = f'\n\nDe waarde die je hieronder opgeeft zal als nieuwe {SEARCH_TERM} worden toegevoegd.'
+        else:
+            input_label = EMPTY
+            extra_text = EMPTY
+
+        dialog = DialogWithTransactions(where=where, has_radio=True, input_label=input_label)
+
+        # No transactions to be updated
+        if len(self._booking_old_ids) < 2:
+            dialog_text = (
+                f'Er zijn geen {TRANSACTIONS} gevonden bij {self._entity_key} "{self._entity_value}".\n\n'
+                f'Geef een andere {self._entity_key} op.')
+            dialog.confirm(f'{PGM}.set_counter_account_booking_code_1', dialog_text, hide_option=False)
+            return Result(action_code=ActionCode.Cancel)
+        else:
+            # Transactions to be updated
             dialog_text = (
                 f'Er zijn {len(self._booking_old_ids)} {TRANSACTIONS} gevonden '
                 f'bij {self._entity_key} "{self._entity_value}"{self._get_booking_text()}.\n\n'
-                f'Deze kunnen allemaal gewijzigd worden in "{booking_description}".\nDoorgaan?')
-
-            input_label = SEARCH_TERM if self._entity_key == SEARCH_TERM else EMPTY
-            dialog = DialogWithTransactions(where=where, has_radio=True, input_label=input_label)
+                f'Deze kunnen allemaal gewijzigd worden in "{booking_description}".{extra_text}\nDoorgaan?')
             if not dialog.confirm(
-                    f'{PGM}.set_counter_account_booking_code', dialog_text, hide_option=False):
+                    f'{PGM}.set_counter_account_booking_code_2', dialog_text, hide_option=False):
                 return Result(action_code=ActionCode.Cancel)
-            update_all = CM.get_config_item(CF_RADIO_ALL, True)
+
+        # Retry after input has been changed.
+        if not dialog.result.GO:
+            return dialog.result
+        self._update_all = CM.get_config_item(CF_RADIO_ALL, True)
 
         # C. Go!
-        if update_all:
+        if self._update_all is True:
             # D1. Update booking in all TransactionEnriched where counter account or search term is matched.
             self._TE_id = 0
             result = self._update_all_transactions(where, booking_new_id)
@@ -201,23 +222,19 @@ class BookingCodeManager(BaseManager):
 
         return Result(
             text=f'{BOOKING_CODE} "{BCM.get_value_from_id(booking_id, FD.Booking_code)}" '
-                 f'is toegekend aan de transactie.')
+                 f'is toegekend aan de transactie.', action_code=ActionCode.Go)
 
     def _update_all_transactions(self, where, booking_id) -> Result:
         """
-        Update booking id in MutationsEnriched for all transactions.
+        Update booking id in TransactionsEnriched for all transactions.
+        (use audit value 'MUTATION_PGM' for UserMutations.csv backup)
         """
-        # Transactions_enriched: update booking_id (use MUTATION_PGM for user file backup)
-        count = self._transaction_io.update_booking(
-            values=[Att(FD.Booking_id, booking_id)],
-            where=where)
+        count = self._transaction_io.update_booking(values=[Att(FD.Booking_id, booking_id)], where=where)
 
-        # - Output
-        booking_code = BCM.get_value_from_id(booking_id, FD.Booking_code)
-        result = Result(
-            text=f'{BOOKING_CODE} "{booking_code}" is toegekend aan {count} {TRANSACTIONS} '
-                 f'van {self._entity_key} {self._entity_value}.')
-        return result
+        return Result(
+            text=f'{BOOKING_CODE} "{BCM.get_value_from_id(booking_id, FD.Booking_code)}" '
+                 f'is toegekend aan {count} {TRANSACTIONS} van {self._entity_key} {self._entity_value}.',
+            action_code=ActionCode.Go)
 
     """
     Undo - Counter account 

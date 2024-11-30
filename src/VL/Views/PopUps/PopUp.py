@@ -97,8 +97,9 @@ class PopUp(BaseView):
                 self._result = Result(action_code=ActionCode.Close)
                 break
 
-            if event == CF_POPUP_INPUT_VALUE:
-                input_value = CM.get_config_item(CF_POPUP_INPUT_VALUE)
+            if event_key == CF_POPUP_INPUT_VALUE:
+                input_value = values.get(event)
+                CM.set_config_item(event_key, values.get(event))
 
             # Location
             location = window.current_location()

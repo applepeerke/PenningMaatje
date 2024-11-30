@@ -13,8 +13,8 @@ class CounterAccountIO(BaseIO):
     def __init__(self):
         super().__init__(TABLE)
 
-    def insert(self, obj: CounterAccount):
+    def insert(self, obj: CounterAccount) -> bool:
         """ Avoid duplicates """
         where = [Att(FD.Counter_account_number, obj.counter_account_number)]
-        self._insert(obj, where, pgm=PGM)
+        return self._insert(obj, where, pgm=PGM)
 

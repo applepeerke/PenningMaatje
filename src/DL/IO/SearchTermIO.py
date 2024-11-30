@@ -18,10 +18,10 @@ class SearchTermIO(BaseIO):
     def __init__(self):
         super().__init__(TABLE)
 
-    def insert(self, obj: SearchTerm):
+    def insert(self, obj: SearchTerm) -> bool:
         """ Avoid duplicates """
         where = [Att(FD.SearchTerm, obj.search_term)]
-        self._insert(obj, where, pgm=PGM)
+        return self._insert(obj, where, pgm=PGM)
 
     def _error(self, action):
         self._result = Result(

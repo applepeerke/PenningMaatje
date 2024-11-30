@@ -32,10 +32,10 @@ class AccountIO(BaseIO):
             for o in self._get_objects():
                 self._accounts_dict[o.bban] = o
 
-    def insert(self, obj: Account):
+    def insert(self, obj: Account) -> bool:
         """ Avoid duplicates """
         where = [Att(FD.Bban, obj.bban)]
-        self._insert(obj, where, pgm=PGM)
+        return self._insert(obj, where, pgm=PGM)
 
     def add_account_to_cache(self, value):
         if not value:

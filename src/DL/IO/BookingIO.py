@@ -44,11 +44,10 @@ class BookingIO(BaseIO):
             protected=toBool(row[d[FD.Protected]]),
         ) if row else Booking()
 
-    def insert(self, obj: Booking) -> Result:
+    def insert(self, obj: Booking) -> bool:
         """ Avoid duplicates and set the protected ones """
         obj = self._set_protected(obj)
-        self._updert(obj, where=obj.get_pk(), pgm=PGM)
-        return self._result
+        return self._updert(obj, where=obj.get_pk(), pgm=PGM)
 
     def update_by_id(self, obj: Booking, Id) -> bool:
         """ Avoid duplicates and set the protected ones """

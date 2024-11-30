@@ -42,7 +42,8 @@ class IndexDef(object):
     TE_IX_on_Transaction_code = 'TE_IX_on_Transaction_code'
     TE_IX_on_Transaction_type = 'TE_IX_on_Transaction_type'
     TE_IX_on_Amount = 'TE_IX_on_Amount'
-    TE_IX_on_Booking = 'TE_IX_on_Booking'
+    TE_IX_on_Booking_Id = 'TE_IX_on_Booking_Id'
+    TE_IX_on_Booking_Code = 'TE_IX_on_Booking_Code'
     TE_IX_on_Comment = 'TE_IX_on_Comment'
     TE_IX_on_Name = 'TE_IX_on_Name'
     TE_IX_on_Counter_account = 'TE_IX_on_Counter_account'
@@ -444,7 +445,12 @@ class Model(object):
                      FD.Transaction_type,
                      FD.Year,
                      FD.ID],
-                IndexDef.TE_IX_on_Booking:
+                IndexDef.TE_IX_on_Booking_Code:
+                    [FD.Account_bban,
+                     FD.Booking_code,
+                     FD.Year,
+                     FD.ID],
+                IndexDef.TE_IX_on_Booking_Id:
                     [FD.Account_bban,
                      FD.Booking_id,
                      FD.Year,
@@ -541,7 +547,7 @@ class Model(object):
                 if (not att.derived or include_derived)}
         else:
             return {att.name: get_colno(colno, zero_based) for colno, att in self.get_db_definition(table_name).items()
-                if (not att.derived or include_derived)}
+                    if (not att.derived or include_derived)}
 
     def get_att_names(self, table_name):
         """

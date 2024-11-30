@@ -136,7 +136,7 @@ class Singleton:
             desc = (f'{self.get_value_from_booking_code(booking_code, FD.Booking_maingroup)} '
                     f'{self.get_value_from_booking_code(booking_code, FD.Booking_subgroup)}')
             if CM.get_config_item(CF_SHOW_BOOKING_CODE_AT_DESCRIPTION):
-                desc = f'{booking_code}{CODE_DESC_SEP}{desc}'
+                desc = f'{booking_code}{CODE_DESC_SEP}{desc}' if booking_code else desc
             return desc
 
         def get_code_from_combo_desc(self, formatted_desc) -> str:
