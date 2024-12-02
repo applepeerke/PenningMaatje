@@ -11,7 +11,7 @@ De bankafschriften van de volgende banken worden ondersteund.
 * Rabobank
 * Triodos
 
-De bankafschriften moeten in csv formaat zijn gedownload en in een input folder staan. Deze mag geen andere bestanden bevatten.
+De bankafschriften moeten in csv formaat zijn gedownload en in een input folder staan. Deze folder mag geen andere bestanden bevatten.
 
 PenningMaatje is getest op MacOs en Windows 10/11. Het zou ook op Linux en Windows 7 moeten werken.
 
