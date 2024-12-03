@@ -6,13 +6,14 @@
 # ---------- --- ------------------------------------------------------------------------------------------------------
 # 2018-12-20 PHe First creation
 # ------------------------------------------------------------------------------------------------------------------
-
+import base64
 import datetime
 
 from PenningMaatje import get_root_dir, get_app_root_dir, slash
 from src.DL.Model import Model
 from src.DL.Lexicon import OUTPUT_DIR, LOG
 from src.GL.Const import APP_NAME, EMPTY
+from src.GL.Functions import is_valid_file
 from src.GL.Validate import normalize_dir
 
 PGM = 'SessionManager'
@@ -250,6 +251,17 @@ class Singleton:
             if table_name in Model().user_maintainable_tables:
                 self._user_tables_changed[table_name] = value
 
+        def get_icon(self):
+            icon = f'{self._images_dir}Logo.png'
+            icon = icon if is_valid_file(icon) else None
+            if not icon:
+                return None
+            with open(icon, 'rb') as f:
+                result = base64.b64encode(f.read())
+            return result
+
+        def get_image_path(self, image_name):
+            return f'{self._images_dir}{image_name}'
     # ---------------------------------------------------------------------------------------------------------------------
     # Singleton logic
     # ---------------------------------------------------------------------------------------------------------------------

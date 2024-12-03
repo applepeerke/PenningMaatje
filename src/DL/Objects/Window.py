@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 import PySimpleGUI as sg
 
-from src.BL.Functions import get_icon
 from src.DL.Config import ALPHA_CHANNEL, EXPAND
 from src.GL.BusinessLayer.ConfigManager import ConfigManager
+from src.GL.BusinessLayer.SessionManager import Singleton as Session
 
 
 class Window:
@@ -18,7 +18,7 @@ class Window:
             text_justification='left',
             resizable=True,
             finalize=True,
-            icon=get_icon(),
+            icon=Session().get_icon(),
             modal=modal,
             keep_on_top=keep_on_top,
             location=location,

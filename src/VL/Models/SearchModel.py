@@ -27,15 +27,15 @@ class SearchModel(BaseModel):
 
     @property
     def image_magnifying_glass(self):
-        return f'{self._get_image_path("magnifying_glass.png")}'
+        return f'{self._session.get_image_path("magnifying_glass.png")}'
 
     @property
     def image_refresh(self):
-        return f'{self._get_image_path("refresh.png")}'
+        return f'{self._session.get_image_path("refresh.png")}'
 
     @property
     def image_export(self):
-        return f'{self._get_image_path("export.png")}'
+        return f'{self._session.get_image_path("export.png")}'
 
     def __init__(self):
         super().__init__()
@@ -47,11 +47,8 @@ class SearchModel(BaseModel):
         self._counter_account_numbers = self._get_combo_data(FD.Counter_account_number)
         self._rows = []
         self._total = 0
+        self._session = Session()
 
     @staticmethod
     def _get_combo_data(name) -> list:
         return DD.get_combo_items(name)
-
-    @staticmethod
-    def _get_image_path(image_name):
-        return f'{Session().images_dir}{image_name}'

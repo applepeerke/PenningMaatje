@@ -49,10 +49,16 @@ class DeleteStaleFilesTestCase(unittest.TestCase):
                         msg=f'Expected {count + 1} but found {dir_count}')  # 1 dir created
 
         DD.delete_stale_files(retention_days=0)
-        dir_count = count_dirs(session, including_today=True)
-        # Most recent files are kept, 1 backup dir should remain
-        self.assertTrue(dir_count == 1,
-                        msg=f'Expected 1 but found {dir_count}')
+        csv_files = []
+        dir_names = [d for d in listdir(session.backup_dir)]
+        for d in dir_names:
+            for f in listdir(f'{session.backup_dir}{d}'):
+                if f.lower().endswith('.csv'):
+                    csv_files.append(f)
+
+        # Most recent files are kept, 1 csv file per type should remain in n backup dirs.
+        self.assertTrue(len(csv_files) == 4,
+                        msg=f'Expected 4 but found {len(csv_files)}')
         return DD.result
 
 

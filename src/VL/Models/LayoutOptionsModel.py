@@ -16,7 +16,3 @@ class LayoutOptionsModel(BaseModel):
     def __init__(self):
         self._fonts = get_fonts()
         self._session = Session()
-
-    @staticmethod
-    def _get_image_path(image_name):
-        return f'{Session().images_dir}{image_name}'

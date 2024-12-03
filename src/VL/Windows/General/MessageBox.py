@@ -1,6 +1,5 @@
 import PySimpleGUI as sg
 
-from src.BL.Functions import get_icon
 from src.DL.Config import CF_AUTO_CLOSE_TIME_S
 from src.VL.Data.Constants.Color import *
 from src.VL.Data.Constants.Const import POPUP_WIDTH_MAX, POPUP_AUTO_CLOSE_DEFAULT
@@ -81,7 +80,7 @@ def message_box(
     if question:
         answer = sg.PopupYesNo(message, title=title, button_color=button_color, font=CM.get_font(),
                                background_color=POPUP_COLOR_BACKGROUND, text_color=TEXT_COLOR, keep_on_top=True,
-                               line_width=width, icon=get_icon())
+                               line_width=width, icon=session.get_icon())
         answer = toBool(answer)
         return answer
     # Not a question
@@ -91,5 +90,5 @@ def message_box(
         else:
             sg.Popup(message, title=title, button_color=button_color, font=CM.get_font(),
                      background_color=POPUP_COLOR_BACKGROUND, text_color=TEXT_COLOR, keep_on_top=True,
-                     auto_close=auto_close, auto_close_duration=auto_close_duration, line_width=width, icon=get_icon())
+                     auto_close=auto_close, auto_close_duration=auto_close_duration, line_width=width, icon=session.get_icon())
         return False  # Do not confirm

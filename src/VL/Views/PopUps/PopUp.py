@@ -1,6 +1,5 @@
 import PySimpleGUI as sg
 
-from src.BL.Functions import get_icon
 from src.DL.Config import CF_POPUP_INPUT_VALUE
 from src.DL.Objects.Window import Window
 from src.GL.Const import EMPTY
@@ -68,7 +67,7 @@ class PopUp(BaseView):
         else:
             answer = True if sg.PopupYesNo(
                 f'\n{text}\n', title=title, grab_anywhere=True, keep_on_top=True, font=self.get_font(),
-                icon=get_icon(), location=self._get_location(title)) == 'Yes' \
+                icon=self._session.get_icon(), location=self._get_location(title)) == 'Yes' \
                 else False
 
         # Store hide option

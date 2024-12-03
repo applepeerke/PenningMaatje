@@ -1,21 +1,9 @@
 import base64
 import re
 
-from src.DL.Model import EMPTY
-from src.GL.Const import BLANK, EXT_CSV
+from src.GL.Const import EMPTY, BLANK, EXT_CSV
 from src.GL.Functions import is_valid_file
 from src.GL.Validate import isInt
-
-
-def get_icon():
-    from src.GL.BusinessLayer.SessionManager import Singleton as Session
-    icon = f'{Session().images_dir}Logo.png'
-    icon = icon if is_valid_file(icon) else None
-    if not icon:
-        return None
-    with open(icon, 'rb') as f:
-        result = base64.b64encode(f.read())
-    return result
 
 
 def get_fonts() -> list:
@@ -24,11 +12,6 @@ def get_fonts() -> list:
     font_tuple = font.families()
     root.destroy()
     return [font for font in font_tuple]
-
-
-def get_image_path(image_name):
-    from src.GL.BusinessLayer.SessionManager import Singleton as Session
-    return f'{Session().images_dir}{image_name}'
 
 
 def get_BBAN_from_IBAN(value):

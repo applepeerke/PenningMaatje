@@ -1,6 +1,5 @@
 import PySimpleGUI as sg
 
-from src.BL.Functions import get_icon
 from src.DL.Objects.Window import Window
 from src.VL.Data.Constants.Color import COLOR_LABEL_DISABLED, TEXT_COLOR, COLOR_BACKGROUND
 from src.VL.Data.Constants.Const import CMD_OK
@@ -36,7 +35,8 @@ class Info(BaseView):
                 self._update_hidden_popup(popup_key, self._hidden_popup_value)
         else:
             sg.PopupOK(
-                f'\n{text}\n', title=title, grab_anywhere=True, keep_on_top=True, font=self.get_font(), icon=get_icon(),
+                f'\n{text}\n', title=title, grab_anywhere=True, keep_on_top=True, font=self.get_font(),
+                icon=session.get_icon(),
                 location=self._get_location(title))
 
     def _box_with_hide_option(self, text, title):

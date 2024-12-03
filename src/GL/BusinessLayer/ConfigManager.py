@@ -10,7 +10,6 @@ import json
 import os
 from typing import Optional
 
-from src.BL.Functions import get_icon
 from src.DL.Config import *
 from src.DL.DBDriver.Functions import get_home_dir
 from src.VL.Data.Constants.Color import DEFAULT_FONT_TABLE, DEFAULT_FONT_TABLE_SIZE, DEFAULT_FONT, \
@@ -104,9 +103,10 @@ class ConfigManager:
             """
             try:
                 import PySimpleGUI as sg
+                from src.GL.BusinessLayer.SessionManager import Singleton as Session
                 sg.PopupOK(
                     f'\n{message}\n', title='Fout opgetreden', grab_anywhere=True, keep_on_top=True, font=FONT,
-                    icon=get_icon())
+                    icon=Session().get_icon())
             except Exception as e:
                 message = f'Bericht kon niet getoond worden. Reden: "{e}"\n' \
                           f'Het te tonen bericht was: "{message}"'
