@@ -136,7 +136,7 @@ class BookingIO(BaseIO):
 
         elif model.command == BoxCommand.Rename:
             if self._db.fetch_id(TABLE, where=pk_new):
-                return Result(ResultCode.Error, f'Nieuwe boeking bestaat al.')
+                return Result(ResultCode.Error, f'Nieuwe {BOOKING_CODE} bestaat al.')
             self._db.update(TABLE, where=pk_current, values=pk_new, pgm=PGM)
             self._set_changed_flag(Mutation.Create)
         return self._result

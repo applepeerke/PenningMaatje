@@ -19,6 +19,7 @@ from src.DL.Lexicon import (
 from src.DL.Model import Model
 from src.DL.Table import Table
 from src.DL.UserCsvFiles.Cache.BookingCodeCache import Singleton as BookingCodeCache
+from src.DL.UserCsvFiles.Cache.SearchTermCache import Singleton as SearchTermCache
 from src.DL.UserCsvFiles.UserCsvFileManager import UserCsvFileManager
 from src.GL.BusinessLayer.ConfigManager import ConfigManager
 from src.GL.BusinessLayer.CsvManager import CsvManager
@@ -354,8 +355,18 @@ class MainController(BaseController):
     def _maintain_booking_code_related(self, prefix, table_desc, window, refresh=True):
         self._diag_message(f'{prefix}Work with {table_desc} button pressed')
         self._maintain_list(window)
-        # Changes made in BookingCode related files, then back up, re-import and refresh caches.
-        if refresh and any(changed for changed in self._session.user_tables_changed.values()):
+
+        # If changes are made in BookingCode related file, then refresh cache, back up and optionally re-import.
+        if refresh is False:
+            return  # May be skipped (Opening balance)
+        for table_name, changed in self._session.user_tables_changed.items():
+            if changed:
+                refresh = True
+                if table_name == Table.BookingCode:
+                    BookingCodeCache().initialize(force=True)  # BookingCodes
+                elif table_name == Table.SearchTerm:
+                    SearchTermCache().initialize(force=True)  # SearchTerms
+        if refresh:
             self._save_and_backup()
             self.import_transactions()
 

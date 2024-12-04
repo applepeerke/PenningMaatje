@@ -52,9 +52,11 @@ class DeleteStaleFilesTestCase(unittest.TestCase):
         csv_files = []
         dir_names = [d for d in listdir(session.backup_dir)]
         for d in dir_names:
-            for f in listdir(f'{session.backup_dir}{d}'):
-                if f.lower().endswith('.csv'):
-                    csv_files.append(f)
+            dir_name = f'{session.backup_dir}{d}'
+            if os.path.isdir(dir_name):
+                for f in listdir(dir_name):
+                    if f.lower().endswith('.csv'):
+                        csv_files.append(f)
 
         # Most recent files are kept, 1 csv file per type should remain in n backup dirs.
         self.assertTrue(len(csv_files) == 4,

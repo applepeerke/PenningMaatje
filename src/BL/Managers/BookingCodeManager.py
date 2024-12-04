@@ -38,7 +38,7 @@ from src.VL.Data.Constants.Enums import Pane
 from src.VL.Views.PopUps.Dialog_with_transactions import DialogWithTransactions
 from src.VL.Views.PopUps.PopUp import PopUp
 
-PGM = 'BookingManager'
+PGM = 'BookingCodeManager'
 
 model = Model()
 bk_dict = model.get_colno_per_att_name(Table.BookingCode, zero_based=False)
@@ -228,9 +228,10 @@ class BookingCodeManager(BaseManager):
         """
         Update booking id in TransactionsEnriched for the current transaction.
         """
+        booking_code = BCM.get_value_from_id(booking_id, FD.Booking_code)
         self._db.update(
             Table.TransactionEnriched, where=[Att(FD.ID, transaction_id)],
-            values=[Att(FD.Booking_id, booking_id)], pgm=PGM)
+            values=[Att(FD.Booking_id, booking_id), Att(FD.Booking_code, booking_code)], pgm=PGM)
 
         return Result(
             text=f'{BOOKING_CODE} "{BCM.get_value_from_id(booking_id, FD.Booking_code)}" '
@@ -241,7 +242,9 @@ class BookingCodeManager(BaseManager):
         Update booking id in TransactionsEnriched for all transactions.
         (use audit value 'MUTATION_PGM' for UserMutations.csv backup)
         """
-        count = self._transaction_io.update_booking(values=[Att(FD.Booking_id, booking_id)], where=where)
+        booking_code = BCM.get_value_from_id(booking_id, FD.Booking_code)
+        count = self._transaction_io.update_booking(
+            values=[Att(FD.Booking_id, booking_id), Att(FD.Booking_code, booking_code)], where=where)
 
         return Result(
             text=f'{BOOKING_CODE} "{BCM.get_value_from_id(booking_id, FD.Booking_code)}" '
