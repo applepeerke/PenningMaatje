@@ -137,17 +137,25 @@ class BookingCodeManager(BaseManager):
         return result
 
     def _dialog_handling(self, where) -> Result:
+        """
+        Where: contains the old booking code.
+        """
         self._update_all = False
 
         # A. Validation
-        # a. Target Booking code exists?
+        # a. Target Booking code really exists?
         booking_new_id = BCM.get_id_from_code(self._booking_code)
         if booking_new_id == 0 and self._booking_code:
             return Result(ResultCode.Warning, f'{BOOKING_CODE} "{self._booking_code}" is niet gevonden.')
 
-        # b. Booking code already fully linked to the entity? Nothing to do.
         #   Get the unique booking ids that are already linked to the entity (counter account or search term)
         self._booking_old_ids = self._db.select(Table.TransactionEnriched, name=FD.Booking_id, where=where)
+
+        # b. Only 1 transaction with the old booking code: Just update with the new booking code.
+        if len(self._booking_old_ids) == 1 and self._booking_old_ids[0] != booking_new_id:
+            return self._update_transactions(where, booking_new_id)
+
+        # c. Booking code already fully linked to the entity? Nothing to do.
         self._booking_old_ids_unique = {Id for Id in self._booking_old_ids}
         if len(self._booking_old_ids_unique) == 1 and list(self._booking_old_ids_unique)[0] == booking_new_id:
             return Result(
@@ -189,7 +197,11 @@ class BookingCodeManager(BaseManager):
             return dialog.result
         self._update_all = CM.get_config_item(CF_RADIO_ALL, True)
 
-        # C. Go!
+        # C. Update!
+        return self._update_transactions(where, booking_new_id)
+
+
+    def _update_transactions(self, where, booking_new_id) -> Result:
         if self._update_all is True:
             # D1. Update booking in all TransactionEnriched where counter account or search term is matched.
             self._TE_id = 0
