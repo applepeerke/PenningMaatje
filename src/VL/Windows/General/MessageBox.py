@@ -1,6 +1,5 @@
 import PySimpleGUI as sg
 
-from src.DL.Config import CF_AUTO_CLOSE_TIME_S
 from src.VL.Data.Constants.Color import *
 from src.VL.Data.Constants.Const import POPUP_WIDTH_MAX, POPUP_AUTO_CLOSE_DEFAULT
 from src.GL.BusinessLayer.ConfigManager import ConfigManager
@@ -20,6 +19,7 @@ def message_box(
     """
     Returns confirmation on a message
     """
+    from src.DL.Config import CF_AUTO_CLOSE_TIME_S
     session = Session()
 
     if not message:

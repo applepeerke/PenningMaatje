@@ -1,6 +1,6 @@
 import os
 
-from PenningMaatje import get_root_dir
+from root_functions import get_root_dir
 from src.BL.Managers.ImportManager import ImportManager
 from src.DL.Config import CF_IMPORT_PATH_BOOKING_CODES, CF_IMPORT_PATH_COUNTER_ACCOUNTS, \
     CF_IMPORT_PATH_SEARCH_TERMS, CF_INPUT_DIR, CF_OUTPUT_DIR, \

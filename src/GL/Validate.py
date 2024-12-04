@@ -8,14 +8,13 @@
 # ---------------------------------------------------------------------------------------------------------------------
 
 import os
-import platform
 import re
 
-from PenningMaatje import slash
+from root_functions import slash, format_os
 from src.DL.DBDriver.Const import DB_TRUE, DB_FALSE
-from src.VL.Data.Constants.Const import LEEG
 from src.GL.Const import EMPTY
 from src.GL.Enums import ColorTableau
+from src.VL.Data.Constants.Const import LEEG
 
 valid = False
 current = False
@@ -47,12 +46,6 @@ def normalize_dir(dirname, create=False):
             raise
     return dirname if dirname[-1] in ('/', '\\') else f'{dirname}{slash()}'
 
-
-def format_os(path_part):
-    # On Windows, use backslash.
-    if platform.system() == 'Windows':
-        path_part = str(path_part).replace('/', '\\')
-    return path_part
 
 
 def isIntOrNone(value):

@@ -9,7 +9,7 @@
 import base64
 import datetime
 
-from PenningMaatje import get_root_dir, get_app_root_dir, slash
+from root_functions import get_root_dir, get_app_root_dir, slash
 from src.DL.Model import Model
 from src.DL.Lexicon import OUTPUT_DIR, LOG
 from src.GL.Const import APP_NAME, EMPTY
