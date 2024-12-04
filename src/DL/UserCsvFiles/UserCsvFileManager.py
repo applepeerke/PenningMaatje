@@ -142,6 +142,9 @@ class UserCsvFileManager(object):
         For backup/restore purpose existing bookings can be provided.
         Assumption for now is that the app- and local user csv files are trusted input.
         """
+        if table_name == Table.BookingCode:
+            self._existing_booking_codes = set()
+
         if existing_booking_codes:
             self._existing_booking_codes = existing_booking_codes
 

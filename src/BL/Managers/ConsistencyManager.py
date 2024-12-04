@@ -99,6 +99,8 @@ class ConsistencyManager(BaseManager):
 
         # Validate caches
         self._cache_validation()
+        if not self._is_consistent:
+            return self._result
 
         # Validate ME
         if transaction_enriched_count != transaction_count:
@@ -155,7 +157,7 @@ class ConsistencyManager(BaseManager):
     def _cache_validation(self):
         """ Tables imported from user data """
         self._validate_caches()
-        if any(values for values in self._non_existent_bookings):
+        if any(values for values in self._non_existent_bookings.values()):
             self._is_consistent = False
 
     def _validate_caches(self):
