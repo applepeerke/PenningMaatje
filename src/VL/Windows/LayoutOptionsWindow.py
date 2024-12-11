@@ -11,7 +11,7 @@ import PySimpleGUI as sg
 from src.DL.Config import CF_ROWS_YEAR, \
     CF_ROWS_MONTH, CF_ROWS_TRANSACTION, CF_TOOL_TIP, CF_ROWS_BOOKING_CODE, CF_ROWS_SEARCH_TERM, CF_THEME, CF_FONT, \
     CF_FONT_SIZE, CF_COL_OVERBOOKING, CF_COL_SALDO_MINUS_CORRECTION, CF_ROWS_COMBO_MAX, CF_IMAGE_SUBSAMPLE, \
-    CF_SHOW_BOOKING_CODE_AT_DESCRIPTION
+    CF_SHOW_BOOKING_CODE_AT_DESCRIPTION, CF_FONT_TABLE, CF_FONT_TABLE_SIZE
 from src.GL.Const import EMPTY
 from src.GL.Enums import ActionCode
 from src.GL.Result import Result
@@ -59,7 +59,9 @@ class LayoutOptionsWindow(BaseWindow):
     def _event_handler(self, event, values):
         self._result = Result()
         event_key = get_name_from_key(event)
-        if event_key not in (CF_THEME, CF_FONT, CF_FONT_SIZE, CF_IMAGE_SUBSAMPLE):
+
+        # Redisplay when there is a font-related change.
+        if event_key not in (CF_THEME, CF_FONT, CF_FONT_SIZE, CF_FONT_TABLE, CF_FONT_TABLE_SIZE, CF_IMAGE_SUBSAMPLE):
             return
 
         value = values.get(event)

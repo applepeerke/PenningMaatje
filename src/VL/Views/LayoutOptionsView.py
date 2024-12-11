@@ -64,7 +64,10 @@ class LayoutOptionsView(BaseView):
                 self.combo(CF_FONT, self._model.fonts, x=x_CX),
                 self.combo(CF_FONT_SIZE, [x for x in range(9, 21, 1)], x=x_CX),
                 self.combo(CF_FONT_TABLE, self._model.fonts, x=x_CX,
-                           font=self._CM.get_config_item(CF_FONT_TABLE)),
+                           font=(
+                               self._CM.get_config_item(CF_FONT_TABLE),
+                               self._CM.get_config_item(CF_FONT_TABLE_SIZE))
+                           ),
                 self.combo(CF_FONT_TABLE_SIZE, [x for x in range(9, 21, 1)], x=x_CX,
                            font=self._CM.get_config_item(CF_FONT_TABLE_SIZE)),
                 # Image size
