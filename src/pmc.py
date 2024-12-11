@@ -7,7 +7,7 @@ from src.BL.Summary.SummaryDriver import SummaryDriver
 from src.DL.Config import CF_OUTPUT_DIR, CF_INPUT_DIR, CF_IMPORT_PATH_BOOKING_CODES, CF_IMPORT_PATH_COUNTER_ACCOUNTS, \
     CF_IMPORT_PATH_SEARCH_TERMS, BOOKING_CODES_CSV, COUNTER_ACCOUNTS_CSV, SEARCH_TERMS_CSV, \
     CF_IMPORT_PATH_OPENING_BALANCE, OPENING_BALANCE_CSV, CF_SUMMARY_YEAR, CF_SUMMARY_MONTH_FROM, CF_SUMMARY_MONTH_TO, \
-    ACCOUNTS_CSV, CF_IMPORT_PATH_ACCOUNTS, CF_VERBOSE
+    ACCOUNTS_CSV, CF_IMPORT_PATH_ACCOUNTS, CF_VERBOSE, CF_IBAN
 from src.DL.DBInitialize import DBInitialize
 from src.DL.IO.TransactionsIO import TransactionsIO
 from src.DL.Lexicon import BOOKING_CODES
@@ -15,6 +15,7 @@ from src.DL.Table import Table
 from src.GL.BusinessLayer.ConfigManager import ConfigManager
 from src.GL.BusinessLayer.LogManager import Singleton as Log
 from src.GL.BusinessLayer.SessionManager import Singleton as Session
+from src.GL.Const import EMPTY
 from src.GL.Enums import LogLevel
 from src.GL.GeneralException import GeneralException
 from src.GL.Result import Result
@@ -87,6 +88,8 @@ class PMC:
         self._CM.set_config_item(CF_INPUT_DIR, input_dir)
         self._CM.set_config_item(CF_OUTPUT_DIR, output_dir)
         self._CM.set_config_item(CF_VERBOSE, verbose)
+        # Clear IBAN
+        self._CM.set_config_item(CF_IBAN, EMPTY)
 
         userdata_dir = session.userdata_dir
         self._CM.set_config_item(CF_IMPORT_PATH_ACCOUNTS, f'{userdata_dir}{ACCOUNTS_CSV}')
