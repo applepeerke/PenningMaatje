@@ -4,7 +4,7 @@ from src.DL.Config import CF_COMBO_SUMMARY, CF_SUMMARY_YEAR, CF_SUMMARY_MONTH_FR
     CF_SUMMARY_OPENING_BALANCE
 from src.DL.Enums.Enums import Summary
 from src.DL.Model import FD
-from src.GL.Functions import FloatToStr
+from src.GL.Functions import FloatToStr, toFloat
 from src.VL.Data.Constants.Const import CMD_OK, CMD_CANCEL, STATUS_MESSAGE
 from src.VL.Data.DataDriver import Singleton as DataDriver
 from src.VL.Views.BaseView import BaseView
@@ -20,7 +20,7 @@ class SummaryView(BaseView):
 
     def get_view(self) -> list:
         # Set object (db representation) in Config "cache"
-        opening_balance = self._CM.get_config_item(CF_SUMMARY_OPENING_BALANCE)
+        opening_balance = toFloat(self._CM.get_config_item(CF_SUMMARY_OPENING_BALANCE))
         self._CM.set_config_item(CF_SUMMARY_OPENING_BALANCE, FloatToStr(str(opening_balance)))
 
         combo_key = 'Kies het soort overzicht'
