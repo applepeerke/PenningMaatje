@@ -99,11 +99,11 @@ def progress_meter(i, max_len, key, title, message_1=EMPTY, message_2=EMPTY) -> 
 
 
 def help_message(key):
-    from src.VL.Windows.General.MessageBox import message_box
+    from src.VL.Windows.General.MessageBox import MessageBox
     item = configDef.get(key, ConfigItem())
     message = item.tooltip or 'Er is geen help tekst gevonden.'
     title = item.label or 'Helptekst'
-    message_box(message, title=title, severity=MessageSeverity.Completion)
+    MessageBox().message_box(message, title=title, severity=MessageSeverity.Completion)
 
 
 def is_help_available(key) -> bool:

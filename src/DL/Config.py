@@ -225,7 +225,7 @@ configDef = {
         f'Toon kolom {SALDO_MINUS_CORRECTION}', False,
         _border(f'Toon kolom {SALDO_MINUS_CORRECTION} in paneel {YEARS} en {MONTHS}'), isBool),
     CF_TOOL_TIP: ConfigItem(
-        'Toon tips bij de muisaanwijzer', False,
+        'Toon tips bij de muisaanwijzer', True,
         _border('Toon tips'), isBool),
     CF_LOG_LEVEL: ConfigItem(
         'Log niveau\n', Enums.LogLevel.Warning,
@@ -257,7 +257,8 @@ configDef = {
         'Backup bewaartijd in maanden', 6,
         _border(
             'Het aantal maanden dat log- en backup-bestanden worden bewaard.  \n'
-            '  Bestanden die ouder zijn worden automatisch verwijderd bij het sluiten van de app.'
+            '  Bestanden die ouder zijn worden automatisch verwijderd bij het sluiten van de app.  \n'
+            '  De meest recente versie blijft altijd bestaan.'
         ), isInt),
     CF_AMOUNT_THRESHOLD_TO_OTHER: ConfigItem(
         'Drempelbedrag om bij import in de "overige" post geboekt te worden', 0,
@@ -310,7 +311,7 @@ configDef = {
         f'{NAME} *', EMPTY,
         _border(
             'Zoek in de naam, mededelingen en bijzonderheden van de begunstigde.  \n'
-            '  Als wildcard kun je "*" gebruiken (alleen vóór en/of na de zoekterm). '), isCsvText),
+            '  Er is een match als de opgegeven waarde in één van deze gegevens voorkomt.  '), isCsvText),
     CF_SEARCH_REMARKS: ConfigItem(
         REMARKS, EMPTY, _border('Zoek transacties waaraan je bijzonderheden hebt toegevoegd.'), isBool),
     CF_COUNTER_ACCOUNT_BOOKING_DESCRIPTION: ConfigItem('Boeking', EMPTY, None, isAlphaNumericOrEmpty),
@@ -382,7 +383,7 @@ configDef = {
 
     CMD_FACTORY_RESET: ConfigItem(tooltip=_border(
         f'{to_text_key(CMD_FACTORY_RESET)}.\n\n'
-        f'  Alle configuratie- en database gegevens worden verwijderd.\n'
+        f'  Alle configuratie- en database gegevens worden verwijderd. Backups blijven bewaard.\n'
         f'  Je {TRANSACTIONS} blijven gewoon staan. Importeer ze dan opnieuw.'
     )),
     CMD_CONFIG: ConfigItem(tooltip='Configuratie en layout wijzigen.'),
