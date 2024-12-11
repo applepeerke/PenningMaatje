@@ -19,7 +19,6 @@ from src.DL.UserCsvFiles.Cache.BookingCodeCache import Singleton as BookingCodeC
 from src.DL.UserCsvFiles.Cache.SearchTermCache import Singleton as SearchTermCache
 from src.DL.UserCsvFiles.Cache.UserMutationsCache import Singleton as UserMutationsCache
 from src.DL.UserCsvFiles.UserCsvFileManager import UserCsvFileManager
-from src.GL.BusinessLayer.ConfigManager import ConfigManager
 from src.GL.BusinessLayer.CsvManager import CsvManager
 from src.GL.Const import EMPTY, USER_MUTATIONS_FILE_NAME, EXT_CSV
 from src.GL.Enums import Color, MessageSeverity
@@ -33,7 +32,6 @@ remark_prefix = f'{Color.BLUE}Opmerking{Color.NC}: '
 
 model = Model()
 
-CM = ConfigManager()
 CsvM = CsvManager()
 BCM = BookingCodeCache()
 STM = SearchTermCache()
@@ -61,7 +59,7 @@ class ConsistencyManager(BaseManager):
 
     def run(self) -> Result:
         self._result = Result()
-        self._verbose = CM.get_config_item(CF_VERBOSE)
+        self._verbose = self._CM.get_config_item(CF_VERBOSE)
         self._initialize_singletons = self._verbose
         self._is_consistent = False
 
@@ -90,7 +88,7 @@ class ConsistencyManager(BaseManager):
             f'------------------\n', MessageSeverity.Info)
 
         # Validate caches from tables if booking-related csv files
-        self._progress(1, f'{BOOKING_CODE} in "{CM.get_config_item(CF_IMPORT_PATH_COUNTER_ACCOUNTS)}"')
+        self._progress(1, f'{BOOKING_CODE} in "{self._CM.get_config_item(CF_IMPORT_PATH_COUNTER_ACCOUNTS)}"')
 
         # Input validation (csv files)
         self._csv_validation()
@@ -111,7 +109,7 @@ class ConsistencyManager(BaseManager):
                 f'  Remedie: Doe de import opnieuw.', MessageSeverity.Warning)
 
         # - Validate rows per year/month
-        account_bban = get_BBAN_from_IBAN(CM.get_config_item(CF_IBAN))
+        account_bban = get_BBAN_from_IBAN(self._CM.get_config_item(CF_IBAN))
         if transaction_enriched_count > 0:
             yy = from_year
             mm = from_month
@@ -200,7 +198,7 @@ class ConsistencyManager(BaseManager):
                 f'{remark_prefix}{count} {entity_name} hebben geen {BOOKING_CODE}.', MessageSeverity.Warning)
 
     def _progress(self, step_no, message):
-        if not self._session.unit_test and CM.get_config_item(CF_VERBOSE) and not self._session.CLI_mode:
+        if not self._session.unit_test and self._CM.get_config_item(CF_VERBOSE) and not self._session.CLI_mode:
             progress_meter(
                 step_no - 1, self._progress_steps_total, 'Consistentie check', 'Consistentie check', message_1=message)
 

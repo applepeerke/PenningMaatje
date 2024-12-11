@@ -6,10 +6,10 @@
 # ---------- --- ------------------------------------------------------------------------------------------------------
 # 2023-02-12 PHe First creation
 # ---------------------------------------------------------------------------------------------------------------------
+from src.Base import Base
 from src.DL.DBDriver.Enums import FetchMode
 from src.DL.Model import Model, FD
 from src.DL.Table import Table
-from src.GL.BusinessLayer.SessionManager import Singleton as Session
 from src.GL.Const import EMPTY
 
 TABLE = Table.SearchTerm
@@ -18,13 +18,14 @@ TABLE = Table.SearchTerm
 class Singleton:
     """ Singleton """
 
-    class SearchTermCache(object):
+    class SearchTermCache(Base):
 
         @property
         def search_terms(self):
             return self._search_terms
 
         def __init__(self):
+            super().__init__()
             self._search_terms = {}
             self._initialized = False
 
@@ -37,7 +38,7 @@ class Singleton:
             d = model.get_colno_per_att_name(TABLE, zero_based=False)
 
             # Get the {searchterm : booking_code} mapping.
-            rows = Session().db.fetch(TABLE, mode=FetchMode.WholeTable)
+            rows = self._session.db.fetch(TABLE, mode=FetchMode.WholeTable)
             self._search_terms = {
                 row[d[FD.SearchTerm]].lower(): row[d[FD.Booking_code]]
                 for row in rows

@@ -24,7 +24,6 @@ from src.DL.UserCsvFiles.Cache.BookingCodeCache import Singleton as BookingCodeC
 from src.DL.UserCsvFiles.Cache.CounterAccountCache import Singleton as CounterAccountCache
 from src.DL.UserCsvFiles.Cache.SearchTermCache import Singleton as SearchTermCache
 from src.DL.UserCsvFiles.UserCsvFileManager import UserCsvFileManager, GeneralException
-from src.GL.BusinessLayer.ConfigManager import ConfigManager
 from src.GL.BusinessLayer.CsvManager import CsvManager
 from src.GL.BusinessLayer.SessionManager import BACKUP
 from src.GL.Const import EMPTY
@@ -43,7 +42,6 @@ PGM = 'BookingCodeManager'
 model = Model()
 bk_dict = model.get_colno_per_att_name(Table.BookingCode, zero_based=False)
 
-CM = ConfigManager()
 CsvM = CsvManager()
 BCM = BookingCodeCache()
 ACM = CounterAccountCache()
@@ -97,7 +95,7 @@ class BookingCodeManager(BaseManager):
         self._result = Result(action_code=ActionCode.Retry)
         while self._result.RT:
             self._result = self._dialog_handling(where=[Att(FD.Name, self._entity_value, relation=SQLOperator().LIKE)])
-            self._entity_value = CM.get_config_item(CF_POPUP_INPUT_VALUE)
+            self._entity_value = self._CM.get_config_item(CF_POPUP_INPUT_VALUE)
 
         # Insert search term.
         if self._result.GO:
@@ -195,7 +193,7 @@ class BookingCodeManager(BaseManager):
         # Retry after input has been changed.
         if not dialog.result.GO:
             return dialog.result
-        self._update_all = CM.get_config_item(CF_RADIO_ALL, True)
+        self._update_all = self._CM.get_config_item(CF_RADIO_ALL, True)
 
         # C. Update!
         return self._update_transactions(where, booking_new_id)
@@ -208,7 +206,7 @@ class BookingCodeManager(BaseManager):
             result = self._update_all_transactions(where, booking_new_id)
         else:
             # D2. Update booking-id,  in the current transaction only
-            self._TE_id = CM.get_config_item(f'CF_ID_{Pane.TE}', 0)
+            self._TE_id = self._CM.get_config_item(f'CF_ID_{Pane.TE}', 0)
             result = self._update_one_transaction(self._TE_id, booking_new_id)
         return result
 
@@ -352,7 +350,7 @@ class BookingCodeManager(BaseManager):
         self._non_existent_booking_codes = {}
 
         # Validate the restore folder (e.g. "../2023-01-21")
-        subdir = CM.get_config_item(CF_RESTORE_BOOKING_DATA)
+        subdir = self._CM.get_config_item(CF_RESTORE_BOOKING_DATA)
         if not subdir:
             self._result.add_message(
                 f'Selecteer eerst een terugzet folder bij "{get_label(CF_RESTORE_BOOKING_DATA)}".',

@@ -6,13 +6,12 @@
 # ---------- --- ------------------------------------------------------------------------------------------------------
 # 2018-12-20 PHe First creation
 # ---------------------------------------------------------------------------------------------------------------------
+from src.Base import Base
 from src.DL.Config import CF_IMPORT_PATH_BOOKING_CODES, CF_IMPORT_PATH_COUNTER_ACCOUNTS, \
     configDef, LEEG, CF_IMPORT_PATH_SEARCH_TERMS, CF_SHOW_BOOKING_CODE_AT_DESCRIPTION, CF_IMPORT_PATH_OPENING_BALANCE
 from src.DL.DBDriver.Enums import FetchMode
 from src.DL.Model import Model, FD
 from src.DL.Table import Table
-from src.GL.BusinessLayer.ConfigManager import ConfigManager
-from src.GL.BusinessLayer.SessionManager import Singleton as Session
 from src.GL.Const import EMPTY
 from src.GL.Enums import Color, MessageSeverity
 from src.GL.Result import Result
@@ -20,7 +19,6 @@ from src.GL.Validate import toBool
 from src.VL.Data.Constants.Const import PROTECTED_BOOKINGS, NIET_LEEG
 
 model = Model()
-CM = ConfigManager()
 
 PGM = 'BookingCodeCache'
 CODE_DESC_SEP = ' - '
@@ -28,7 +26,7 @@ CODE_DESC_SEP = ' - '
 class Singleton:
     """ Singleton """
 
-    class BookingCodeCache(object):
+    class BookingCodeCache(Base):
 
         @property
         def booking_codes(self):
@@ -39,6 +37,7 @@ class Singleton:
             return self._formatted_booking_descriptions
 
         def __init__(self):
+            super().__init__()
             self._booking_codes = set()
             self._formatted_booking_descriptions = set()
             self._booking_codes_excluding_protected = []
@@ -66,7 +65,7 @@ class Singleton:
                 return
 
             d = model.get_colno_per_att_name(Table.BookingCode, zero_based=False)
-            rows = Session().db.fetch(Table.BookingCode, mode=FetchMode.WholeTable)
+            rows = self._session.db.fetch(Table.BookingCode, mode=FetchMode.WholeTable)
             if not rows:
                 return
 
@@ -135,7 +134,7 @@ class Singleton:
             """ return "(<booking_code> - )<maingroup> <subgroup>" """
             desc = (f'{self.get_value_from_booking_code(booking_code, FD.Booking_maingroup)} '
                     f'{self.get_value_from_booking_code(booking_code, FD.Booking_subgroup)}')
-            if CM.get_config_item(CF_SHOW_BOOKING_CODE_AT_DESCRIPTION):
+            if self._CM.get_config_item(CF_SHOW_BOOKING_CODE_AT_DESCRIPTION):
                 desc = f'{booking_code}{CODE_DESC_SEP}{desc}' if booking_code else desc
             return desc
 
@@ -145,7 +144,7 @@ class Singleton:
             self.initialize()  # 1st time
 
             # Code - description
-            if CM.get_config_item(CF_SHOW_BOOKING_CODE_AT_DESCRIPTION) and CODE_DESC_SEP in formatted_desc:
+            if self._CM.get_config_item(CF_SHOW_BOOKING_CODE_AT_DESCRIPTION) and CODE_DESC_SEP in formatted_desc:
                 booking_code, formatted_desc = formatted_desc.split(CODE_DESC_SEP)
 
             if formatted_desc in (LEEG, NIET_LEEG):
@@ -232,7 +231,7 @@ class Singleton:
             return self._result
 
         def _check_config_item(self, key):
-            if CM.get_config_item(key):
+            if self._CM.get_config_item(key):
                 return
             self._result.add_message(
                 f'{Color.ORANGE}Waarschuwing{Color.NC} - '

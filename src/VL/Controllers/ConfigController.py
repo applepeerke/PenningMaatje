@@ -23,7 +23,7 @@ from src.DL.Model import FD
 from src.DL.Objects.Account import Account
 from src.DL.Table import Table
 from src.DL.UserCsvFiles.UserCsvFileManager import UserCsvFileManager
-from src.GL.BusinessLayer.ConfigManager import ConfigManager, CMD_HELP_WITH_INPUT_DIR, CMD_HELP_WITH_OUTPUT_DIR
+from src.GL.BusinessLayer.ConfigManager import CMD_HELP_WITH_INPUT_DIR, CMD_HELP_WITH_OUTPUT_DIR
 from src.GL.BusinessLayer.SessionManager import OUTPUT_SUBDIRS
 from src.GL.Const import EMPTY
 from src.GL.Enums import ActionCode, ResultCode
@@ -35,10 +35,7 @@ from src.VL.Views.PopUps.Info import Info
 from src.VL.Views.PopUps.Input import Input
 from src.VL.Windows.LayoutOptionsWindow import LayoutOptionsWindow
 
-CM = ConfigManager()
-
 PGM = 'ConfigController'
-
 
 class ConfigController(BaseController):
 
@@ -50,8 +47,8 @@ class ConfigController(BaseController):
         self._booking_manager = BookingCodeManager()
 
         self._prv_values = {
-            CF_INPUT_DIR: CM.get_config_item(CF_INPUT_DIR),
-            CF_OUTPUT_DIR: CM.get_config_item(CF_OUTPUT_DIR),
+            CF_INPUT_DIR: self._CM.get_config_item(CF_INPUT_DIR),
+            CF_OUTPUT_DIR: self._CM.get_config_item(CF_OUTPUT_DIR),
         }
 
     def handle_event(self, event):
@@ -96,12 +93,12 @@ class ConfigController(BaseController):
         W = LayoutOptionsWindow()
 
         # While theme is changed: Reopen window with new theme (if new theme can be shown in pane).
-        save = {CF_THEME: CM.get_config_item(CF_THEME),
-                CF_FONT: CM.get_config_item(CF_FONT),
-                CF_FONT_SIZE: CM.get_config_item(CF_FONT_SIZE),
-                CF_FONT_TABLE: CM.get_config_item(CF_FONT_TABLE),
-                CF_FONT_TABLE_SIZE: CM.get_config_item(CF_FONT_TABLE_SIZE),
-                CF_IMAGE_SUBSAMPLE: CM.get_config_item(CF_IMAGE_SUBSAMPLE)}
+        save = {CF_THEME: self._CM.get_config_item(CF_THEME),
+                CF_FONT: self._CM.get_config_item(CF_FONT),
+                CF_FONT_SIZE: self._CM.get_config_item(CF_FONT_SIZE),
+                CF_FONT_TABLE: self._CM.get_config_item(CF_FONT_TABLE),
+                CF_FONT_TABLE_SIZE: self._CM.get_config_item(CF_FONT_TABLE_SIZE),
+                CF_IMAGE_SUBSAMPLE: self._CM.get_config_item(CF_IMAGE_SUBSAMPLE)}
         prv = save.copy()
         new = {}
         self._result = Result(action_code=ActionCode.Retry)
@@ -109,12 +106,12 @@ class ConfigController(BaseController):
             for k, v in new.items():
                 prv[k] = v
             W.display()
-            new = {CF_THEME: CM.get_config_item(CF_THEME),
-                   CF_FONT: CM.get_config_item(CF_FONT),
-                   CF_FONT_SIZE: CM.get_config_item(CF_FONT_SIZE),
-                   CF_FONT_TABLE: CM.get_config_item(CF_FONT_TABLE),
-                   CF_FONT_TABLE_SIZE: CM.get_config_item(CF_FONT_TABLE_SIZE),
-                   CF_IMAGE_SUBSAMPLE: CM.get_config_item(CF_IMAGE_SUBSAMPLE)}
+            new = {CF_THEME: self._CM.get_config_item(CF_THEME),
+                   CF_FONT: self._CM.get_config_item(CF_FONT),
+                   CF_FONT_SIZE: self._CM.get_config_item(CF_FONT_SIZE),
+                   CF_FONT_TABLE: self._CM.get_config_item(CF_FONT_TABLE),
+                   CF_FONT_TABLE_SIZE: self._CM.get_config_item(CF_FONT_TABLE_SIZE),
+                   CF_IMAGE_SUBSAMPLE: self._CM.get_config_item(CF_IMAGE_SUBSAMPLE)}
 
         self._restart_app = W.restart_app()
         if not self._restart_app:
@@ -123,8 +120,8 @@ class ConfigController(BaseController):
 
         # Depending on selections,
         # - Reset hidden popups
-        if CM.get_config_item(CF_SHOW_ALL_POPUPS):
-            CM.set_config_item(CF_HIDDEN_POPUPS, {})
+        if self._CM.get_config_item(CF_SHOW_ALL_POPUPS):
+            self._CM.set_config_item(CF_HIDDEN_POPUPS, {})
 
     def _handle_row(self, VM, row_no):
         self._result = Result()
@@ -151,7 +148,7 @@ class ConfigController(BaseController):
     def _config_folder_selected(self, cf_item):
         self._result = Result()
         # User may have been canceled the PopUp, or selected the same folder.
-        if CM.get_config_item(cf_item) == self._prv_values.get(cf_item, EMPTY):
+        if self._CM.get_config_item(cf_item) == self._prv_values.get(cf_item, EMPTY):
             self._result.code = ResultCode.Canceled
             return
 
@@ -160,7 +157,7 @@ class ConfigController(BaseController):
             # Main output location has been changed. This also contains the database (in subfolder Data).
             # So a simple update (oops) is not possible...
             from_dir = self._prv_values[cf_item]
-            to_dir = CM.get_config_item(cf_item)
+            to_dir = self._CM.get_config_item(cf_item)
 
             # Validation: From output folder must contain ONLY the supported subdirs.
             if not self._validation_manager.is_valid_existing_output_dir(from_dir):
@@ -204,18 +201,18 @@ class ConfigController(BaseController):
             if not self._result.OK:
                 self._cancel_smoothly(cf_item)
                 return
-            self._prv_values[cf_item] = CM.get_config_item(cf_item)
+            self._prv_values[cf_item] = self._CM.get_config_item(cf_item)
             self._model.do_import = True
 
         # Write the config to disk
-        CM.write_config()
+        self._CM.write_config()
 
     def _cancel_smoothly(self, cf_item):
         text = self._result.get_messages_as_message()
         if text:
             Info().info('config_canceled_smoothly', title='Geannuleerd', text=text)
         # Reset
-        CM.set_config_item(cf_item, self._prv_values[cf_item])
+        self._CM.set_config_item(cf_item, self._prv_values[cf_item])
         self._result = Result()
 
     def _create_output_dir(self, to_dir):

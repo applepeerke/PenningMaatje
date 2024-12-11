@@ -11,7 +11,6 @@ from src.DL.Config import CF_COMBO_SUMMARY, CF_SUMMARY_YEAR, CF_SUMMARY_MONTH_FR
 from src.DL.Enums.Enums import Summary
 from src.DL.IO.OpeningBalanceIO import OpeningBalanceIO
 from src.DL.Lexicon import SUMMARY
-from src.GL.BusinessLayer.ConfigManager import ConfigManager
 from src.GL.Enums import ResultCode
 from src.GL.Functions import FloatToStr, maybeFloat
 from src.GL.Result import Result
@@ -29,7 +28,6 @@ class SummaryWindow(BaseWindow):
         super().__init__('SummaryWindow', f'{SUMMARY} opties', WindowType.PopUp_with_statusbar)
         self._view = SummaryView()
         self._te_rows = te_rows
-        self._CM = ConfigManager()
         self._summary_manager = SummaryDriver()
         self._OB_IO = OpeningBalanceIO()
 

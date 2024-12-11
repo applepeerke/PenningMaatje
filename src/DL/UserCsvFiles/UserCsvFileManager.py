@@ -10,6 +10,7 @@ import os
 import shutil
 from os import listdir
 
+from src.Base import Base
 from src.DL.Config import CF_IMPORT_PATH_BOOKING_CODES, CF_IMPORT_PATH, TABLE_PROPERTIES, FILE_NAME
 from src.DL.DBDriver.AttType import AttType
 from src.DL.DBDriver.Audit import Program_mutation
@@ -29,9 +30,8 @@ from src.DL.Report import *
 from src.DL.UserCsvFiles.Cache.BookingCodeCache import Singleton as BookingCodeCache
 from src.DL.UserCsvFiles.Cache.CounterAccountCache import Singleton as CounterAccountCache
 from src.DL.UserCsvFiles.Cache.SearchTermCache import Singleton as SearchTermCache
-from src.GL.BusinessLayer.ConfigManager import ConfigManager, get_label
+from src.GL.BusinessLayer.ConfigManager import get_label
 from src.GL.BusinessLayer.CsvManager import CsvManager
-from src.GL.BusinessLayer.SessionManager import Singleton as Session
 from src.GL.Const import USER_MUTATIONS_FILE_NAME, EXT_CSV, MUTATION_PGM_TE, \
     MUTATION_PGM_BC, COMMA_SOURCE
 from src.GL.Enums import Color, MessageSeverity, ResultCode
@@ -43,7 +43,6 @@ from src.VL.Data.Constants.Const import LABEL_WORK_WITH_BOOKINGS, PROTECTED_BOOK
 PGM = 'UserCsvFileManager'
 
 model = Model()
-CM = ConfigManager()
 csvm = CsvManager()
 BCM = BookingCodeCache()
 
@@ -54,28 +53,20 @@ c_remarks = model.get_column_number(Table.TransactionEnriched, FD.Remarks)
 c_counter_account_id = model.get_column_number(Table.TransactionEnriched, FD.Counter_account_id)
 
 
-def get_backup_dirs() -> list:
-    """ return: Backup/restore dirs on date (recent first)"""
-    return sorted(
-        [d for d in listdir(Session().backup_dir) if os.path.isdir(f'{Session().backup_dir}{d}')], reverse=True) \
-        if Session().backup_dir \
-        else []
-
-
-class UserCsvFileManager(object):
+class UserCsvFileManager(Base):
 
     @property
     def result(self):
         return self._result
 
     def __init__(self):
+        super().__init__()
         self._result = Result()
-        self._session = Session()
         self._error_title = EMPTY
         self._bookings_ok = False
         self._booking_codes = set()
         self._existing_booking_codes = set()
-        self._backup_sub_dirs = get_backup_dirs()
+        self._backup_sub_dirs = self.get_backup_dirs()
 
         self._user_mutations_path = f'{self._session.backup_dir}{USER_MUTATIONS_FILE_NAME}{EXT_CSV}' \
             if self._session.backup_dir else EMPTY
@@ -92,6 +83,14 @@ class UserCsvFileManager(object):
         self._search_term_io = SearchTermIO()
         self._annual_account_io = AnnualAccountIO()
         self._opening_balance_io = OpeningBalanceIO()
+
+    def get_backup_dirs(self) -> list:
+        """ return: Backup/restore dirs on date (recent first)"""
+        return sorted(
+            [d for d in listdir(
+                self._session.backup_dir) if os.path.isdir(f'{self._session.backup_dir}{d}')], reverse=True) \
+            if self._session.backup_dir \
+            else []
 
     def validate_csv_files(self, full_check=False) -> Result:
         """
@@ -161,7 +160,7 @@ class UserCsvFileManager(object):
         if table_name == Table.AnnualAccount:
             return
 
-        path = CM.get_config_item(cf_code)
+        path = self._CM.get_config_item(cf_code)
         self._prefix = f'Fout in bestand "{path}":\n'
 
         # B. Check header
@@ -248,7 +247,7 @@ class UserCsvFileManager(object):
             self._result.add_message(
                 f'{Color.RED}Fout in bestand{Color.NC} "{path}:\n'
                 f'Boeking "{booking_code}" in regel {row_no} kolom 1 moet bestaan in '
-                f'"{CM.get_config_item(CF_IMPORT_PATH_BOOKING_CODES)}".',
+                f'"{self._CM.get_config_item(CF_IMPORT_PATH_BOOKING_CODES)}".',
                 severity=MessageSeverity.Error)
 
     def is_valid_csv_header(self, table_name, path, message_prefix=EMPTY, has_id=False) -> bool:
@@ -297,7 +296,7 @@ class UserCsvFileManager(object):
 
         # A. Booking.csv, SearchTerm.csv, ...
         #   Get most recent restore folder
-        restore_dir = normalize_dir(f'{Session().backup_dir}{self._backup_sub_dirs[0]}')
+        restore_dir = normalize_dir(f'{self._session.backup_dir}{self._backup_sub_dirs[0]}')
         for table_name in model.csv_tables:
             self.rename_and_clean_booking_code_in_user_csv_file(
                 table_name,
@@ -388,7 +387,7 @@ class UserCsvFileManager(object):
         Strict amount validation to prevent db pollution.
         """
         # Get the validated path, else the basic path.
-        path = CM.get_config_item(TABLE_PROPERTIES[table_name][CF_IMPORT_PATH])
+        path = self._CM.get_config_item(TABLE_PROPERTIES[table_name][CF_IMPORT_PATH])
         if restore_paths:
             path = restore_paths.get(table_name, path)
         rows = csvm.get_rows(data_path=path, include_header_row=True)
@@ -479,11 +478,11 @@ class UserCsvFileManager(object):
 
         # Set the path (or empty) in config
         cf_code = TABLE_PROPERTIES[table_name][CF_IMPORT_PATH]
-        if cf_code not in CM.config_dict:
+        if cf_code not in self._CM.config_dict:
             self._result.add_message(f'{PGM}: Missing config item {cf_code}', MessageSeverity.Error)
             return False
 
-        CM.set_config_item(cf_code, path)
+        self._CM.set_config_item(cf_code, path)
         return True if path else False
 
     @staticmethod

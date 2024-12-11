@@ -22,7 +22,7 @@ TE_dict_by_colno = model.get_colno_per_report_colhdg(Table.TransactionEnriched)
 TX_dict = model.get_colno_per_att_name(Table.Transaction)
 
 
-class Report(object):
+class Report:
     # Reports
     CsvExport = 'CsvExport'
 

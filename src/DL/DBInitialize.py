@@ -1,9 +1,8 @@
+from src.Base import Base
 from src.DL.DBDriver.Att import Att
 from src.DL.DBDriver.DBDriver import DBDriver
-from src.DL.Model import Model, FD
 from src.DL.Lexicon import TRANSACTIONS
-from src.GL.BusinessLayer.ConfigManager import ConfigManager
-from src.GL.BusinessLayer.SessionManager import Singleton as Session
+from src.DL.Model import Model, FD
 from src.GL.Const import APP_NAME, FFD, EMPTY
 from src.GL.Enums import ResultCode, MessageSeverity as Sev, Color, ActionCode
 from src.GL.GeneralException import GeneralException
@@ -11,13 +10,11 @@ from src.GL.Result import Result
 
 PGM = 'DBInitialize'
 model = Model()
-session = Session()
-CM = ConfigManager()
 
-
-class DBInitialize(object):
+class DBInitialize(Base):
 
     def __init__(self):
+        super().__init__()
         self._db = None
         self._result = Result()
 
@@ -25,7 +22,7 @@ class DBInitialize(object):
         self._result = Result()
 
         # Connect
-        self._connect(session.database_dir)
+        self._connect(self._session.database_dir)
         if not self._result.OK:
             return self._result
 
@@ -33,7 +30,7 @@ class DBInitialize(object):
             self._build()
 
         # Store in session
-        session.db = self._db
+        self._session.db = self._db
 
         # Check consistency
         if not self.is_consistent():
@@ -118,7 +115,7 @@ class DBInitialize(object):
     def _connect(self, db_dir=None, db_name=APP_NAME):
 
         # Validate
-        if not session:
+        if not self._session:
             self._result.add_message(f'{PGM}: Er is nog geen sessie.', Sev.Error)
             return
 
@@ -137,7 +134,7 @@ class DBInitialize(object):
             return
 
         # Set driver in session
-        session.db_name = f'{db_name}.db'
+        self._session.db_name = f'{db_name}.db'
         return
 
     def _build(self):

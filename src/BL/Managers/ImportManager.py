@@ -26,7 +26,6 @@ from src.DL.UserCsvFiles.Cache.BookingCodeCache import Singleton as BookingCodeC
 from src.DL.UserCsvFiles.Cache.SearchTermCache import Singleton as SearchTermCache
 from src.DL.UserCsvFiles.Cache.UserMutationsCache import Singleton as UserMutationsCache, get_te_key
 from src.DL.UserCsvFiles.UserCsvFileManager import UserCsvFileManager
-from src.GL.BusinessLayer.ConfigManager import ConfigManager
 from src.GL.BusinessLayer.CsvManager import CsvManager
 from src.GL.Const import UNKNOWN, BLANK, EMPTY
 from src.GL.Enums import Color, MessageSeverity as Sev, MessageSeverity, ActionCode
@@ -50,7 +49,6 @@ PGM = 'ImportManager'
 
 model = Model()
 csvm = CsvManager()
-CM = ConfigManager()
 
 BCM = BookingCodeCache()
 STM = SearchTermCache()
@@ -61,10 +59,6 @@ TE_dict_1 = model.get_colno_per_att_name(Table.TransactionEnriched, zero_based=F
 TX_dict = model.get_att_name_per_colno(Table.Transaction)
 bk_dict = model.get_colno_per_att_name(Table.BookingCode, zero_based=False)
 
-comma_source = CM.get_config_item(CF_COMMA_REPRESENTATION_DISPLAY, ',')
-threshold_to_other_pos = CM.get_config_item(CF_AMOUNT_THRESHOLD_TO_OTHER, 0)
-threshold_to_other_min = threshold_to_other_pos * -1
-
 
 class ImportManager(BaseManager):
 
@@ -73,6 +67,10 @@ class ImportManager(BaseManager):
         self._unit_test = unit_test
         self._verbose = False
         self._counter = 0
+
+        self._comma_source = self._CM.get_config_item(CF_COMMA_REPRESENTATION_DISPLAY, ',')
+        self._threshold_to_other_pos = self._CM.get_config_item(CF_AMOUNT_THRESHOLD_TO_OTHER, 0)
+        self._threshold_to_other_min = self._threshold_to_other_pos * -1
 
         self._validation_manager = Validator()
         self._user_csv_manager = UserCsvFileManager()
@@ -92,7 +90,7 @@ class ImportManager(BaseManager):
     def start(self, import_user_csv_files=True) -> Result:
         global error_count, total_count, warning_count
 
-        self._verbose = CM.get_config_item(CF_VERBOSE)
+        self._verbose = self._CM.get_config_item(CF_VERBOSE)
 
         error_count, total_count, warning_count = 0, 0, 0
 
@@ -191,7 +189,7 @@ class ImportManager(BaseManager):
         return self._result
 
     def _progress(self, step_no, message):
-        if not self._session.unit_test and CM.get_config_item(CF_VERBOSE) and not self._session.CLI_mode:
+        if not self._session.unit_test and self._CM.get_config_item(CF_VERBOSE) and not self._session.CLI_mode:
             from src.VL.Functions import progress_meter
             progress_meter(
                 step_no - 1, self._progress_steps_total, 'Importeren', 'Importeren', message_1=message)
@@ -239,8 +237,8 @@ class ImportManager(BaseManager):
         self._validation_manager.validate_config_dir(CF_INPUT_DIR)
         TransactieFiles = sorted(self._validation_manager.transaction_files.values(), key=lambda m: m.key)
         if len(TransactieFiles) > 1 and not self._session.CLI_mode:
-            from src.VL.Windows.General.MessageBox import message_box
-            message_box(f'Een moment geduld a.u.b...\n'
+            from src.VL.Windows.General.MessageBox import MessageBox
+            MessageBox().message_box(f'Een moment geduld a.u.b...\n'
                         f'{len(TransactieFiles)} bestanden met {TRANSACTIONS} moeten worden geimporteerd.\n'
                         f'Daarna wordt de app opnieuw gestart.')
 
@@ -259,7 +257,7 @@ class ImportManager(BaseManager):
             # Format rows
             out_rows = []
             for row in csv_rows:
-                amount = toFloat(row[d[FD.Amount]], comma_source=comma_source)
+                amount = toFloat(row[d[FD.Amount]], comma_source=self._comma_source)
                 # Sanitize amount
                 row[d[FD.Amount]] = amount
                 # Remember if amount is signed
@@ -287,8 +285,8 @@ class ImportManager(BaseManager):
 
         # b. Add accounts.
         self._account_io.persist_accounts()
-        iban = self._account_io.get_current_iban(CM.get_config_item(CF_IBAN))
-        CM.set_config_item(CF_IBAN, iban)
+        iban = self._account_io.get_current_iban(self._CM.get_config_item(CF_IBAN))
+        self._CM.set_config_item(CF_IBAN, iban)
 
         # b. Add counter accounts (without booking yet).
         for counter_account_number, row in counter_accounts.items():
@@ -420,7 +418,7 @@ class ImportManager(BaseManager):
 
             # Boeking
             # - Bedrag lager dan drempel
-            if threshold_to_other_min < out_row[c_amount] < threshold_to_other_pos:
+            if self._threshold_to_other_min < out_row[c_amount] < self._threshold_to_other_pos:
                 protected_maingroup = OTHER_COSTS if sign else OTHER_REVENUES
                 booking_code = BCM.get_protected_booking_code(protected_maingroup)
             else:

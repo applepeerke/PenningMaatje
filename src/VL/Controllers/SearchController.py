@@ -11,9 +11,6 @@ from src.DL.Config import CMD_HELP_WITH_SEARCH, \
     CMD_SEARCH_RESET, CMD_SEARCH
 from src.VL.Controllers.BaseController import BaseController
 from src.VL.Functions import help_message
-from src.GL.BusinessLayer.ConfigManager import ConfigManager
-
-CM = ConfigManager()
 
 PGM = 'SearchController'
 
@@ -25,8 +22,8 @@ class SearchController(BaseController):
         self._model = model
         self._transactions_IO = transactionIO
         # Toggle Empty-Booking to Search-mode
-        if CM.is_search_for_empty_booking_mode():
-            CM.initialize_search_criteria()
+        if self._CM.is_search_for_empty_booking_mode():
+            self._CM.initialize_search_criteria()
 
     def handle_event(self, event):
         super().handle_event(event)
@@ -40,7 +37,7 @@ class SearchController(BaseController):
             self._result = self._transactions_IO.search()
 
         elif self._event_key == CMD_SEARCH_RESET:
-            CM.initialize_search_criteria()
+            self._CM.initialize_search_criteria()
 
     def get_combo_data(self, name) -> list:
         return self._model.DD.get_combo_items(name)

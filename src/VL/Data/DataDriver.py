@@ -3,6 +3,7 @@ import fnmatch
 import os
 from os import listdir
 
+from src.Base import Base
 from src.DL.Config import CF_BACKUP_RETENTION_MONTHS, LEEG, TABLE_PROPERTIES, FILE_NAME, NIET_LEEG
 from src.DL.DBDriver.Att import Att
 from src.DL.DBInitialize import DBInitialize
@@ -10,9 +11,7 @@ from src.DL.IO.AccountIO import AccountIO
 from src.DL.Model import Model, FD, ID
 from src.DL.Table import Table
 from src.DL.UserCsvFiles.Cache.BookingCodeCache import Singleton as BookingCodeCache
-from src.GL.BusinessLayer.ConfigManager import ConfigManager
 from src.GL.BusinessLayer.CsvManager import CsvManager
-from src.GL.BusinessLayer.SessionManager import Singleton as Session
 from src.GL.Const import EMPTY
 from src.GL.Functions import file_staleness_in_days
 from src.GL.Result import Result
@@ -21,7 +20,6 @@ from src.GL.Validate import normalize_dir
 PGM = 'Data_Driver'
 
 BCM = BookingCodeCache()
-CM = ConfigManager()
 csvm = CsvManager()
 
 model = Model()
@@ -39,7 +37,7 @@ def _find_files_for_type(file_type, basedir=os.curdir):
 class Singleton:
     """ Singleton """
 
-    class DataDriver(object):
+    class DataDriver(Base):
         """Implementation of Singleton interface """
 
         @property
@@ -51,6 +49,7 @@ class Singleton:
             return self._db
 
         def __init__(self):
+            super().__init__()
             self._result = Result()
             self._combos = {}
             self._db = None
@@ -61,8 +60,8 @@ class Singleton:
                 return
 
             self._result = DBInitialize().start(build)
-            if self._result.OK and Session().db:
-                self._db = Session().db
+            if self._result.OK and self._session.db:
+                self._db = self._session.db
                 self._db_started = True
 
         """ 
@@ -191,14 +190,12 @@ class Singleton:
         Save user updates
         """
 
-        @staticmethod
-        def export_user_tables():
+        def export_user_tables(self):
             """ Booking related user tables (CounterAccounts, SearchTerms) - backup whole table """
-            session = Session()
-            backup_dir = session.backup_dir
+            backup_dir = self._session.backup_dir
 
             tables_to_backup = \
-                [table_name for table_name, changed in session.user_tables_changed.items()
+                [table_name for table_name, changed in self._session.user_tables_changed.items()
                  if changed is True]
             if not tables_to_backup:
                 return
@@ -208,13 +205,13 @@ class Singleton:
                 f'{backup_dir}{datetime.datetime.now().strftime("%Y%m%d")}', create=True)
 
             # - Backup
-            [session.db.export_table_to_csv(
+            [self._session.db.export_table_to_csv(
                 table_name,
                 f'{backup_subdir}{TABLE_PROPERTIES.get(table_name, {}).get(FILE_NAME, EMPTY)}', include_id=False)
                 for table_name in tables_to_backup]
 
             # - Initialize "made-changes" session flags.
-            [session.set_user_table_changed(table_name, value=False)
+            [self._session.set_user_table_changed(table_name, value=False)
              for table_name in tables_to_backup]
 
         def update_fields(self, Id, table_name, fields):
@@ -226,9 +223,9 @@ class Singleton:
         """
 
         def delete_stale_files(self, retention_days=None):
-            data_dir = Session().backup_dir
+            data_dir = self._session.backup_dir
             retention_days = retention_days if retention_days is not None \
-                else int(CM.get_config_item(CF_BACKUP_RETENTION_MONTHS) or 12) * 30
+                else int(self._CM.get_config_item(CF_BACKUP_RETENTION_MONTHS) or 12) * 30
 
             # Sort by date (desc)
             path_list = sorted(

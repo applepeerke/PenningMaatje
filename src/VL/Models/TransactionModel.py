@@ -3,7 +3,7 @@ from src.DL.Model import FD
 from src.DL.Table import Table
 from src.DL.UserCsvFiles.Cache.BookingCodeCache import Singleton as BookingCodeCache
 from src.DL.UserCsvFiles.Cache.CounterAccountCache import Singleton as AccountCache
-from src.VL.Models.BaseModel import model, CM, DD
+from src.VL.Models.BaseModel import model, DD
 from src.VL.Models.BaseModelTable import BaseModelTable
 from src.GL.Const import EMPTY, BLANK
 from src.GL.Functions import FloatToStr
@@ -88,8 +88,8 @@ class TransactionModel(BaseModelTable):
         self._transaction_date = EMPTY
         self._transaction_time = EMPTY
         self._remarks = EMPTY
-        self._comma_db = CM.config_dict.get(CF_COMMA_REPRESENTATION_DB, '.')
-        self._display = CM.config_dict.get(CF_COMMA_REPRESENTATION_DISPLAY, ',')
+        self._comma_db = self._CM.config_dict.get(CF_COMMA_REPRESENTATION_DB, '.')
+        self._display = self._CM.config_dict.get(CF_COMMA_REPRESENTATION_DISPLAY, ',')
 
     def set_data(self, row):
         if not row:
@@ -118,7 +118,7 @@ class TransactionModel(BaseModelTable):
         self._remarks = row[TE_dict[FD.Remarks]]
 
     def update_from_config(self):
-        self._remarks = CM.get_config_item(CF_REMARKS)
+        self._remarks = self._CM.get_config_item(CF_REMARKS)
 
     @staticmethod
     def format_mededelingen(mededelingen) -> str:

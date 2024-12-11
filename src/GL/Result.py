@@ -262,7 +262,7 @@ class Result(object):
 
     def get_box_message(self, min_severity=MessageSeverity.Error, cont_text=False) -> bool:
         """ return: Confirmed flag """
-        from src.VL.Windows.General.MessageBox import message_box
+        from src.VL.Windows.General.MessageBox import MessageBox
         severity = self._severity
         box_result: BoxResult = self._get_message_box_result(min_severity)
         severity = int(max(str(severity), str(box_result.max_severity)))
@@ -270,7 +270,7 @@ class Result(object):
         if severity < min_severity:
             severity = MessageSeverity.Completion if box_result.is_completion_message \
                 else MessageSeverity.Info
-        return message_box(box_result.message, severity=severity, cont_text=cont_text)
+        return MessageBox().message_box(box_result.message, severity=severity, cont_text=cont_text)
 
     def _get_message_box_result(
             self, min_severity=MessageSeverity.Error, max_lines=20, sophisticate=True, dft=EMPTY) -> BoxResult:

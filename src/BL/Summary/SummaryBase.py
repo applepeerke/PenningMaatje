@@ -6,19 +6,18 @@
 # ---------- --- ------------------------------------------------------------------------------------------------------
 # 2022-06-08 PHe First creation
 # ---------------------------------------------------------------------------------------------------------------------
+from src.Base import Base
 from src.DL.Model import FD
 from src.DL.Objects.Figure import Figure
 from src.DL.Objects.TimelineItem import TimelineItem
 from src.DL.UserCsvFiles.Cache.BookingCodeCache import Singleton as BookingCodeCache
 from src.DL.Lexicon import TRANSACTIONS
 from src.GL.BusinessLayer.CsvManager import CsvManager
-from src.GL.BusinessLayer.SessionManager import Singleton as Session
 from src.GL.Const import EMPTY
 from src.GL.Enums import MessageSeverity
 from src.GL.Result import Result
 from src.GL.Validate import isInt
 
-session = Session()
 csvm = CsvManager()
 BCM = BookingCodeCache()
 
@@ -36,9 +35,10 @@ def sanitize_value(item: TimelineItem) -> int:
     return 0 if item.amount == EMPTY else item.amount
 
 
-class SummaryBase:
+class SummaryBase(Base):
 
     def __init__(self):
+        super().__init__()
         self._te_rows = []
         self._formatted_rows = []
         self._report = None

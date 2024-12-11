@@ -27,7 +27,6 @@ class SearchResults(SummaryBase):
 
     def __init__(self):
         super().__init__()
-        self._session = Session()
 
         self._dialog = None
         if not self._session.CLI_mode:

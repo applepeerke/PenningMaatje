@@ -8,11 +8,12 @@
 # ---------------------------------------------------------------------------------------------------------------------
 from os import listdir
 
+from src.Base import Base
 from src.DL.Config import CF_INPUT_DIR, CF_OUTPUT_DIR
+from src.DL.Lexicon import TRANSACTION, TRANSACTIONS, CSV_FILE, INPUT_DIR, OUTPUT_DIR
 from src.DL.Objects.TransactionFile import TransactionFile
 from src.DL.Report import *
-from src.DL.Lexicon import TRANSACTION, TRANSACTIONS, CSV_FILE, INPUT_DIR, OUTPUT_DIR
-from src.GL.BusinessLayer.ConfigManager import ConfigManager, get_label
+from src.GL.BusinessLayer.ConfigManager import get_label
 from src.GL.BusinessLayer.CsvManager import CsvManager
 from src.GL.BusinessLayer.SessionManager import OUTPUT_SUBDIRS
 from src.GL.Const import APP_NAME
@@ -21,16 +22,14 @@ from src.GL.Result import Result
 from src.GL.Validate import *
 
 
-CM = ConfigManager()
-
-
-class Validator:
+class Validator(Base):
 
     @property
     def transaction_files(self):
         return self._transaction_files
 
     def __init__(self):
+        super().__init__()
         self._transaction_files = {}
         self._invalid_input_filenames = []
 
@@ -48,7 +47,7 @@ class Validator:
 
         # Folder naam
         if not dirname:
-            dirname = CM.get_config_item(cf_code)
+            dirname = self._CM.get_config_item(cf_code)
         title = f'{get_label(cf_code)} is ongeldig:\n"{dirname}".\n\n'
 
         if not dirname or not os.path.isdir(dirname):
@@ -88,7 +87,7 @@ class Validator:
                         solution = f'Kies een folder die alleen {CSV_FILE}en met geldige {TRANSACTIONS} bevat.\n'
 
         elif cf_code == CF_OUTPUT_DIR:
-            input_dir = CM.get_config_item(CF_INPUT_DIR)
+            input_dir = self._CM.get_config_item(CF_INPUT_DIR)
             if not input_dir:
                 problem = f'Probleem:\n{INPUT_DIR} is nog niet geconfigureerd.'
             elif dirname == input_dir:

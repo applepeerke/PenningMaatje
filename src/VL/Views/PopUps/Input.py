@@ -9,12 +9,12 @@ from src.DL.Lexicon import CONFIG
 from src.VL.Data.WTyp import WTyp
 from src.VL.Functions import get_name_from_key, get_width, help_message, is_help_available
 from src.VL.Views.BaseView import BaseView
-from src.VL.Windows.General.MessageBox import message_box
 from src.GL.BusinessLayer.ConfigManager import get_label
 from src.GL.Const import EMPTY
 from src.GL.Functions import is_valid_file
 from src.GL.Result import Result
 from src.GL.Validate import normalize_dir
+from src.VL.Windows.General.MessageBox import MessageBox
 
 FRAME_HELP = 'Help bij input box'
 
@@ -52,7 +52,7 @@ class Input(BaseView):
         """ Key: E.g. CF_WORKING_DIR """
         # Optionally first show result from parent while loop
         if not result.OK:
-            message_box(result.get_messages_as_message(), severity=result.severity)
+            MessageBox().message_box(result.get_messages_as_message(), severity=result.severity)
         # Go!
         dft = self.get_setting(key) or EMPTY
         if self._session.unit_test and dft:

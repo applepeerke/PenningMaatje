@@ -10,20 +10,18 @@ from src.DL.DBDriver.Att import Att
 from src.DL.DBDriver.AttType import AttType
 from src.DL.DBDriver.SQLOperator import SQLOperator
 from src.DL.IO.BaseIO import BaseIO
+from src.DL.Lexicon import TRANSACTIONS
 from src.DL.Model import FD, Model
 from src.DL.Table import Table
-from src.VL.Data.Constants.Const import LEEG, NIET_LEEG, OTHER_COSTS, OTHER_REVENUES
-from src.DL.Lexicon import TRANSACTIONS
-from src.GL.BusinessLayer.ConfigManager import ConfigManager
+from src.DL.UserCsvFiles.Cache.BookingCodeCache import Singleton as BookingCodeCache
 from src.GL.Const import EMPTY
 from src.GL.Enums import ResultCode
 from src.GL.Functions import FloatToStr, tuple_to_value, toFloat
 from src.GL.GeneralException import GeneralException
 from src.GL.Result import Result
 from src.GL.Validate import toBool, isInt
-from src.DL.UserCsvFiles.Cache.BookingCodeCache import Singleton as BookingCodeCache
+from src.VL.Data.Constants.Const import LEEG, NIET_LEEG, OTHER_COSTS, OTHER_REVENUES
 
-CM = ConfigManager()
 oper = SQLOperator()
 
 PGM = 'TransactionsIO'
@@ -53,8 +51,8 @@ class TransactionsIO(BaseIO, ABC):
 
     def __init__(self):
         super().__init__(TABLE)
-        self._comma_target = CM.get_config_item(CF_COMMA_REPRESENTATION_DB)
-        self._comma_source = CM.get_config_item(CF_COMMA_REPRESENTATION_DISPLAY)
+        self._comma_target = self._CM.get_config_item(CF_COMMA_REPRESENTATION_DB)
+        self._comma_source = self._CM.get_config_item(CF_COMMA_REPRESENTATION_DISPLAY)
         self._where_atts = []
         self._dialog_mode = False
         self._rows = []
@@ -97,7 +95,7 @@ class TransactionsIO(BaseIO, ABC):
         if not self._rows:
             result = Result(text=f'{title}Geen {TRANSACTIONS} gevonden.')
         else:
-            if CM.is_search_for_empty_booking_mode():
+            if self._CM.is_search_for_empty_booking_mode():
                 # Sort (list counter_account with most rows first)
                 # Get rows per counter_account_id
                 account_ids = {}
@@ -136,24 +134,26 @@ class TransactionsIO(BaseIO, ABC):
     def _get_where_from_config(self, att_name_text=FD.Name, dialog=False) -> Optional[list]:
         """ att_name_text:  Naam (1st time), Bijzonderheden, Mededelingen """
         self._where_atts = []
-        amount = toFloat(CM.config_dict[CF_SEARCH_AMOUNT], self._comma_source)
-        amount_to = toFloat(CM.config_dict[CF_SEARCH_AMOUNT_TO], self._comma_source)
+        amount = toFloat(self._CM.config_dict[CF_SEARCH_AMOUNT], self._comma_source)
+        amount_to = toFloat(self._CM.config_dict[CF_SEARCH_AMOUNT_TO], self._comma_source)
         amount = EMPTY if amount == 0 else amount
         amount_to = EMPTY if amount_to == 0 else amount
 
-        self._add_where_att(FD.Year, 'int', self._get_int_value(tuple_to_value(CM.get_config_item(CF_SEARCH_YEAR))))
-        self._add_where_att(FD.Month, 'int', self._get_int_value(tuple_to_value(CM.get_config_item(CF_SEARCH_MONTH))))
+        self._add_where_att(FD.Year, 'int', self._get_int_value(tuple_to_value(
+            self._CM.get_config_item(CF_SEARCH_YEAR))))
+        self._add_where_att(FD.Month, 'int', self._get_int_value(tuple_to_value(
+            self._CM.get_config_item(CF_SEARCH_MONTH))))
         self._add_where_att(FD.Amount_signed, 'float', amount, relation=oper.EQ if not amount_to else oper.GE)
         self._add_where_att(FD.Amount_signed, 'float', amount_to, relation=oper.LE)
-        self._add_where_att(FD.Transaction_code, 'str', CM.get_config_item(CF_SEARCH_TRANSACTION_CODE))
-        self._add_where_att(att_name_text, 'str', self._wildcard(CM.get_config_item(CF_SEARCH_TEXT)))
+        self._add_where_att(FD.Transaction_code, 'str', self._CM.get_config_item(CF_SEARCH_TRANSACTION_CODE))
+        self._add_where_att(att_name_text, 'str', self._wildcard(self._CM.get_config_item(CF_SEARCH_TEXT)))
         # Remarks checkbox
-        if toBool(CM.get_config_item(CF_SEARCH_REMARKS)):
+        if toBool(self._CM.get_config_item(CF_SEARCH_REMARKS)):
             att = self._model.get_att(Table.TransactionEnriched, FD.Remarks, value=EMPTY, relation=oper.NE)
             self._where_atts.append(copy(att))
         # Booking and Counter-account: Convert values to ids
         # - BookingCode
-        booking_code = BCM.get_code_from_combo_desc(CM.get_config_item(CF_SEARCH_BOOKING_CODE))
+        booking_code = BCM.get_code_from_combo_desc(self._CM.get_config_item(CF_SEARCH_BOOKING_CODE))
         if booking_code:
             if booking_code == LEEG:
                 Id = 0
@@ -162,7 +162,7 @@ class TransactionsIO(BaseIO, ABC):
                     Table.BookingCode, where=[Att(FD.Booking_code, booking_code)])
             self._add_where_att(FD.Booking_id, 'int', Id)
         # - CounterAccount
-        counter_account = CM.get_config_item(CF_SEARCH_COUNTER_ACCOUNT)
+        counter_account = self._CM.get_config_item(CF_SEARCH_COUNTER_ACCOUNT)
         if counter_account:
             if counter_account == NIET_LEEG:
                 self._add_where_att(FD.Counter_account_id, 'int', 0, relation=oper.GT)

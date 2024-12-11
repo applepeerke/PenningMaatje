@@ -10,14 +10,11 @@ from src.VL.Data.Constants.Color import *
 from src.VL.Data.Constants.Const import X1, P1, Y1, P
 from src.VL.Data.WTyp import WTyp
 from src.VL.Functions import gui_name_types, get_name_from_text
-from src.GL.BusinessLayer.ConfigManager import ConfigManager
-from src.GL.BusinessLayer.SessionManager import Singleton as Session
 from src.GL.Const import EMPTY, NONE, BLANK
 from src.GL.Functions import format_date
 from src.GL.GeneralException import GeneralException
 from src.GL.Validate import toBool, normalize_dir
 
-CM = ConfigManager()
 PGM = 'BaseView'
 
 
@@ -29,10 +26,6 @@ def width(items) -> int or None:
         if len(str(i)) > w:
             w = len(str(i))
     return w if w > 0 else None
-
-
-def get_tooltip(key):
-    return CM.get_tooltip(key)
 
 
 def get_button_text(text, button_text):
@@ -78,7 +71,6 @@ class BaseView(BaseGUI):
 
     def __init__(self, pane_name=None):
         super().__init__(pane_name)
-        self._session = Session()
         self._pane_name = pane_name
         self._set_theme()
         self._window = None
@@ -91,13 +83,15 @@ class BaseView(BaseGUI):
     def get_view(self) -> list:
         raise NotImplementedError(f'{PGM}: Method "get_view" has not been implemented for pane "{self._pane_name}".')
 
-    @staticmethod
-    def _set_theme():
-        theme = CM.get_config_item(CF_THEME, DEFAULT_THEME)
+    def get_tooltip(self, key):
+        return self._CM.get_tooltip(key)
+
+    def _set_theme(self):
+        theme = self._CM.get_config_item(CF_THEME, DEFAULT_THEME)
         if str(theme) in sg.theme_list():
             sg.theme(theme)
         else:
-            CM.set_config_item(CF_THEME, DEFAULT_THEME)
+            self._CM.set_config_item(CF_THEME, DEFAULT_THEME)
             sg.theme(DEFAULT_THEME)
 
     """
@@ -107,7 +101,7 @@ class BaseView(BaseGUI):
     def label(self, name, x=X1, k=None, tip=None, text_color=None, font=None):
         key_name = k or name
         return sg.Text(self._get_label(name), k=self.gui_key(key_name, WTyp.LA),
-                       size=(x, Y1), p=P1, tooltip=tip or get_tooltip(name),
+                       size=(x, Y1), p=P1, tooltip=tip or self.get_tooltip(name),
                        text_color=text_color, font=font)
 
     def button(self, text, x=X1, font=None, button_text=None, tip=True, visible=True, image_filename=None,
@@ -115,7 +109,7 @@ class BaseView(BaseGUI):
         self.set_gui_value_keys(text, WTyp.BT)
         return sg.Button(
             button_text=get_button_text(text, button_text), k=self.gui_key(text, WTyp.BT), size=(x, Y1), p=p, font=font,
-            disabled_button_color=COLOR_BUTTON_DISABLED, tooltip=get_tooltip(text) if tip else None,
+            disabled_button_color=COLOR_BUTTON_DISABLED, tooltip=self.get_tooltip(text) if tip else None,
             visible=visible, image_filename=image_filename, image_subsample=image_subsample,
             button_color=(COLOR_FOREGROUND, COLOR_BACKGROUND_HIGHLIGHTED_ROW) if transparent else None)
 
@@ -133,7 +127,7 @@ class BaseView(BaseGUI):
 
     def frame(self, key, content: list, title=EMPTY, border_width=0, relief=None, visible=True, p=P, justify='left',
               expand_y=False, expand_x=False, font=None) -> list:
-        font = CM.get_font(addition=4) if not font else font
+        font = self._CM.get_font(addition=4) if not font else font
         return [
             sg.Frame(title, content, k=self.gui_key(key, WTyp.FR), p=p, border_width=border_width, relief=relief,
                      visible=visible, element_justification=justify, expand_x=expand_x, expand_y=expand_y, font=font)]
@@ -158,7 +152,7 @@ class BaseView(BaseGUI):
         # Convert to DMY for output # Todo
         # For CalendarButton, only format='%Y-%m-%d' seems to work.
         dft = format_date(dft, 'YMD', output_format='DMY')
-        result = [self.label(name=key, x=x, tip=get_tooltip(key)),
+        result = [self.label(name=key, x=x, tip=self.get_tooltip(key)),
                   self._input_text(key, dft, x, evt, expand_x, disabled=disabled),
                   sg.CalendarButton('Calendar', k=self.gui_key(key, WTyp.CA), format=date_format,
                                     default_date_m_d_y=m_d_y, disabled=disabled, location=location)]
@@ -171,7 +165,7 @@ class BaseView(BaseGUI):
             dft = False
         return [sg.Checkbox(
             text=self._get_label(key), text_color=label_color, k=self.gui_key(key, WTyp.CB), default=dft, size=(x, Y1),
-            enable_events=evt, p=P1, tooltip=get_tooltip(key) if tip else None, disabled=disabled)]
+            enable_events=evt, p=P1, tooltip=self.get_tooltip(key) if tip else None, disabled=disabled)]
 
     def radio(self, key, group_id, x=X1, dft: bool = False, evt=True, disabled=False, tip=True, label_color=None):
         """ radio button """
@@ -180,7 +174,7 @@ class BaseView(BaseGUI):
             dft = False
         return [sg.Radio(
             text=self._get_label(key), group_id=group_id, text_color=label_color, k=self.gui_key(key, WTyp.RA),
-            default=dft, size=(x, Y1), enable_events=evt, p=P1, tooltip=get_tooltip(key) if tip else None)]
+            default=dft, size=(x, Y1), enable_events=evt, p=P1, tooltip=self.get_tooltip(key) if tip else None)]
     # Boxes with separate label
 
     # noinspection PyTypeChecker
@@ -214,7 +208,7 @@ class BaseView(BaseGUI):
               button_text=None, disabled=False, max=None, background_color=None, text_color=None,
               font=None):
         """ combo box """
-        max = CM.get_combo_max() if max is None else max
+        max = self._CM.get_combo_max() if max is None else max
         dft = items[0] if dft is None and len(items) == 1 else dft  # Single value
         result, dft = self._get_box_label_and_default(key, WTyp.CO, dft, x, disabled, font=font)
         background_color = background_color if background_color else COLOR_BACKGROUND_DISABLED if disabled else None
@@ -252,29 +246,23 @@ class BaseView(BaseGUI):
         label = get_config_label(text)
         return label or text
 
-    @staticmethod
-    def get_font(font_type=None, addition=0) -> tuple:
-        return CM.get_font(font_type, addition)
+    def get_font(self, font_type=None, addition=0) -> tuple:
+        return self._CM.get_font(font_type, addition)
 
-    @staticmethod
-    def _initialize_hidden_popup(popup_key):
-        return CM.initialize_hidden_popup(popup_key)
+    def _initialize_hidden_popup(self, popup_key):
+        return self._CM.initialize_hidden_popup(popup_key)
 
-    @staticmethod
-    def _update_hidden_popup(popup_key, hidden_popup_value):
-        return CM.update_hidden_popup(popup_key, hidden_popup_value)
+    def _update_hidden_popup(self, popup_key, hidden_popup_value):
+        return self._CM.update_hidden_popup(popup_key, hidden_popup_value)
 
-    @staticmethod
-    def _get_location(title):
-        return CM.get_location(title)
+    def _get_location(self, title):
+        return self._CM.get_location(title)
 
-    @staticmethod
-    def _set_location(title, location):
-        return CM.set_location(title, location)
+    def _set_location(self, title, location):
+        return self._CM.set_location(title, location)
 
-    @staticmethod
-    def _set_radio_button(key, value):
-        return CM.set_radio_button(key, value)
+    def _set_radio_button(self, key, value):
+        return self._CM.set_radio_button(key, value)
 
     # Private
     def _get_box_label_and_default(
@@ -290,7 +278,7 @@ class BaseView(BaseGUI):
             value = EMPTY
         dft = dft if value is None else value  # value may be "False" in a cbx!
         return [self.label(
-            name=label_name or key, x=x, tip=get_tooltip(key), text_color=text_color, font=font)], dft
+            name=label_name or key, x=x, tip=self.get_tooltip(key), text_color=text_color, font=font)], dft
 
     def _add_extras(self, result: list, extra_label, extra_label_key=None, button_text=None) -> list:
         if extra_label:
@@ -344,9 +332,8 @@ class BaseView(BaseGUI):
         if 'text' in kwargs:
             window[self.gui_key(widget_label, WTyp.LA)].update(value=kwargs['text'])
 
-    @staticmethod
-    def get_setting(k):
-        setting = CM.get_config_item(k)
+    def get_setting(self, k):
+        setting = self._CM.get_config_item(k)
         # Checkbox must be boolean
         if not setting or isinstance(setting, bool):
             return setting
@@ -355,9 +342,8 @@ class BaseView(BaseGUI):
         else:
             return setting
 
-    @staticmethod
-    def set_setting(k, value):
-        CM.set_config_item(k, value)
+    def set_setting(self, k, value):
+        self._CM.set_config_item(k, value)
 
     def default(self, setting):
         return self.get_setting(setting)

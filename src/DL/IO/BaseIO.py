@@ -1,27 +1,27 @@
+from src.Base import Base
 from src.DL.DBDriver.Att import Att
 from src.DL.Model import Model, FD
-from src.VL.Data.Constants.Enums import BoxCommand
-from src.GL.BusinessLayer.SessionManager import Singleton as Session
 from src.GL.Const import EMPTY, UNKNOWN
 from src.GL.Enums import Mutation, MessageSeverity, ActionCode
 from src.GL.GeneralException import GeneralException
 from src.GL.Result import Result
+from src.VL.Data.Constants.Enums import BoxCommand
 
 PGM = 'BaseIO'
 
 
-class BaseIO:
+class BaseIO(Base):
     @property
     def result(self):
         return self._result
 
     def __init__(self, table_name):
+        super().__init__()
         self._result = Result()
         self._table_name = table_name
         self._object = None
         self._object_old = None
         self._model = Model()
-        self._session = Session()
         if not self._session.CLI_mode:
             from src.VL.Views.PopUps.PopUp import PopUp
             self._dialog = PopUp()

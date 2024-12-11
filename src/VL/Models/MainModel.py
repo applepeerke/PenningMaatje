@@ -10,7 +10,7 @@ from src.DL.Model import FD
 from src.DL.Table import Table
 from src.VL.Data.Constants.Enums import Pane
 from src.DL.Lexicon import TRANSACTIONS, CMD_IMPORT_TE
-from src.VL.Models.BaseModel import model, CM, DD
+from src.VL.Models.BaseModel import model, DD
 from src.VL.Models.BaseModelTable import BaseModelTable
 from src.VL.Models.Panes.Accounts import Accounts
 from src.VL.Models.Panes.Log import Log
@@ -96,11 +96,11 @@ class MainModel(BaseModelTable):
         # - Year month overview (after changing account number)
         year_row_no = pane_row_no
         month_row_no = pane_row_no if pane == Pane.MS \
-            else CM.get_config_item(f'CF_ROW_NO_{Pane.MS}', 0) if pane == Pane.TE \
+            else self._CM.get_config_item(f'CF_ROW_NO_{Pane.MS}', 0) if pane == Pane.TE \
             else 0
 
         # In search_empty mode the TE_row may have been disappeared.
-        if pane == Pane.TX and CM.is_search_for_empty_booking_mode():
+        if pane == Pane.TX and self._CM.is_search_for_empty_booking_mode():
             pane_row_no = 0
 
         # Full refresh
@@ -110,32 +110,32 @@ class MainModel(BaseModelTable):
                 DD.initialize_combos()
                 self._account_numbers = DD.get_combo_items(FD.Iban)
                 # Other account number selected, or 1st time: set new iban.
-                iban = self._account_io.get_current_iban(CM.get_config_item(CF_IBAN))
-                CM.set_config_item(CF_IBAN, iban)
+                iban = self._account_io.get_current_iban(self._CM.get_config_item(CF_IBAN))
+                self._CM.set_config_item(CF_IBAN, iban)
             # Set year/month data
             self._year_month_io.refresh_data()
             if not duration_change:
                 # Get rid of pending values in config
-                CM.set_config_item(CF_REMARKS, EMPTY)
+                self._CM.set_config_item(CF_REMARKS, EMPTY)
                 # Set the months row from the first month with data and a reasonable transaction window.
                 year_row_no, month_row_no = self._initialize_ym_and_set_transaction_pane()
 
         # Config
         if duration_change:
             # Use current row numbers
-            year_row_no = CM.get_config_item(f'CF_ROW_NO_{Pane.YS}')
-            month_row_no = CM.get_config_item(f'CF_ROW_NO_{Pane.MS}')
+            year_row_no = self._CM.get_config_item(f'CF_ROW_NO_{Pane.YS}')
+            month_row_no = self._CM.get_config_item(f'CF_ROW_NO_{Pane.MS}')
         else:
             # Set current row numbers
             if not pane or pane == Pane.YS:
-                CM.set_config_item(f'CF_ROW_NO_{Pane.YS}', year_row_no)
-                CM.set_config_item(f'CF_ROW_NO_{Pane.MS}', 0)
-                CM.set_config_item(f'CF_ROW_NO_{Pane.TE}', 0)
+                self._CM.set_config_item(f'CF_ROW_NO_{Pane.YS}', year_row_no)
+                self._CM.set_config_item(f'CF_ROW_NO_{Pane.MS}', 0)
+                self._CM.set_config_item(f'CF_ROW_NO_{Pane.TE}', 0)
             elif not pane or pane == Pane.MS:
-                CM.set_config_item(f'CF_ROW_NO_{Pane.MS}', month_row_no)
-                CM.set_config_item(f'CF_ROW_NO_{Pane.TE}', 0)
+                self._CM.set_config_item(f'CF_ROW_NO_{Pane.MS}', month_row_no)
+                self._CM.set_config_item(f'CF_ROW_NO_{Pane.TE}', 0)
             elif not pane or pane == Pane.TE:
-                CM.set_config_item(f'CF_ROW_NO_{Pane.TE}', pane_row_no)
+                self._CM.set_config_item(f'CF_ROW_NO_{Pane.TE}', pane_row_no)
 
         # Set pane data
         # - Years
@@ -154,17 +154,17 @@ class MainModel(BaseModelTable):
         # - Transactions
         if not pane or (pane in (Pane.YS, Pane.MS, Pane.TE) and not TX_only):
             count = self._refresh_target_table_rows(Pane.MS, pane_target=Pane.TE, current_row_no=month_row_no)
-            if self._result.OK and CM.is_search_for_empty_booking_mode():
+            if self._result.OK and self._CM.is_search_for_empty_booking_mode():
                 self._result.text = f'{count} {TRANSACTIONS} gevonden.'
 
         # - Transaction (detail pane)
-        current_row_no = CM.get_config_item(f'CF_ROW_NO_{Pane.TE}', 0)
+        current_row_no = self._CM.get_config_item(f'CF_ROW_NO_{Pane.TE}', 0)
         self.set_transaction_pane(current_row_no=current_row_no)
         return self._result
 
     def _initialize_ym_and_set_transaction_pane(self) -> (int, int):
         # a. Get the most recent year for the selected account number
-        bban = get_BBAN_from_IBAN(CM.get_config_item(CF_IBAN))
+        bban = get_BBAN_from_IBAN(self._CM.get_config_item(CF_IBAN))
         TE_row = DD.db.fetch_one(
             Table.TransactionEnriched,
             where=[Att(FD.Account_bban, bban)],
@@ -173,7 +173,7 @@ class MainModel(BaseModelTable):
             return 0, 0
 
         # b. Get the month with the most "reasonable" amount of month transactions.
-        max_rows = CM.get_config_item(CF_ROWS_TRANSACTION, 0)
+        max_rows = self._CM.get_config_item(CF_ROWS_TRANSACTION, 0)
         year = int(TE_row[TE_dict[FD.Year]])
         month_counts = [self._get_month_transactions_count(bban, year, month) for month in range(1, 13)]
         month = 0
@@ -252,11 +252,10 @@ class MainModel(BaseModelTable):
             rows = self._pad_month_rows(rows)
         return rows
 
-    @staticmethod
-    def _get_pk_target(view_current, view_target, pane_target, row):
+    def _get_pk_target(self, view_current, view_target, pane_target, row):
         pk_current, pk_target = None, None
         if pane_target == Pane.TE:
-            pk_target = [Att(FD.Account_bban, get_BBAN_from_IBAN(CM.get_config_item(CF_IBAN)))]
+            pk_target = [Att(FD.Account_bban, get_BBAN_from_IBAN(self._CM.get_config_item(CF_IBAN)))]
         if view_target:
             pk_current = model.get_pk_atts_from_row(view_current.table_name, row)
             if pk_target:
@@ -281,9 +280,9 @@ class MainModel(BaseModelTable):
 
     def set_current_row_in_config(self, pane, row_no) -> int:
         Id = self._get_current_row_id(pane, row_no)
-        CM.set_config_item(f'CF_ID_{pane}', Id)
+        self._CM.set_config_item(f'CF_ID_{pane}', Id)
         if row_no > -1:
-            CM.set_config_item(f'CF_ROW_NO_{pane}', row_no)
+            self._CM.set_config_item(f'CF_ROW_NO_{pane}', row_no)
         return Id
 
     def _get_current_row_id(self, pane, row_no) -> int:

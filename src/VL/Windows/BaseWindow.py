@@ -6,8 +6,6 @@ from src.DL.Objects.Window import Window
 from src.VL.BaseGUI import BaseGUI
 from src.VL.Data.Constants.Enums import WindowType
 from src.VL.Functions import get_name_from_key, status_message
-from src.GL.BusinessLayer.ConfigManager import ConfigManager
-from src.GL.BusinessLayer.SessionManager import Singleton as Session
 from src.GL.Const import EMPTY
 from src.GL.Enums import MessageSeverity, ActionCode, ResultCode
 from src.GL.GeneralException import GeneralException
@@ -55,8 +53,6 @@ class BaseWindow(BaseGUI):
         self._Id = 0
         self._result = Result()
         self._event_value_previous = EMPTY
-        self._CM = ConfigManager()
-        self._session = Session()
         self._statusbar_width = 0
 
     def handle_unittest_event(self, event, values):

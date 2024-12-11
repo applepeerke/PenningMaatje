@@ -7,11 +7,11 @@ from src.DL.Config import EXPAND, \
     CF_AMOUNT_THRESHOLD_TO_OTHER, CF_RESTORE_BOOKING_DATA
 from src.DL.Lexicon import CMD_RESTORE_BACKUP
 from src.DL.Table import Table
-from src.DL.UserCsvFiles.UserCsvFileManager import get_backup_dirs
+from src.DL.UserCsvFiles.UserCsvFileManager import UserCsvFileManager
 from src.VL.Data.Constants.Color import TABLE_COLOR_SELECTED_ROW, TABLE_COLOR_BACKGROUND, TABLE_COLOR_TEXT
 from src.VL.Data.Constants.Const import FRAME_CONFIG_ACCOUNT, TABLE_JUSTIFY, FRAME_RESTORE, \
     FRAME_RESTORE_BOOKING_RELATED_DATA
-from src.VL.Views.BaseView import BaseView, CM
+from src.VL.Views.BaseView import BaseView
 from src.GL.Const import EMPTY
 
 
@@ -19,6 +19,7 @@ class ConfigView(BaseView):
 
     def __init__(self, model):
         super().__init__()
+        self._UM = UserCsvFileManager()
         self._model = model
 
     def get_view(self) -> list:
@@ -32,7 +33,7 @@ class ConfigView(BaseView):
                    )
 
         self._statusbar_width = max(x_DI, x_CX)
-        x_dir = max(len(CM.get_config_item(CF_OUTPUT_DIR)), len(CM.get_config_item(CF_INPUT_DIR)))
+        x_dir = max(len(self._CM.get_config_item(CF_OUTPUT_DIR)), len(self._CM.get_config_item(CF_INPUT_DIR)))
 
         # Layout
         view_layout = [
@@ -91,7 +92,7 @@ class ConfigView(BaseView):
             self.frame(FRAME_RESTORE, [
                 self.multi_frame(FRAME_RESTORE_BOOKING_RELATED_DATA, [
                     self.button_frame(CMD_RESTORE_BACKUP),
-                    self.combo(CF_RESTORE_BOOKING_DATA, [x for x in get_backup_dirs()], dft=EMPTY)
+                    self.combo(CF_RESTORE_BOOKING_DATA, [x for x in self._UM.get_backup_dirs()], dft=EMPTY)
                 ], p=12),
             ], border_width=1),
             self.multi_frame(FRAME_CONFIG_BUTTONS, [

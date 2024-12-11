@@ -2,18 +2,13 @@ from abc import ABC
 
 from src.DL.Config import CF_REMARKS
 from src.DL.DBDriver.Att import Att
-from src.DL.DBDriver.SQLOperator import SQLOperator
 from src.DL.IO.BaseIO import BaseIO
 from src.DL.Model import FD
 from src.DL.Table import Table
-from src.GL.GeneralException import GeneralException
-from src.VL.Data.Constants.Const import LEEG, OTHER_COSTS, OTHER_REVENUES
-from src.VL.Data.Constants.Enums import Pane
-from src.GL.BusinessLayer.ConfigManager import ConfigManager
 from src.GL.Const import EMPTY, MUTATION_PGM_TE
 from src.GL.Validate import isInt
-
-CM = ConfigManager()
+from src.VL.Data.Constants.Const import LEEG
+from src.VL.Data.Constants.Enums import Pane
 
 PGM = MUTATION_PGM_TE
 TABLE = Table.TransactionEnriched
@@ -36,8 +31,8 @@ class TransactionIO(BaseIO, ABC):
         Called when another event than "remarks" is triggered.
         BEFORE a new CF_ID is set in the config.
         """
-        pending_remarks = CM.get_config_item(CF_REMARKS)
-        pending_Id = CM.get_config_item(f'CF_ID_{Pane.TE}')
+        pending_remarks = self._CM.get_config_item(CF_REMARKS)
+        pending_Id = self._CM.get_config_item(f'CF_ID_{Pane.TE}')
         if not pending_remarks or not isInt(pending_Id) or pending_Id == 0:
             return False
 
@@ -49,7 +44,7 @@ class TransactionIO(BaseIO, ABC):
         self._db.update(TABLE, values=[Att(FD.Remarks, pending_remarks)], where=[Att(FD.ID, pending_Id)], pgm=PGM)
 
         # Initialize remark
-        CM.set_config_item(CF_REMARKS, EMPTY)
+        self._CM.set_config_item(CF_REMARKS, EMPTY)
         return True
 
     def update_booking(self, values, where) -> int:

@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from src.BL.Functions import get_summary_filename
-from src.BL.Summary.SummaryBase import BCM, session, csvm
+from src.BL.Summary.SummaryBase import BCM, csvm
 from src.BL.Summary.Templates.Enums import DetailTotalVars, DetailVars
 from src.BL.Summary.Templates.TemplateBase import TemplateBase, get_total_label
 from src.DL.IO.AnnualAccountIO import AnnualAccountIO
@@ -57,7 +57,7 @@ class AnnualAccount(TemplateBase):
 
         # Filename example: "Jaarrekening (templateX) 2024 tm maand 4.csv"
         filename = get_summary_filename(self._template_filename, self._year, self._transactions_io.month_max)
-        self._out_path = f'{session.export_dir}{filename}'
+        self._out_path = f'{self._session.export_dir}{filename}'
 
         # Output naar CSV.
         self._construct(sorted_bookings)

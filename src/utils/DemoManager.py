@@ -14,21 +14,19 @@ from src.BL.Validator import Validator
 from src.DL.Config import CF_INPUT_DIR, CF_OUTPUT_DIR
 from src.DL.Model import FD, Model
 from src.DL.Table import Table
-from src.VL.Views.PopUps.Input import Input
-from src.VL.Views.PopUps.PopUp import PopUp
 from src.GL.BusinessLayer.CsvManager import CsvManager
-from src.GL.BusinessLayer.SessionManager import Singleton as Session
 from src.GL.Const import EXT_CSV, BLANK
 from src.GL.Functions import toFloat
 from src.GL.GeneralException import GeneralException
 from src.GL.Result import Result
 from src.GL.Validate import normalize_dir
+from src.VL.Views.PopUps.Input import Input
+from src.VL.Views.PopUps.PopUp import PopUp
 
 PGM = 'DemoManager'
 EXTRACT_WORDS = 'EXTRACT_WORDS'
 CREATE_DEMO = 'CREATE_DEMO'
 
-session = Session()
 csvm = CsvManager()
 
 TX_dict = Model().get_att_name_per_colno(Table.Transaction)
@@ -37,6 +35,7 @@ TX_dict = Model().get_att_name_per_colno(Table.Transaction)
 class DemoManager:
 
     def __init__(self, input_dirname=None, output_dirname=None, wordlist_path=None):
+        super().__init__()
         self._result = Result()
         self._validation_manager = Validator()
         self._counter_account_numbers = {}

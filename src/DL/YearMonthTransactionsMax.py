@@ -1,4 +1,4 @@
-class YearMonthTransactionsMax(object):
+class YearMonthTransactionsMax:
 
     @property
     def year(self):

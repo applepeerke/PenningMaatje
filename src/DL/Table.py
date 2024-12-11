@@ -9,7 +9,7 @@
 from src.DL.Lexicon import COUNTER_ACCOUNTS, SEARCH_TERMS, BOOKING_CODES, ANNUAL_ACCOUNT, OPENING_BALANCE
 
 
-class Table(object):
+class Table:
     Account = 'Account'
     AnnualAccount = 'AnnualAccount'  # Jaarrekening
     BookingCode = 'BookingCode'

@@ -10,6 +10,7 @@ from src.BL.Summary.SearchResults import SearchResults
 from src.BL.Summary.Templates.AnnualAccount import AnnualAccount
 from src.BL.Summary.Templates.PeriodicAccount import PeriodicAccount
 from src.BL.Summary.Templates.ResultPerBookingCode import ResultsPerBookingCode
+from src.Base import Base
 from src.DL.Config import CF_SUMMARY_YEAR, CF_SUMMARY_MONTH_FROM, CF_SUMMARY_MONTH_TO, \
     CF_SUMMARY_OPENING_BALANCE
 from src.DL.Enums.Enums import Summary
@@ -17,19 +18,17 @@ from src.DL.IO.OpeningBalanceIO import OpeningBalanceIO
 from src.DL.Lexicon import TEMPLATE_ANNUAL_ACCOUNT, SEARCH_RESULT, YEAR, \
     TEMPLATE_NAME, TEMPLATE_PERIODIC_ACCOUNT, TEMPLATE_REALISATION_PER_BOOKING_CODE, MONTH_FROM, MONTH_TO, SUMMARY, \
     SUMMARIES
-from src.GL.BusinessLayer.ConfigManager import ConfigManager
-from src.GL.BusinessLayer.SessionManager import Singleton as Session
 from src.GL.Enums import MessageSeverity
 from src.GL.Functions import toFloat
 from src.GL.GeneralException import GeneralException
 from src.GL.Result import Result
 
-session = Session()
 
 
-class SummaryDriver:
+class SummaryDriver(Base):
 
     def __init__(self):
+        super().__init__()
         self._AA = None
         self._PA = None
         self._BR = None
@@ -45,11 +44,9 @@ class SummaryDriver:
         self._CLI_mode = CLI_mode
         self._result = Result()
 
-        CM = ConfigManager()
-
-        year = CM.get_config_item(CF_SUMMARY_YEAR, 0)
-        month_from = CM.get_config_item(CF_SUMMARY_MONTH_FROM, 0)
-        month_to = CM.get_config_item(CF_SUMMARY_MONTH_TO, 0)
+        year = self._CM.get_config_item(CF_SUMMARY_YEAR, 0)
+        month_from = self._CM.get_config_item(CF_SUMMARY_MONTH_FROM, 0)
+        month_to = self._CM.get_config_item(CF_SUMMARY_MONTH_TO, 0)
         if not self._template_filenames:
             self._template_filenames = {
                 Summary.AnnualAccount: TEMPLATE_ANNUAL_ACCOUNT,
@@ -85,7 +82,7 @@ class SummaryDriver:
 
             # Completion
             prefix = f'{SUMMARY} is' if export_count == 1 else f'{export_count} {SUMMARIES} zijn'
-            self._result.add_message(f'{prefix} geëxporteerd naar "{session.export_dir}"')
+            self._result.add_message(f'{prefix} geëxporteerd naar "{self._session.export_dir}"')
 
         except GeneralException as e:
             self._result.add_message(e.message, severity=MessageSeverity.Error)
@@ -132,8 +129,7 @@ class SummaryDriver:
             if self._CLI_mode:
                 opening_balance = OpeningBalanceIO().get_opening_balance(year)
             else:
-                CM = ConfigManager()
-                opening_balance = toFloat(CM.get_config_item(CF_SUMMARY_OPENING_BALANCE))
+                opening_balance = toFloat(self._CM.get_config_item(CF_SUMMARY_OPENING_BALANCE))
 
             self._PA = PeriodicAccount(iban, opening_balance, template_filename, self._CLI_mode)
             self._PA.export(year, month_from, month_to)

@@ -7,7 +7,7 @@ from src.DL.Table import Table
 from src.DL.UserCsvFiles.Cache.BookingCodeCache import Singleton as BookingCodeCache
 from src.VL.Data.Constants.Color import *
 from src.VL.Models.MainModel import MainModel
-from src.VL.Views.BaseView import BaseView, get_tooltip, CM
+from src.VL.Views.BaseView import BaseView
 
 BCM = BookingCodeCache()
 
@@ -19,8 +19,6 @@ class MainView(BaseView):
         self._model = model
 
     def get_view(self) -> list:
-        from src.GL.BusinessLayer.SessionManager import Singleton as Session
-        session = Session()
         VM_JO = self._model.models[Pane.YS]
         VM_MO = self._model.models[Pane.MS]
         VM_TE = self._model.models[Pane.TE]
@@ -52,26 +50,26 @@ class MainView(BaseView):
                                border_width=3, p=2, relief=sg.RELIEF_RAISED),
                     [self.button(
                         CMD_SUMMARY, button_text=EMPTY, tip=True,
-                        image_filename=f'{session.get_image_path("summary.png")}', transparent=True, p=0,
-                        image_subsample=CM.get_config_item(CF_IMAGE_SUBSAMPLE))],
+                        image_filename=f'{self._session.get_image_path("summary.png")}', transparent=True, p=0,
+                        image_subsample=self._CM.get_config_item(CF_IMAGE_SUBSAMPLE))],
                     [self.button(
                         CMD_SEARCH, button_text=EMPTY, tip=True,
-                        image_filename=f'{session.get_image_path("magnifying_glass.png")}', transparent=True, p=0,
-                        image_subsample=CM.get_config_item(CF_IMAGE_SUBSAMPLE))],
+                        image_filename=f'{self._session.get_image_path("magnifying_glass.png")}', transparent=True, p=0,
+                        image_subsample=self._CM.get_config_item(CF_IMAGE_SUBSAMPLE))],
                     [self.button(
                         CMD_UNDO, button_text=EMPTY, tip=True,
-                        image_filename=f'{session.get_image_path("undo.png")}', transparent=True, p=0,
-                        image_subsample=CM.get_config_item(CF_IMAGE_SUBSAMPLE)
+                        image_filename=f'{self._session.get_image_path("undo.png")}', transparent=True, p=0,
+                        image_subsample=self._CM.get_config_item(CF_IMAGE_SUBSAMPLE)
                     )],
                 ], p=2),
                 [self.button(
                     CMD_CONFIG, button_text=EMPTY, tip=True,
-                    image_filename=f'{session.get_image_path("settings.png")}', transparent=True, p=0,
-                    image_subsample=CM.get_config_item(CF_IMAGE_SUBSAMPLE))],
+                    image_filename=f'{self._session.get_image_path("settings.png")}', transparent=True, p=0,
+                    image_subsample=self._CM.get_config_item(CF_IMAGE_SUBSAMPLE))],
                 [self.button(
                     CMD_IMPORT_TE, button_text=EMPTY, tip=True,
-                    image_filename=f'{session.get_image_path("refresh.png")}', transparent=True, p=0,
-                    image_subsample=CM.get_config_item(CF_IMAGE_SUBSAMPLE))],
+                    image_filename=f'{self._session.get_image_path("refresh.png")}', transparent=True, p=0,
+                    image_subsample=self._CM.get_config_item(CF_IMAGE_SUBSAMPLE))],
                 self.frame(FRAME_TOP_RIGHT, [
                     self.frame(FRAME_IBAN, [
                         self.combo(CF_IBAN, [x for x in self._model.DD.get_combo_items(FD.Iban)],
@@ -140,7 +138,7 @@ class MainView(BaseView):
                             # - Bijzonderheden
                             self.multi_frame(MULTI_FRAME_REMARKS, [
                                 self.frame(FRAME_REMARKS, [
-                                    [self.label(REMARKS, x=x_TX, text_color=TEXT_COLOR, tip=get_tooltip(CF_REMARKS)),
+                                    [self.label(REMARKS, x=x_TX, text_color=TEXT_COLOR, tip=self.get_tooltip(CF_REMARKS)),
                                      self.multi_line(CF_REMARKS, dft=VM_TX.remarks, x=512, y=2, evt=True,
                                                      background_color=COLOR_BACKGROUND_DISABLED)]], p=0),
                             ], p=0, expand_x=True, border_width=0),

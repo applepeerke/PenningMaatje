@@ -1,6 +1,5 @@
 from src.DL.Model import FD
 from src.VL.Models.BaseModel import BaseModel, DD
-from src.GL.BusinessLayer.SessionManager import Singleton as Session
 
 
 class SearchModel(BaseModel):
@@ -47,7 +46,6 @@ class SearchModel(BaseModel):
         self._counter_account_numbers = self._get_combo_data(FD.Counter_account_number)
         self._rows = []
         self._total = 0
-        self._session = Session()
 
     @staticmethod
     def _get_combo_data(name) -> list:

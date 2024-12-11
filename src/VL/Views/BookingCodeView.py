@@ -7,7 +7,7 @@ from src.VL.Data.Constants.Color import STATUSBAR_COLOR_ERROR, COLOR_BACKGROUND_
 from src.VL.Data.Constants.Const import CMD_OK, STATUS_MESSAGE, CMD_CANCEL
 from src.VL.Data.Constants.Enums import BoxCommand
 from src.VL.Models.BookingCodeModel import BookingCodeModel
-from src.VL.Views.BaseView import BaseView, CM
+from src.VL.Views.BaseView import BaseView
 from src.GL.Const import EMPTY
 
 TABLE = Table.BookingCode
@@ -21,12 +21,12 @@ class BookingCodeView(BaseView):
         self._booking = model.object
 
     def get_view(self) -> list:
-        CM.set_config_item(CF_BOOKING_TYPE, self._booking.booking_type)
-        CM.set_config_item(CF_BOOKING_MAINGROUP, self._booking.booking_maingroup)
-        CM.set_config_item(CF_BOOKING_SUBGROUP, self._booking.booking_subgroup)
-        CM.set_config_item(CF_BOOKING_CODE, self._booking.booking_code)
-        CM.set_config_item(CF_BOOKING_SEQNO, self._booking.seqno)
-        CM.set_config_item(CF_BOOKING_PROTECTED, self._booking.protected)
+        self._CM.set_config_item(CF_BOOKING_TYPE, self._booking.booking_type)
+        self._CM.set_config_item(CF_BOOKING_MAINGROUP, self._booking.booking_maingroup)
+        self._CM.set_config_item(CF_BOOKING_SUBGROUP, self._booking.booking_subgroup)
+        self._CM.set_config_item(CF_BOOKING_CODE, self._booking.booking_code)
+        self._CM.set_config_item(CF_BOOKING_SEQNO, self._booking.seqno)
+        self._CM.set_config_item(CF_BOOKING_PROTECTED, self._booking.protected)
 
         x = max(
             len(CF_BOOKING_TYPE),

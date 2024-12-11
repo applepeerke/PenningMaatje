@@ -47,6 +47,7 @@ class ConfigManager:
 
         def __init__(self, unit_test=False):
             self._unit_test = unit_test
+            self._started = False
             self._config_dict = {k: I.value for k, I in configDef.items()}
             self._file_name = EMPTY
             self._persist = False
@@ -65,6 +66,10 @@ class ConfigManager:
             }
 
         def start_config(self, persist=False):
+            if self._started:
+                return
+            self._started = True
+
             self._persist = persist
             self._log_cache.append('Starting configuration')
             self._log_cache.append(f'  o Step 1/5: Config has been started with mode persist={persist} ')

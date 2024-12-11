@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-
+from src.Base import Base
 from src.VL.Functions import get_name_from_text, gui_name_types, gui_values
 from src.GL.Const import EMPTY
 from src.GL.GeneralException import GeneralException
 
 
-class BaseGUI(object):
+class BaseGUI(Base):
 
     def __init__(self, pane_name=None):
+        super().__init__()
         self._pane_name = pane_name
 
     def gui_key(self, text, prefix, use_window_name=False) -> str:

@@ -9,7 +9,7 @@ from src.DL.Config import EXPAND, \
     CF_COL_REVENUES, CF_IMAGE_SUBSAMPLE, CF_SHOW_BOOKING_CODE_AT_DESCRIPTION
 from src.VL.Data.Constants.Const import FRAME_LAYOUT_IMAGE, CMD_SEARCH
 from src.VL.Models.LayoutOptionsModel import LayoutOptionsModel
-from src.VL.Views.BaseView import BaseView, CM
+from src.VL.Views.BaseView import BaseView
 from src.GL.Const import EMPTY
 
 themes = [EMPTY]
@@ -64,16 +64,16 @@ class LayoutOptionsView(BaseView):
                 self.combo(CF_FONT, self._model.fonts, x=x_CX),
                 self.combo(CF_FONT_SIZE, [x for x in range(9, 21, 1)], x=x_CX),
                 self.combo(CF_FONT_TABLE, self._model.fonts, x=x_CX,
-                           font=CM.get_config_item(CF_FONT_TABLE)),
+                           font=self._CM.get_config_item(CF_FONT_TABLE)),
                 self.combo(CF_FONT_TABLE_SIZE, [x for x in range(9, 21, 1)], x=x_CX,
-                           font=CM.get_config_item(CF_FONT_TABLE_SIZE)),
+                           font=self._CM.get_config_item(CF_FONT_TABLE_SIZE)),
                 # Image size
                 self.multi_frame(FRAME_LAYOUT_IMAGE, [
                     self.combo(CF_IMAGE_SUBSAMPLE, [x for x in range(1, 20, 1)], x=x_CX),
                     self.frame('Zoek_button', [[self.button(
                         CMD_SEARCH, button_text=EMPTY,
                         image_filename=self._model.image_magnifying_glass, transparent=True, p=0,
-                        image_subsample=CM.get_config_item(CF_IMAGE_SUBSAMPLE)
+                        image_subsample=self._CM.get_config_item(CF_IMAGE_SUBSAMPLE)
                     )]], border_width=1, p=2, relief=sg.RELIEF_RAISED),
                 ], border_width=1, expand_x=True),
             ], border_width=1, expand_x=True),

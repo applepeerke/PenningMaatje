@@ -8,7 +8,7 @@ from src.GL.Const import EMPTY
 from src.VL.Data.Constants.Color import STATUSBAR_COLOR_ERROR, COLOR_BACKGROUND_DISABLED
 from src.VL.Data.Constants.Const import CMD_OK, STATUS_MESSAGE, CMD_CANCEL
 from src.VL.Data.Constants.Enums import BoxCommand
-from src.VL.Views.BaseView import BaseView, CM
+from src.VL.Views.BaseView import BaseView
 
 PGM = 'OpeningBalanceView'
 
@@ -22,8 +22,8 @@ class OpeningBalanceView(BaseView):
     def get_view(self) -> list:
         # Set object (db representation) in Config "cache"
         obj: OpeningBalance = self._model.object
-        CM.set_config_item(CF_OPENING_BALANCE_YEAR, obj.year)
-        CM.set_config_item(CF_OPENING_BALANCE, FloatToStr(str(obj.opening_balance)))
+        self._CM.set_config_item(CF_OPENING_BALANCE_YEAR, obj.year)
+        self._CM.set_config_item(CF_OPENING_BALANCE, FloatToStr(str(obj.opening_balance)))
 
         x = max(
             len(CF_OPENING_BALANCE),

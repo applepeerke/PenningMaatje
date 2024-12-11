@@ -26,7 +26,7 @@ table = Table()
 
 
 # Index definitions
-class IndexDef(object):
+class IndexDef:
     AC_IX_on_Iban = 'AC_IX_on_Iban'
     CA_IX_on_CounterAccount_name = 'CA_IX_on_CounterAccount_name'
     TX_IX_on_Transaction_name = 'TX_IX_on_Transaction_name'
@@ -53,7 +53,7 @@ class IndexDef(object):
 
 
 # Field definition
-class FD(object):
+class FD:
     ID = 'Id'
     No = 'No'
     Active = 'Actief'
@@ -158,7 +158,7 @@ def get_colno(colno: int, zero_based: bool) -> int:
     return colno - 1 if zero_based else colno
 
 
-class Model(object):
+class Model:
     @property
     def FFD(self):
         return self._FFD

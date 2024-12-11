@@ -7,19 +7,20 @@
 # 2018-12-20 PHe First creation
 # ---------------------------------------------------------------------------------------------------------------------
 from src.BL.Functions import get_BBAN_from_IBAN
+from src.Base import Base
 from src.DL.DBDriver.Enums import FetchMode
 from src.DL.Model import Model, FD
 from src.DL.Table import Table
 from src.GL.Const import EMPTY
-from src.GL.BusinessLayer.SessionManager import Singleton as Session
 
 
 class Singleton:
     """ Singleton """
 
-    class CounterAccountCache(object):
+    class CounterAccountCache(Base):
 
         def __init__(self):
+            super().__init__()
             self._ibans_by_id = {}
             self._bbans_by_id = {}
             self._ids_by_iban = {}
@@ -32,7 +33,7 @@ class Singleton:
             self._initialized = True
             model = Model()
             d = model.get_colno_per_att_name(Table.CounterAccount, zero_based=False)
-            rows = Session().db.fetch(Table.CounterAccount, mode=FetchMode.WholeTable)
+            rows = self._session.db.fetch(Table.CounterAccount, mode=FetchMode.WholeTable)
 
             for row in rows:
                 iban = row[d[FD.Counter_account_number]]

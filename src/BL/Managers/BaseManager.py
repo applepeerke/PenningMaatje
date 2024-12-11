@@ -6,20 +6,19 @@
 # ---------- --- ------------------------------------------------------------------------------------------------------
 # 2023-12-13 PHe First creation
 # ---------------------------------------------------------------------------------------------------------------------
-
-from src.GL.BusinessLayer.SessionManager import Singleton as Session
+from src.Base import Base
 from src.GL.Enums import ResultCode
 from src.GL.Result import Result
 
 
-class BaseManager(object):
+class BaseManager(Base):
 
     @property
     def result(self):
         return self._result
 
     def __init__(self):
-        self._session = Session()
+        super().__init__()
         self._db = self._session.db
         self._result = Result()
 

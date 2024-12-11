@@ -9,18 +9,17 @@
 from datetime import datetime
 
 from src.BL.Functions import get_BBAN_from_IBAN
+from src.Base import Base
 from src.DL.Config import CF_IBAN, CF_ROWS_TRANSACTION
 from src.DL.DBDriver.Att import Att
 from src.DL.DBDriver.AttType import AttType
 from src.DL.IO.TransactionsIO import TransactionsIO
+from src.DL.Lexicon import COSTS, REVENUES, OVERBOOKINGS
 from src.DL.Model import Model, FD
 from src.DL.Objects.Month import Month
 from src.DL.Table import Table
 from src.DL.UserCsvFiles.Cache.BookingCodeCache import Singleton as BookingCodeCache
 from src.DL.YearMonthTransactionsMax import YearMonthTransactionsMax
-from src.DL.Lexicon import COSTS, REVENUES, OVERBOOKINGS
-from src.GL.BusinessLayer.ConfigManager import ConfigManager
-from src.GL.BusinessLayer.SessionManager import Singleton as Session
 from src.GL.Enums import Color, MessageSeverity
 # Working fields
 from src.GL.Functions import toFloat
@@ -34,14 +33,14 @@ error_prefix = f'{PGM} {Color.RED}Error{Color.NC}:'
 
 model = Model()
 BCM = BookingCodeCache()
-CM = ConfigManager()
 TE_dict = model.get_colno_per_att_name(Table.TransactionEnriched, zero_based=False)
 mo_dict = model.get_colno_per_att_name(Table.Month)
 
 
-class YearMonthIO:
+class YearMonthIO(Base):
 
     def __init__(self):
+        super().__init__()
         self._first_month_with_transactions = 0
         self._db = None
         self._warnings = []
@@ -49,7 +48,7 @@ class YearMonthIO:
         self._result = Result()
         self._TE_manager = TransactionsIO()
         self._max_rows_TE = YearMonthTransactionsMax()
-        self._max_rows_TE_defined = CM.get_config_item(CF_ROWS_TRANSACTION)
+        self._max_rows_TE_defined = self._CM.get_config_item(CF_ROWS_TRANSACTION)
 
     def refresh_data(self) -> Result:
         """
@@ -72,10 +71,10 @@ class YearMonthIO:
 
         # Go!
         # Delete the 12 months
-        self._db = Session().db
+        self._db = self._session.db
         self._db.clear(Table.Month)
 
-        account_bban = get_BBAN_from_IBAN(CM.get_config_item(CF_IBAN))
+        account_bban = get_BBAN_from_IBAN(self._CM.get_config_item(CF_IBAN))
 
         # Get rows per year/month
         yy = from_year
@@ -116,11 +115,10 @@ class YearMonthIO:
         if count >= self._max_rows_TE.count:
             self._max_rows_TE = YearMonthTransactionsMax(year, month, count)
 
-    @staticmethod
-    def get_default_kwargs() -> dict:
-        where = [Att(FD.Account_bban, get_BBAN_from_IBAN(CM.get_config_item(CF_IBAN)))]
-        from_year = Session().db.fetch_min(Table.TransactionEnriched, FD.Year, where=where) or 0
-        to_year = Session().db.fetch_max(Table.TransactionEnriched, FD.Year, where=where) or 0
+    def get_default_kwargs(self) -> dict:
+        where = [Att(FD.Account_bban, get_BBAN_from_IBAN(self._CM.get_config_item(CF_IBAN)))]
+        from_year = self._session.db.fetch_min(Table.TransactionEnriched, FD.Year, where=where) or 0
+        to_year = self._session.db.fetch_max(Table.TransactionEnriched, FD.Year, where=where) or 0
         if from_year == 0 or to_year == 0:
             return {}
         return {'from_year': max(from_year, 2000),
@@ -158,7 +156,7 @@ class YearMonthIO:
         # Get visible optional columns
         visible_optional_att_names = [
             k for k in model.get_att_per_name(Table.Year)
-            if k in CM.get_extra_column_attribute_names()
+            if k in self._CM.get_extra_column_attribute_names()
         ]
 
         row_no = 0

@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from src.BL.Summary.SummaryBase import session, csvm, BCM
+from src.BL.Summary.SummaryBase import csvm, BCM
 from src.BL.Summary.Templates.Const import DIGITS_PLUS, FIRST
 from src.BL.Summary.Templates.Enums import HeaderVars, DetailVars
 from src.BL.Summary.Templates.TemplateBase import TemplateBase
@@ -106,7 +106,7 @@ class PeriodicAccount(TemplateBase):
         # Output naar CSV.
         # Filename example: "Periodieke rekening 2024 maand 4.csv"
         filename = f'{PERIODIC_ACCOUNTS} {self._year} {self._get_title(month, month_to)}{EXT_CSV}'
-        self._out_path = f'{session.export_dir}{filename}'
+        self._out_path = f'{self._session.export_dir}{filename}'
 
         # Construct the report
         self._construct(transactions)

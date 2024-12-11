@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from tkinter import TclError
 
-from src.VL.Windows.General.MessageBox import message_box
+from src.VL.Windows.General.MessageBox import MessageBox
 from src.VL.Windows.MainWindow import MainWindow
 from src.GL.Const import APP_NAME
 from src.GL.Enums import MessageSeverity, Color
@@ -40,4 +40,4 @@ def start(diagnostic_mode=False):
 
 
 def error_message_box(text, cont_text=False) -> bool:
-    return message_box(text, title='Fout opgetreden', cont_text=cont_text, severity=MessageSeverity.Error)
+    return MessageBox().message_box(text, title='Fout opgetreden', cont_text=cont_text, severity=MessageSeverity.Error)

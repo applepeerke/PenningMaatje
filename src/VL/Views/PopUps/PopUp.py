@@ -8,7 +8,7 @@ from src.GL.Result import Result
 from src.VL.Data.Constants.Color import COLOR_LABEL_DISABLED, TEXT_COLOR, COLOR_BACKGROUND
 from src.VL.Data.Constants.Const import CMD_OK, CMD_CANCEL
 from src.VL.Functions import get_name_from_key, get_name_from_text, get_width
-from src.VL.Views.BaseView import BaseView, CM
+from src.VL.Views.BaseView import BaseView
 
 BLOCK_OPTION_TEXT = 'Toon deze popup niet opnieuw.'
 BLOCK_TITLE = 'popup-title'
@@ -79,7 +79,7 @@ class PopUp(BaseView):
     def _dialog(self, text, title) -> bool:
         answer = False
         self._hide_next_time = False
-        input_value = CM.get_config_item(CF_POPUP_INPUT_VALUE)
+        input_value = self._CM.get_config_item(CF_POPUP_INPUT_VALUE)
         input_value_prv = input_value
 
         # Get sg window, layout populated by model
@@ -98,7 +98,7 @@ class PopUp(BaseView):
 
             if event_key == CF_POPUP_INPUT_VALUE:
                 input_value = values.get(event)
-                CM.set_config_item(event_key, values.get(event))
+                self._CM.set_config_item(event_key, values.get(event))
 
             # Location
             location = window.current_location()

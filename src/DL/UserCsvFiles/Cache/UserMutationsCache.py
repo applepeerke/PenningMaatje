@@ -6,10 +6,10 @@
 # ---------- --- ------------------------------------------------------------------------------------------------------
 # 2018-12-20 PHe First creation
 # ---------------------------------------------------------------------------------------------------------------------
+from src.Base import Base
 from src.DL.Model import Model, FD
 from src.DL.Table import Table
 from src.GL.BusinessLayer.CsvManager import CsvManager
-from src.GL.BusinessLayer.SessionManager import Singleton as Session
 from src.GL.Const import EMPTY, USER_MUTATIONS_FILE_NAME, EXT_CSV
 
 model = Model()
@@ -30,7 +30,7 @@ def get_te_key(account_number_bban, date, counter_account_number, comments) -> s
 class Singleton:
     """ Singleton """
 
-    class UserMutationsCache(object):
+    class UserMutationsCache(Base):
         """
         During import of bank transactions csv files,
         the user-assigned transaction bookings and remarks must be retrieved.
@@ -46,6 +46,7 @@ class Singleton:
             return self._remarks_by_te_key
 
         def __init__(self):
+            super().__init__()
             self._booking_codes = set()
             self._remarks_by_te_key = {}
             self._mutations_by_te_key = {}
@@ -68,8 +69,8 @@ class Singleton:
 
             self._initialized = True
             self._booking_codes = set()
-            user_mutations_path = f'{Session().backup_dir}{USER_MUTATIONS_FILE_NAME}{EXT_CSV}' \
-                if Session().backup_dir else EMPTY
+            user_mutations_path = f'{self._session.backup_dir}{USER_MUTATIONS_FILE_NAME}{EXT_CSV}' \
+                if self._session.backup_dir else EMPTY
 
             # Populate cache
             [self._populate_cache(row) for row in CsvManager().get_rows(data_path=user_mutations_path)]

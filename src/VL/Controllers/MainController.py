@@ -21,10 +21,8 @@ from src.DL.Table import Table
 from src.DL.UserCsvFiles.Cache.BookingCodeCache import Singleton as BookingCodeCache
 from src.DL.UserCsvFiles.Cache.SearchTermCache import Singleton as SearchTermCache
 from src.DL.UserCsvFiles.UserCsvFileManager import UserCsvFileManager
-from src.GL.BusinessLayer.ConfigManager import ConfigManager
 from src.GL.BusinessLayer.CsvManager import CsvManager
 from src.GL.BusinessLayer.LogManager import Singleton as Log
-from src.GL.BusinessLayer.SessionManager import Singleton as Session
 from src.GL.Const import STRIPE, EMPTY, APP_NAME, BLANK, USER_MUTATIONS_FILE_NAME, EXT_CSV
 from src.GL.Enums import MessageSeverity, ResultCode, LogLevel, ActionCode
 from src.GL.Functions import remove_crlf, remove_file
@@ -43,19 +41,16 @@ from src.VL.Views.PopUps.Input import Input
 from src.VL.Views.PopUps.PopUp import PopUp
 from src.VL.Views.PopUps.PopuUpRadio import PopUpRadio
 from src.VL.Windows.ConfigWindow import ConfigWindow
-from src.VL.Windows.General.Boxes import confirm_factory_reset, info_box
-from src.VL.Windows.General.MessageBox import message_box
+from src.VL.Windows.General.Boxes import Boxes
+from src.VL.Windows.General.MessageBox import MessageBox
 from src.VL.Windows.ListWindow import BookingCodesWindow, OpeningBalancesWindow
 from src.VL.Windows.ListWindow import SearchTermsWindow
 from src.VL.Windows.SearchWindow import SearchWindow
 from src.VL.Windows.SummaryWindow import SummaryWindow
 
 BCM = BookingCodeCache()
-
 model = Model()
-
 CsvM = CsvManager()
-CM = ConfigManager()
 
 PGM = 'MainController'
 REFRESH_TRANSACTIONS = '_refresh_transactions'
@@ -120,7 +115,7 @@ class MainController(BaseController):
         self._validation_manager = Validator()  # Used in start_config
         self._start_config(unit_test)
         # Start diagnostic mode in verbose
-        if not self._diagnostic_mode and toBool(CM.get_config_item(CF_VERBOSE, False)) is True:
+        if not self._diagnostic_mode and toBool(self._CM.get_config_item(CF_VERBOSE, False)) is True:
             self._diagnostic_mode = True
             self._diag_message('Starting Diagnostic mode (Configuration has been started, in verbose logging mode)')
 
@@ -135,7 +130,6 @@ class MainController(BaseController):
         self._consistency_manager = None
         self._booking_manager = None
 
-        self._session = None
         self._search_window = None
         self._config_window = None
 
@@ -177,10 +171,9 @@ class MainController(BaseController):
             raise GeneralException(self._result.get_messages_as_message())
 
     def _start_session(self):
-        if not self._session or not self._session.started:
+        if not self._session.started:
             self._diag_message('Starting Session')
-            self._session = Session()
-            self._session.start(CM.get_config_item(CF_OUTPUT_DIR), unit_test=CM.unit_test)
+            self._session.start(self._CM.get_config_item(CF_OUTPUT_DIR), unit_test=self._CM.unit_test)
         if not self._session.started:
             self._result = Result(ResultCode.Error, self._session.error_message)
 
@@ -261,7 +254,7 @@ class MainController(BaseController):
         # - Search
         elif self._event_key == CMD_SEARCH:
             self._diag_message(f'{diag_prefix}Search button pressed')
-            CM.set_search_for_empty_booking_codes_with_counter_account(
+            self._CM.set_search_for_empty_booking_codes_with_counter_account(
                 on=False)  # Deactivate search empty_booking mode.
             self.search()
 
@@ -288,12 +281,12 @@ class MainController(BaseController):
             if event[0] == Table.Year:
                 self._diag_message(f'{diag_prefix}Year')
                 self._search_mode = False
-                CM.initialize_search_criteria()  # Deactivate search empty_booking mode.
+                self._CM.initialize_search_criteria()  # Deactivate search empty_booking mode.
                 self._main_model.refresh_dashboard(Pane.YS, pane_row_no=event[2][0])
             elif event[0] == Table.Month:
                 self._diag_message(f'{diag_prefix}Month')
                 self._search_mode = False
-                CM.initialize_search_criteria()  # Deactivate search empty_booking mode.
+                self._CM.initialize_search_criteria()  # Deactivate search empty_booking mode.
                 self._main_model.refresh_dashboard(Pane.MS, pane_row_no=event[2][0])
             elif event[0] == Table.TransactionEnriched:
                 self._diag_message(f'{diag_prefix}Transactions enriched')
@@ -308,14 +301,15 @@ class MainController(BaseController):
             self._diag_message(f'{diag_prefix}Counter account booking description selected')
             iban = self._main_model.models[Pane.TX].counter_account
             name = self._main_model.models[Pane.TX].name
-            booking_code = BCM.get_code_from_combo_desc(CM.get_config_item(CF_COUNTER_ACCOUNT_BOOKING_DESCRIPTION))
+            booking_code = BCM.get_code_from_combo_desc(self._CM.get_config_item(
+                CF_COUNTER_ACCOUNT_BOOKING_DESCRIPTION))
             if iban:
                 self._link_transactions_to_booking_code_via_iban(iban, booking_code)
             else:
                 self._link_transactions_to_booking_code_via_search_term(name, booking_code)
             if self._result.OK:
                 self._result = self._main_model.refresh_dashboard(
-                    Pane.TE, CM.get_config_item(f'CF_ROW_NO_{Pane.TE}'), search_mode=self._search_mode)
+                    Pane.TE, self._CM.get_config_item(f'CF_ROW_NO_{Pane.TE}'), search_mode=self._search_mode)
 
         # - Remarks - update the model (for appearance), but pend the db action until another event is done.
         elif self._event_key == get_name_from_text(CF_REMARKS):
@@ -350,7 +344,7 @@ class MainController(BaseController):
         # Remarks saved: refresh TE rows
         elif self._is_a_transaction_saved_in_this_iteration:
             self._main_model.refresh_dashboard(
-                Pane.TE, CM.get_config_item(f'CF_ROW_NO_{Pane.TE}'), search_mode=self._search_mode)
+                Pane.TE, self._CM.get_config_item(f'CF_ROW_NO_{Pane.TE}'), search_mode=self._search_mode)
 
     def _maintain_booking_code_related(self, prefix, table_desc, window, refresh=True):
         self._diag_message(f'{prefix}Work with {table_desc} button pressed')
@@ -372,16 +366,16 @@ class MainController(BaseController):
 
     def _start_config(self, unit_test):
         try:
-            CM.start_config(unit_test)
+            self._CM.start_config(unit_test)
             # - Input dir and Output dir MUST exist.
             self._set_required_config(CF_INPUT_DIR)
             self._set_required_config(CF_OUTPUT_DIR)
             if self._input_dir_changed:
                 # Save required items immediately to json. To avoid the dialog asking set it again.
-                CM.write_config()
+                self._CM.write_config()
 
             # Log config startup steps in diagnostic mode
-            config_cache = CM.yield_log_cache()
+            config_cache = self._CM.yield_log_cache()
             if self._diagnostic_mode:
                 [log(line, sev=MessageSeverity.Completion) for line in config_cache]
         except GeneralException as ge:
@@ -401,7 +395,7 @@ class MainController(BaseController):
     """
 
     def _set_required_config(self, config_item):
-        dir_name_prv = CM.get_config_item(config_item)
+        dir_name_prv = self._CM.get_config_item(config_item)
         if config_item == CF_INPUT_DIR:
             self._input_dir_changed = False
 
@@ -409,7 +403,7 @@ class MainController(BaseController):
         self._get_required_config(config_item)
 
         # Fail
-        dir_name = CM.get_config_item(config_item)
+        dir_name = self._CM.get_config_item(config_item)
         if not dir_name or not os.path.isdir(dir_name):
             raise GeneralException(
                 f'Verplichte folder "{get_label(config_item)}" kon niet ingesteld worden.')
@@ -424,7 +418,7 @@ class MainController(BaseController):
             if not Input().set_folder_in_config(
                     config_item, self._result, version=get_text_file('Version')):
                 # Box closed
-                CM.set_config_item(config_item, EMPTY)
+                self._CM.set_config_item(config_item, EMPTY)
                 break
             # Prevent loop when unittest auto_continues with an invalid dir
             if self._session.unit_test and self._session.unit_test_auto_continue:
@@ -433,7 +427,7 @@ class MainController(BaseController):
     def _is_valid_required_dir(self, config_item) -> bool:
         """ Checked at start up, folder change, consistency check, and import transactions. """
         self._result = Result()
-        dir_name = CM.get_config_item(config_item, EMPTY)
+        dir_name = self._CM.get_config_item(config_item, EMPTY)
         if not dir_name or not os.path.isdir(dir_name):
             return False
         # Output dir MUST NOT contain valid transaction files, and MUST contain > 0 subfolder with transaction files.
@@ -501,7 +495,7 @@ class MainController(BaseController):
         if not self.has_data():
             return True
 
-        input_dir = CM.get_config_item(CF_INPUT_DIR)
+        input_dir = self._CM.get_config_item(CF_INPUT_DIR)
         if not input_dir:
             return False
 
@@ -519,7 +513,7 @@ class MainController(BaseController):
 
         # Gefeliciteerd! (all transactions have booking code).
         if self._transactions_io.is_done():
-            message_box(
+            MessageBox().message_box(
                 f'Gefeliciteerd!\n\nAlle {TRANSACTIONS} hebben een {BOOKING_CODE}.',
                 key='all_booking_codes_set')
             return
@@ -532,14 +526,14 @@ class MainController(BaseController):
 
         # Set the mode
         self._search_mode = True
-        CM.set_search_for_empty_booking_codes_with_counter_account()
+        self._CM.set_search_for_empty_booking_codes_with_counter_account()
 
         # Get the transactions
         self._result = self._transactions_io.search(dialog_mode=False)
 
         # Gefeliciteerd!
         if not self._transactions_io.rows:
-            message_box(
+            MessageBox().message_box(
                 f'Gefeliciteerd!\n\nAlle {TRANSACTIONS} binnen het gekozen bereik hebben een {BOOKING_CODE}.',
                 key='all_booking_codes_in_scope_set')
             return
@@ -553,10 +547,9 @@ class MainController(BaseController):
     Dashboard - Transaction pane - "Remarks" is editable
     """
 
-    @staticmethod
-    def check_emptied_remarks():
-        if CM.get_config_item(CF_REMARKS) == EMPTY:
-            CM.set_config_item(CF_REMARKS, LEEG)
+    def check_emptied_remarks(self):
+        if self._CM.get_config_item(CF_REMARKS) == EMPTY:
+            self._CM.set_config_item(CF_REMARKS, LEEG)
 
     def save_pending_remarks(self):
         if self._transaction_io and self._transaction_io.save_pending_remarks():
@@ -581,7 +574,7 @@ class MainController(BaseController):
         Update booking code of a counter_account by adding a search term (via the transaction pane)
         """
         # Add search term
-        CM.set_config_item(CF_POPUP_INPUT_VALUE, search_term)
+        self._CM.set_config_item(CF_POPUP_INPUT_VALUE, search_term)
         self._result = self._booking_manager.link_name_to_new_search_term(search_term, booking_code)
         if not self._result.OK:
             return
@@ -609,7 +602,7 @@ class MainController(BaseController):
         self._search_window = SearchWindow(self._main_model, self._main_window)
         self._search_window.display()
         self._result = self._search_window.result
-        if CM.is_any_search_criterium_specified():
+        if self._CM.is_any_search_criterium_specified():
             self._search_mode = True
 
     """
@@ -619,16 +612,16 @@ class MainController(BaseController):
     @staticmethod
     def _show_log_row(VM, row_no):
         row = VM.rows[row_no]
-        info_box(row[1:-6][0], 'Log regel')
+        Boxes().info_box(row[1:-6][0], 'Log regel')
 
     def _start_log(self, action) -> str:
         """ Start the logging, return the path """
-        log_level = LogLevel.Verbose if CM.get_config_item(CF_VERBOSE, False) else LogLevel.Info
+        log_level = LogLevel.Verbose if self._CM.get_config_item(CF_VERBOSE, False) else LogLevel.Info
         log_path = f'{self._session.log_dir.replace(self._session.output_dir, EMPTY)}{Log().log_file_name}'
 
         # For start log: Verbose
-        Session().set_suffix()
-        Log().start_log(Session().log_dir, level=LogLevel.Verbose)
+        self._session.set_suffix()
+        Log().start_log(self._session.log_dir, level=LogLevel.Verbose)
 
         log(STRIPE, GREEN)
         log(f"Applicatie {APP_NAME}", GREEN)
@@ -640,7 +633,7 @@ class MainController(BaseController):
         log(action)
         # Folder met bankafschriften
         log(get_log_line(INPUT_DIR), BLUE, new_line=False)
-        log(CM.get_config_item(CF_INPUT_DIR))
+        log(self._CM.get_config_item(CF_INPUT_DIR))
         # Uitvoer folder
         log(get_log_line(key=CF_OUTPUT_DIR), BLUE, new_line=False)
         log(self._session.output_dir)
@@ -674,17 +667,18 @@ class MainController(BaseController):
 
     def close(self):
         # Main display is to be closed, so a separate messagebox (if any serious messages)
-        if not self._result.OK:
-            message_box(self._result.get_messages_as_message(), severity=self._result.severity, key='before_close')
+        MessageBox().message_box(
+            self._result.get_messages_as_message(), severity=self._result.severity, key='before_close')
         self._result = Result()
         try:
             self._save_and_backup()
             self._delete_stale_files()
             # Display message(s)
-            message_box(self._result.get_messages_as_message(), severity=self._result.severity, key='after_close')
-            CM.write_config()
+            MessageBox().message_box(
+                self._result.get_messages_as_message(), severity=self._result.severity, key='after_close')
+            self._CM.write_config()
         except GeneralException as ge:
-            message_box(ge.message, severity=MessageSeverity.Error)
+            MessageBox().message_box(ge.message, severity=MessageSeverity.Error)
 
     def _delete_stale_files(self):
         DD.delete_stale_files()
@@ -753,10 +747,10 @@ class MainController(BaseController):
 
     def _factory_reset(self, title=None, sub_title=EMPTY, ask_to_remove=True):
         # Config may have been removed at restart app.
-        if not CM.config_exists():
+        if not self._CM.config_exists():
             return
         try:
-            if ask_to_remove and not confirm_factory_reset(
+            if ask_to_remove and not Boxes().confirm_factory_reset(
                     f'{sub_title}Wil je {APP_NAME} opnieuw instellen?\n\n'
                     f'Wijzigingen die je in {APP_NAME} hebt aangebracht zullen verwijderd worden.\n'
                     f'Backups blijven wel bewaard.\n',
@@ -765,7 +759,7 @@ class MainController(BaseController):
                 return
             # Remove config
             message = EMPTY
-            if remove_file(CM.get_path()):
+            if remove_file(self._CM.get_path()):
                 message = 'De configuratie is verwijderd.'
             # Remove database
             db_path = self._session.database_path

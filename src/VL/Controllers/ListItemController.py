@@ -12,7 +12,6 @@ from src.DL.Model import EMPTY
 from src.VL.Controllers.BaseController import BaseController
 from src.VL.Data.Constants.Const import CMD_OK
 from src.VL.Data.Constants.Enums import BoxCommand
-from src.GL.BusinessLayer.ConfigManager import ConfigManager
 from src.GL.Enums import ActionCode, ResultCode
 from src.GL.Result import Result
 
@@ -27,8 +26,6 @@ class ListItemController(BaseController):
         self._io = io()
         self._rqd_atts = required
         self._pk = pk
-
-        self._CM = ConfigManager()
 
     def handle_event(self, event):
         super().handle_event(event)

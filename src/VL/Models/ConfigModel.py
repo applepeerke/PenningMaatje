@@ -1,5 +1,4 @@
-from src.DL.Table import Table
-from src.VL.Models.BaseModel import BaseModel, DD
+from src.VL.Models.BaseModel import BaseModel
 from src.VL.Models.BaseModelTable import BaseModelTable
 
 

@@ -1,6 +1,6 @@
 import os.path
 
-from src.BL.Summary.SummaryBase import SummaryBase, session, csvm
+from src.BL.Summary.SummaryBase import SummaryBase, csvm
 from src.BL.Summary.Templates.Enums import DetailVars, DetailTotalVars, HeaderVars
 from src.BL.Summary.Templates.TemplateField import TemplateField
 from src.DL.Config import CF_COMMA_REPRESENTATION_DISPLAY, CF_IBAN
@@ -9,7 +9,6 @@ from src.DL.IO.TransactionsIO import TransactionsIO
 from src.DL.Lexicon import CSV_FILE, ACCOUNT_NUMBER, IBAN, TRANSACTIONS
 from src.DL.Model import Model
 from src.DL.Table import Table
-from src.GL.BusinessLayer.ConfigManager import ConfigManager
 from src.GL.Const import EXT_CSV, EMPTY
 from src.GL.Enums import MessageSeverity
 from src.GL.Functions import format_date
@@ -17,9 +16,6 @@ from src.GL.GeneralException import GeneralException
 
 PGM = 'TemplateBase'
 loop_count = 100
-
-CM = ConfigManager()
-comma_target = CM.get_config_item(CF_COMMA_REPRESENTATION_DISPLAY)
 
 
 def get_total_label(var_name):
@@ -43,6 +39,7 @@ class TemplateBase(SummaryBase):
         self._template_filename = template_filename
         self._CLI_mode = CLI_mode
 
+        self._comma_target = self._CM.get_config_item(CF_COMMA_REPRESENTATION_DISPLAY)
         self._te_def = Model().get_colno_per_att_name(Table.TransactionEnriched, zero_based=False)
         self._transactions_io = TransactionsIO()
         self._accounts_io = AccountIO()
@@ -74,7 +71,7 @@ class TemplateBase(SummaryBase):
         # a. Iban was specified
         if not self._iban:
             # b. Iban was selected
-            self._iban = CM.get_config_item(CF_IBAN, EMPTY)
+            self._iban = self._CM.get_config_item(CF_IBAN, EMPTY)
             if not self._iban:
                 # c. Iban is in db
                 if len(ibans) == 1:
@@ -110,7 +107,7 @@ class TemplateBase(SummaryBase):
     def _validate_template(self):
         # Validate template
         # - Existence
-        dir_name = session.templates_dir
+        dir_name = self._session.templates_dir
         path = f'{dir_name}{self._template_filename}{EXT_CSV}'
         if not os.path.isfile(path):
             raise GeneralException(f'{CSV_FILE} "{path}" bestaat niet.')
@@ -365,14 +362,13 @@ class TemplateBase(SummaryBase):
         self._add_row(var_name)
         return True
 
-    @staticmethod
-    def _format_amount(value) -> str:
+    def _format_amount(self, value) -> str:
         """ If it is an amount, format it."""
         if not isinstance(value, float):
             return value
 
         value = round(value, 2)
-        if comma_target == ',':
+        if self._comma_target == ',':
             value = str(value).replace('.', ',')
         return value if value != '0.0' else EMPTY
 

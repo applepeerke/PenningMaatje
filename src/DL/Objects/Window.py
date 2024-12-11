@@ -1,24 +1,23 @@
 #!/usr/bin/env python3
 import PySimpleGUI as sg
 
+from src.Base import Base
 from src.DL.Config import ALPHA_CHANNEL, EXPAND
-from src.GL.BusinessLayer.ConfigManager import ConfigManager
-from src.GL.BusinessLayer.SessionManager import Singleton as Session
 
 
-class Window:
+class Window(Base):
 
     def __init__(self, title, layout, location=(0, 0), modal=False, relative_location=(0, 0), keep_on_top=True):
-        CM = ConfigManager()
+        super().__init__()
         self._window = sg.Window(
             title,
             layout,
-            font=CM.get_font(),
+            font=self._CM.get_font(),
             alpha_channel=ALPHA_CHANNEL,
             text_justification='left',
             resizable=True,
             finalize=True,
-            icon=Session().get_icon(),
+            icon=self._session.get_icon(),
             modal=modal,
             keep_on_top=keep_on_top,
             location=location,

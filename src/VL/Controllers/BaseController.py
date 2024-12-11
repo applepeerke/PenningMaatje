@@ -8,12 +8,12 @@
 # ---------------------------------------------------------------------------------------------------------------------
 from typing import Callable
 
+from src.Base import Base
 from src.DL.DBDriver.AttType import AttType
 from src.VL.Data.Constants.Const import CMD_CANCEL, CMD_OK
 from src.VL.Data.DataDriver import Singleton as DataDriver
 from src.VL.Functions import get_name_from_key
 from src.VL.Views.PopUps.PopUp import PopUp
-from src.GL.BusinessLayer.SessionManager import Singleton as Session
 from src.GL.Const import EMPTY
 from src.GL.Enums import ActionCode, MessageSeverity
 from src.GL.Functions import maybeFloat
@@ -23,7 +23,7 @@ from src.GL.Validate import isInt, isDate, isAlphaNumeric, isDateOrNone
 DD = DataDriver()
 
 
-class BaseController:
+class BaseController(Base):
 
     @property
     def result(self):
@@ -37,10 +37,10 @@ class BaseController:
         self._result = value
 
     def __init__(self, diagnostic_mode=False):
+        super().__init__()
         self._diagnostic_mode = diagnostic_mode
         self._result = Result()
         self._dialog = PopUp()
-        self._session = Session()
         self._event_key = None
         self._log_started = False
 

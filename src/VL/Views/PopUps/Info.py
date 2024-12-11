@@ -7,7 +7,6 @@ from src.VL.Functions import get_name_from_key, get_name_from_text, get_width
 from src.VL.Views.BaseView import BaseView
 from src.GL.BusinessLayer.SessionManager import Singleton as Session
 
-session = Session()
 option_text = 'Toon deze popup niet opnieuw.'
 
 
@@ -36,7 +35,7 @@ class Info(BaseView):
         else:
             sg.PopupOK(
                 f'\n{text}\n', title=title, grab_anywhere=True, keep_on_top=True, font=self.get_font(),
-                icon=session.get_icon(),
+                icon=self._session.get_icon(),
                 location=self._get_location(title))
 
     def _box_with_hide_option(self, text, title):

@@ -7,7 +7,7 @@ from src.DL.Config import (
     CF_SEARCH_REMARKS, CF_SEARCH_BOOKING_CODE, CF_IMAGE_SUBSAMPLE)
 from src.VL.Data.Constants.Color import TOTAL_COLOR
 from src.VL.Data.Constants.Const import FRAME_SEARCH_BOOKING_CODE
-from src.VL.Views.BaseView import BaseView, CM
+from src.VL.Views.BaseView import BaseView
 from src.GL.Const import EMPTY
 
 amount_width = 12
@@ -55,12 +55,12 @@ class SearchView(BaseView):
                     self.frame('Zoek_button', [[self.button(
                         CMD_SEARCH, button_text=EMPTY,
                         image_filename=self._model.image_magnifying_glass, transparent=True, p=0,
-                        image_subsample=CM.get_config_item(CF_IMAGE_SUBSAMPLE)
+                        image_subsample=self._CM.get_config_item(CF_IMAGE_SUBSAMPLE)
                     )]], border_width=1, p=2, relief=sg.RELIEF_RAISED),
                     self.frame(FRAME_SEARCH_REFRESH_BUTTON, [[self.button(
                         CMD_SEARCH_RESET, button_text=EMPTY,
                         image_filename=self._model.image_refresh, transparent=True, p=0,
-                        image_subsample=CM.get_config_item(CF_IMAGE_SUBSAMPLE)
+                        image_subsample=self._CM.get_config_item(CF_IMAGE_SUBSAMPLE)
                     )]], border_width=1, p=2, relief=sg.RELIEF_RAISED),
                     self.frame('Help', [[self.button(
                         CMD_HELP_WITH_SEARCH, button_text='?', transparent=True, p=5, font=self.get_font(addition=8)
