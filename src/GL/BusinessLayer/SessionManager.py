@@ -252,6 +252,11 @@ class Singleton:
             if table_name in Model().user_maintainable_tables:
                 self._user_tables_changed[table_name] = value
 
+        def is_user_table_changed(self, table_name=None):
+            if table_name:
+                return self._user_tables_changed.get(table_name, False)
+            return any(changed is True for changed in self._user_tables_changed.values())
+
         def get_icon(self):
             icon = f'{self._images_dir}Logo.png'
             icon = icon if is_valid_file(icon) else None

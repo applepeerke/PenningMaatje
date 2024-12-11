@@ -52,6 +52,7 @@ class Singleton:
             self._maingroups_by_id = {}
             self._subgroups_by_id = {}
             self._codes_by_id = {}
+            self._seqno_by_id = {}
 
             # Logical key
             self._codes_by_lk = {}
@@ -113,6 +114,7 @@ class Singleton:
             self._types_by_id[row[0]] = type
             self._maingroups_by_id[row[0]] = maingroup
             self._subgroups_by_id[row[0]] = subgroup
+            self._seqno_by_id[row[0]] = seqno
 
             self._codes_by_id[row[0]] = booking_code
             self._codes_by_lk[lk] = booking_code
@@ -198,6 +200,8 @@ class Singleton:
             elif att_name == FD.Booking_description:
                 booking_code = self._codes_by_id.get(ID, dft)
                 return self._get_formatted_desc(booking_code)
+            elif att_name == FD.SeqNo:
+                return self._seqno_by_id.get(ID, dft)
             else:
                 return dft
 

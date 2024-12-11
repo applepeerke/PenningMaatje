@@ -137,7 +137,7 @@ class TransactionsIO(BaseIO, ABC):
         amount = toFloat(self._CM.config_dict[CF_SEARCH_AMOUNT], self._comma_source)
         amount_to = toFloat(self._CM.config_dict[CF_SEARCH_AMOUNT_TO], self._comma_source)
         amount = EMPTY if amount == 0 else amount
-        amount_to = EMPTY if amount_to == 0 else amount
+        amount_to = EMPTY if amount_to == 0 else amount_to
 
         self._add_where_att(FD.Year, 'int', self._get_int_value(tuple_to_value(
             self._CM.get_config_item(CF_SEARCH_YEAR))))

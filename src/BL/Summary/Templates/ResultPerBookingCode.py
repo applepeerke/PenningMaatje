@@ -100,7 +100,7 @@ class ResultsPerBookingCode(TemplateBase):
         for row in sorted_rows:
             booking_code = row[d[FD.Booking_code]]
             booking_desc = BCM.get_value_from_booking_code(booking_code, FD.Booking_description)
-            booking_seqno = BCM.get_value_from_booking_code(booking_code, FD.SeqNo)
+            booking_seqno = BCM.get_value_from_booking_code(booking_code, FD.SeqNo, 0)
             amount = row[d[FD.Amount_signed]]
             self._total_amounts[DetailTotalVars.General][0] += amount
             # level break
@@ -135,6 +135,7 @@ class ResultsPerBookingCode(TemplateBase):
 
     def _add_data_row(self, data_row):
         # Set, format and add the columns.
+        print('Here')
         [self._format_and_add_value(F.template_var_name, data_row[c]) for c, F in self._column_fields.items()]
 
         # Output the row

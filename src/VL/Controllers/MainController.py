@@ -321,13 +321,13 @@ class MainController(BaseController):
         # ---------------------------
         # Work with bookings
         elif self._event_key == CMD_WORK_WITH_BOOKING_CODES:
-            self._maintain_booking_code_related(diag_prefix, BOOKING_CODES, BookingCodesWindow)
+            self._maintain_booking_code_related(diag_prefix, Table.BookingCode, BOOKING_CODES, BookingCodesWindow)
 
         elif self._event_key == CMD_WORK_WITH_SEARCH_TERMS:
-            self._maintain_booking_code_related(diag_prefix, SEARCH_TERMS, SearchTermsWindow)
+            self._maintain_booking_code_related(diag_prefix, Table.SearchTerm, SEARCH_TERMS, SearchTermsWindow)
 
         elif self._event_key == CMD_WORK_WITH_OPENING_BALANCES:
-            self._maintain_booking_code_related(diag_prefix, OPENING_BALANCES, OpeningBalancesWindow, refresh=False)
+            self._maintain_booking_code_related(diag_prefix, Table.OpeningBalance, OPENING_BALANCES, OpeningBalancesWindow, refresh=False)
 
         # _____________
         # T a b   L o g
@@ -346,21 +346,21 @@ class MainController(BaseController):
             self._main_model.refresh_dashboard(
                 Pane.TE, self._CM.get_config_item(f'CF_ROW_NO_{Pane.TE}'), search_mode=self._search_mode)
 
-    def _maintain_booking_code_related(self, prefix, table_desc, window, refresh=True):
+    def _maintain_booking_code_related(self, prefix, table_name, table_desc, window, refresh=True):
         self._diag_message(f'{prefix}Work with {table_desc} button pressed')
+
         self._maintain_list(window)
+        if refresh is False or not self._session.is_user_table_changed(table_name):
+            return  # May be skipped (Opening balance)
 
         # If changes are made in BookingCode related file, then refresh cache, back up and optionally re-import.
-        if refresh is False:
-            return  # May be skipped (Opening balance)
         for table_name, changed in self._session.user_tables_changed.items():
             if changed:
-                refresh = True
                 if table_name == Table.BookingCode:
                     BookingCodeCache().initialize(force=True)  # BookingCodes
                 elif table_name == Table.SearchTerm:
                     SearchTermCache().initialize(force=True)  # SearchTerms
-        if refresh:
+        if self._session.is_user_table_changed():
             self._save_and_backup()
             self.import_transactions()
 

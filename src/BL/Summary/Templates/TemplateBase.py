@@ -62,6 +62,7 @@ class TemplateBase(SummaryBase):
         # Validate the template
         self._validate_iban()
         self._validate_template()
+        self._account_io = AccountIO()
 
     def _validate_iban(self):
         ibans = AccountIO().get_ibans()
@@ -85,7 +86,7 @@ class TemplateBase(SummaryBase):
                         f'Er zijn meerdere {ACCOUNT_NUMBER}en in de database ({ibans_text}).{suffix}')
 
     def export(self, year=None, month_from=None, month_to=None):
-        if self._iban and self._iban not in AccountIO().get_ibans():
+        if self._iban and self._iban not in  self._account_io.get_ibans():
             raise GeneralException(f'Rekeningnummer "{self._iban}" is niet gevonden in de database.')
 
     def _construct(self, rows):
