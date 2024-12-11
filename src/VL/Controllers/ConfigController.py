@@ -12,7 +12,7 @@ import shutil
 from src.BL.Managers.BookingCodeManager import BookingCodeManager
 from src.BL.Summary.Templates.Const import ACCOUNT_NAME_LABEL
 from src.BL.Validator import Validator
-from src.DL.Config import OUTPUT_DIR, CF_INPUT_DIR, CF_OUTPUT_DIR, \
+from src.DL.Config import CF_INPUT_DIR, CF_OUTPUT_DIR, \
     CF_SHOW_ALL_POPUPS, CF_HIDDEN_POPUPS, CF_THEME, CF_FONT, CF_FONT_SIZE, CF_FONT_TABLE, CF_FONT_TABLE_SIZE, \
     CMD_FACTORY_RESET, \
     CMD_LAYOUT_OPTIONS, CF_IMAGE_SUBSAMPLE
@@ -173,8 +173,6 @@ class ConfigController(BaseController):
             # Ask to move the output folder.
             if not self._validation_manager.is_valid_existing_output_dir(to_dir):
                 self._result = self._validation_manager.validate_move_output_subdirs(from_dir=from_dir, to_dir=to_dir)
-                if self._result.OK:
-                    self._create_output_dir(to_dir)
                 if not self._result.OK:
                     self._cancel_smoothly(cf_item)
                     return
@@ -214,14 +212,6 @@ class ConfigController(BaseController):
         # Reset
         self._CM.set_config_item(cf_item, self._prv_values[cf_item])
         self._result = Result()
-
-    def _create_output_dir(self, to_dir):
-        self._result = Result()
-        # Create
-        to_dir = normalize_dir(to_dir, create=True)
-        if not os.path.isdir(to_dir):
-            box_text = f'{OUTPUT_DIR} wijzigen is niet mogelijk.\n\nReden:\n'
-            self._result = Result(ResultCode.Canceled, f'{box_text}Doelfolder {to_dir} kon niet gemaakt worden.')
 
     def _restore_booking_related_data(self):
         # 1.Check inner consistency of booking related csv files to be imported

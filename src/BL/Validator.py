@@ -102,9 +102,11 @@ class Validator(Base):
                 elif self._transaction_files and len(csv_files) != len(self._transaction_files):
                     problem = f'Probleem:\nEr zijn andere bestanden dan {TRANSACTIONS} in de folder gevonden.'
 
-            elif cf_code == CF_OUTPUT_DIR and listdir(dirname) and not self.is_valid_existing_output_dir(dirname):
-                problem = f'Probleem:\nEr zijn gegevens in de folder gevonden.\n'
-                solution = f'Kies een folder die leeg is of een al bestaande {APP_NAME} uitvoer folder.\n'
+            elif cf_code == CF_OUTPUT_DIR:
+                has_dirs =  [d for d in listdir(dirname) if os.path.isdir(f'{dirname}{d}')]
+                if has_dirs and not self.is_valid_existing_output_dir(dirname):
+                    problem = f'Probleem:\nEr zijn gegevens in de folder gevonden.\n'
+                    solution = f'Kies een folder die leeg is of een al bestaande {APP_NAME} uitvoer folder.\n'
 
         # Success`
         if not problem:

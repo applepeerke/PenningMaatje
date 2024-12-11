@@ -385,13 +385,13 @@ class BookingCodeManager(BaseManager):
         self._validate_other_csv_file_bookings(booking_codes)
 
         # Completion
-        text = f'het volgende bestand ' if len(self._restore_paths) == 1 else f'de volgende bestanden '
+        text = f'wordt het volgende bestand ' if len(self._restore_paths) == 1 else f'worden de volgende bestanden '
         bullets = '\n    o  '.join([os.path.basename(p) for p in self._restore_paths.values()])
         if not PopUp().confirm(
                 'Restore_booking_related_data',
-                f'De volgende acties zullen worden uitgevoerd:\n\n'
-                f'1. Vanuit subfolder "{subdir}" {text} terugzetten in de database:\n\n    o  {bullets}\n\n'
-                f'2. Opnieuw importeren van je {TRANSACTIONS}.\n\n'):
+                f'De volgende acties zullen automatisch worden uitgevoerd:\n\n'
+                f'1. Vanuit subfolder "{subdir}" {text} teruggezet in de database:\n\n    o  {bullets}\n\n'
+                f'2. {TRANSACTIONS} worden opnieuw geïmporteerd.\n\n'):
             self._result = Result(ResultCode.Canceled)
 
     def _get_restore_paths(self, dirname, subdir):
