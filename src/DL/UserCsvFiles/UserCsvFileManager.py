@@ -33,7 +33,7 @@ from src.DL.UserCsvFiles.Cache.SearchTermCache import Singleton as SearchTermCac
 from src.GL.BusinessLayer.ConfigManager import get_label
 from src.GL.BusinessLayer.CsvManager import CsvManager
 from src.GL.Const import USER_MUTATIONS_FILE_NAME, EXT_CSV, MUTATION_PGM_TE, \
-    MUTATION_PGM_BC, COMMA_SOURCE
+    MUTATION_PGM_BC, COMMA_SOURCE, MUTATION_PGM_BC_MANAGER
 from src.GL.Enums import Color, MessageSeverity, ResultCode
 from src.GL.Functions import is_valid_file, toFloat
 from src.GL.Result import Result
@@ -532,6 +532,7 @@ class UserCsvFileManager(Base):
         # A. Validation
         # - Get rows with direct user mutations (Booking, Remarks)
         db_rows = self._session.db.select(table_name, where=[Att(Program_mutation, MUTATION_PGM_TE)])
+        db_rows.extend(self._session.db.select(table_name, where=[Att(Program_mutation, MUTATION_PGM_BC_MANAGER)]))
         # - Get rows with indirect user mutations (Booking table maintenance)
         db_rows.extend(self._session.db.select(table_name, where=[Att(Program_mutation, MUTATION_PGM_BC)]))
         if not db_rows \

@@ -206,7 +206,7 @@ class Singleton:
                 return True
 
             # Output folder is required
-            self._error_message = None
+            self._error_message = EMPTY
             self._started = False
             self._output_dir = normalize_dir(output_dir)
             self._unit_test = unit_test

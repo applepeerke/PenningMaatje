@@ -26,7 +26,7 @@ from src.DL.UserCsvFiles.Cache.SearchTermCache import Singleton as SearchTermCac
 from src.DL.UserCsvFiles.UserCsvFileManager import UserCsvFileManager, GeneralException
 from src.GL.BusinessLayer.CsvManager import CsvManager
 from src.GL.BusinessLayer.SessionManager import BACKUP
-from src.GL.Const import EMPTY
+from src.GL.Const import EMPTY, MUTATION_PGM_BC_MANAGER
 from src.GL.Enums import MessageSeverity, ResultCode, ActionCode
 from src.GL.Functions import is_valid_file
 from src.GL.Result import Result
@@ -37,7 +37,7 @@ from src.VL.Data.Constants.Enums import Pane
 from src.VL.Views.PopUps.Dialog_with_transactions import DialogWithTransactions
 from src.VL.Views.PopUps.PopUp import PopUp
 
-PGM = 'BookingCodeManager'
+PGM = MUTATION_PGM_BC_MANAGER
 
 model = Model()
 bk_dict = model.get_colno_per_att_name(Table.BookingCode, zero_based=False)
