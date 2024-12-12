@@ -42,9 +42,9 @@ class MainWindow(BaseWindow):
         super().display()
         # Close
         result = self._controller.result
-        if self._close_clicked or result.EX or result.RT:
+        if self._close_clicked or result.RT:  # not when EX after factory reset
             self._controller.close()
-            self._result = result if result.EX or result.RT else self._controller.result
+            self._result = result if result.RT else self._controller.result
 
     def _preparation(self):
         """ 1. Build the panes. """

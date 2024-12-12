@@ -201,7 +201,12 @@ class Singleton:
             if self._started and not unit_test and not force:
                 return True
 
+            # Keep on trying until a valid output dir has been provided.
+            if self._error_message and not output_dir and not force:
+                return True
+
             # Output folder is required
+            self._error_message = None
             self._started = False
             self._output_dir = normalize_dir(output_dir)
             self._unit_test = unit_test
@@ -218,7 +223,7 @@ class Singleton:
             if self._output_dir:
                 self.set_suffix()
                 self._set_paths()
-                self._started = self._error_message == EMPTY
+                self._started = True
             else:
                 self._error_message = f'{OUTPUT_DIR} is verplicht.'
 

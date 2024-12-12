@@ -411,6 +411,8 @@ class MainController(BaseController):
         elif dir_name != dir_name_prv:
             if config_item == CF_INPUT_DIR:
                 self._input_dir_changed = True
+            elif config_item == CF_OUTPUT_DIR:
+                self._session.start(dir_name, unit_test=self._CM.unit_test, force=True)
 
     def _get_required_config(self, config_item, force=False):
         while not self._is_valid_required_dir(config_item) or force:

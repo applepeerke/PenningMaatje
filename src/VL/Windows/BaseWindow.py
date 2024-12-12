@@ -116,7 +116,7 @@ class BaseWindow(BaseGUI):
                     self._result = Result()
 
             # Event aftercare
-            # - Retry: Restart app
+            # - Retry: Restart / close app
             if self._result.RT or self._result.EX:
                 break
 
