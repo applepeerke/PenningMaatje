@@ -76,7 +76,8 @@ class ConfigController(BaseController):
         elif self._event_key == CMD_RESTORE_BACKUP:
             self._diag_message(f'{diag_prefix}Restore backup button pressed')
             self._restore_booking_related_data()
-            self._result.action_code = ActionCode.Close
+            if self.result.OK:
+                self._result.action_code = ActionCode.Close
 
         # Factory reset
         elif self._event_key == CMD_FACTORY_RESET:
