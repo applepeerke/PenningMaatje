@@ -6,7 +6,6 @@
 # ---------- --- ------------------------------------------------------------------------------------------------------
 # 2022-06-06 PHe First creation
 # ---------------------------------------------------------------------------------------------------------------------
-import os
 import shutil
 
 from src.BL.Managers.BookingCodeManager import BookingCodeManager
@@ -25,10 +24,10 @@ from src.DL.Table import Table
 from src.DL.UserCsvFiles.UserCsvFileManager import UserCsvFileManager
 from src.GL.BusinessLayer.ConfigManager import CMD_HELP_WITH_INPUT_DIR, CMD_HELP_WITH_OUTPUT_DIR
 from src.GL.BusinessLayer.SessionManager import OUTPUT_SUBDIRS
+from src.GL.BusinessLayer.LogManager import Singleton as Log
 from src.GL.Const import EMPTY
 from src.GL.Enums import ActionCode, ResultCode
 from src.GL.Result import Result
-from src.GL.Validate import normalize_dir
 from src.VL.Controllers.BaseController import BaseController
 from src.VL.Functions import get_name_from_text, help_message
 from src.VL.Views.PopUps.Info import Info
@@ -182,8 +181,6 @@ class ConfigController(BaseController):
                 [shutil.move(f'{from_dir}{base_name}', to_dir) for base_name in OUTPUT_SUBDIRS]
 
             # Restart session. Database location has changed.
-            basename = os.path.basename(from_dir[:-1])
-            to_dir = normalize_dir(os.path.join(to_dir, basename))  # Past 'Output' to to_dir
             self._session.start(output_dir=to_dir, force=True)
             if not self._session.started:
                 self._model.do_factory_reset = True
@@ -191,6 +188,8 @@ class ConfigController(BaseController):
             if not self._result.OK:
                 self._cancel_smoothly(cf_item)
                 return
+            # Reset log path
+            Log().start_log(self._session.log_dir)
             # Set previous config value to current
             self._prv_values[cf_item] = to_dir
 

@@ -135,7 +135,6 @@ class ResultsPerBookingCode(TemplateBase):
 
     def _add_data_row(self, data_row):
         # Set, format and add the columns.
-        print('Here')
         [self._format_and_add_value(F.template_var_name, data_row[c]) for c, F in self._column_fields.items()]
 
         # Output the row
