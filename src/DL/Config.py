@@ -182,7 +182,8 @@ configDef = {
             f'  Bij uitvoer moet je denken aan  \n'
             f'    o  Database  \n'
             f'    o  Log  \n'
-            f'    o  Backups'
+            f'    o  Backups  \n'
+            f'    o  Exports'
         ), isDirname),
     CF_INPUT_DIR: ConfigItem(
         INPUT_DIR, None,
