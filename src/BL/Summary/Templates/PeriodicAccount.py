@@ -10,6 +10,7 @@ from src.DL.Model import FD
 from src.GL.Const import EMPTY, BLANK, EXT_CSV
 from src.GL.Functions import toFloat
 from src.GL.GeneralException import GeneralException
+from src.GL.Result import Result
 
 PGM = 'PeriodicAccount'
 
@@ -52,7 +53,7 @@ class PeriodicAccount(TemplateBase):
     def _initialize_year(self):
         self._opening_balance = self._opening_balance_start_of_year
 
-    def export(self, year=None, month_from=None, month_to=None):
+    def export(self, year=None, month_from=None, month_to=None) -> Result:
         """ Process all months to calculate opening/closing balance. Only print the requested ones. """
         super().export(year, month_from, month_to)
         # Opening balance is updated
@@ -71,6 +72,7 @@ class PeriodicAccount(TemplateBase):
 
         self._initialize_year()
         [self._export(s * 6 + 1, s * 6 + 6) for s in range(2)]
+        return self._result
 
     def _export(self, month, month_to=None):
         """
@@ -113,6 +115,7 @@ class PeriodicAccount(TemplateBase):
 
         # Write CSV
         csvm.write_rows(self._out_rows, data_path=self._out_path, open_mode='w')
+        self._result.add_message(f'Bestand "{filename}" is geëxporteerd naar {self._session.export_dir}')
         self._export_count += 1
 
     @staticmethod
