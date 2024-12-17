@@ -198,7 +198,6 @@ class BookingCodeManager(BaseManager):
         # C. Update!
         return self._update_transactions(where, booking_new_id)
 
-
     def _update_transactions(self, where, booking_new_id) -> Result:
         if self._update_all is True:
             # D1. Update booking in all TransactionEnriched where counter account or search term is matched.
