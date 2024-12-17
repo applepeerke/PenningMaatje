@@ -4,6 +4,7 @@ from src.BL.Functions import get_summary_filename
 from src.BL.Summary.SummaryBase import BCM, csvm
 from src.BL.Summary.Templates.Enums import DetailTotalVars, DetailVars
 from src.BL.Summary.Templates.TemplateBase import TemplateBase, get_total_label
+from src.DL.Enums.Enums import BookingType
 from src.DL.IO.AnnualAccountIO import AnnualAccountIO
 from src.DL.Lexicon import TEMPLATE_ANNUAL_ACCOUNT, TRANSACTIONS, REALISATION
 from src.GL.Const import EMPTY
@@ -49,23 +50,34 @@ class AnnualAccount(TemplateBase):
         super().export(year, month_from, month_to)
         self._year = int(year) if year else int(datetime.now().year)
 
+        # Filename example: "Jaarrekening (templateX) 2024 tm maand 4.csv"
+        filename = get_summary_filename(self._template_filename, self._year, self._transactions_io.month_max)
+        out_path = f'{self._session.export_dir}{filename}'
+
         # Process output template
         self._analyze_template()
 
         # Merge generated realisation from db with annual budgets from 'Jaarrekening.csv'
-        sorted_bookings = self._get_merged_bookings()
+        # Exclude overbookings.
+        realisation_rows = self._transactions_io.get_realisation_data(self._iban, self._year)
+        sorted_bookings = self._get_merged_bookings(
+            [row for row in realisation_rows if row[0] != BookingType.Overbookings])
+        self._add_block(sorted_bookings)
+        self._add_general_total()
 
-        # Filename example: "Jaarrekening (templateX) 2024 tm maand 4.csv"
-        filename = get_summary_filename(self._template_filename, self._year, self._transactions_io.month_max)
-        self._out_path = f'{self._session.export_dir}{filename}'
+        # Overbookings (no general total)
+        realisation_rows = self._transactions_io.get_realisation_data(self._iban, self._year, is_overbooking=True)
+        sorted_bookings = self._get_merged_bookings(
+            [row for row in realisation_rows if row[0] == BookingType.Overbookings], is_overbooking=True)
+        self._add_block(sorted_bookings)
 
-        # Output naar CSV.
-        self._construct(sorted_bookings)
+        # Write CSV
+        csvm.write_rows(self._out_rows, data_path=out_path, open_mode='w')
 
         # Wrap up
         if self._result.OK:
             self._export_count = 1
-            return Result(text=f'De {TEMPLATE_ANNUAL_ACCOUNT} van {self._year} is geëxporteerd naar "{self._out_path}"')
+            return Result(text=f'De {TEMPLATE_ANNUAL_ACCOUNT} van {self._year} is geëxporteerd naar "{out_path}"')
         return self._result
 
     def _substitute_header_var(self, cell) -> str:
@@ -75,33 +87,40 @@ class AnnualAccount(TemplateBase):
     Construction
     """
 
-    def _get_merged_bookings(self) -> list:
+    def _get_merged_bookings(self, realisation_rows, is_overbooking=False) -> list:
         """ Add budget booking columns to realisation """
-        realisation_rows = self._transactions_io.get_realisation_data(self._iban, self._year)
+
         if not realisation_rows:
             return []
 
         total_amount = sum(row[3] for row in realisation_rows)
         self._x_check(self._transactions_io.total_amount, total_amount, 'Ophalen Realisatie data')
 
-        budget_rows = self._annual_account_io.get_annual_budget_data(self._year - 1)
-        self._budget_years = max(len(budget_rows[0]) - self._c_first_amount, 0) if budget_rows else 0
-
         # Merge on type, maingroup, subgroup.
-        amounts_realisation = {BCM.get_lk(r[0], r[1], r[2]): r for r in realisation_rows}
-        amounts_budget = {BCM.get_lk(r[0], r[1], r[2]): r for r in budget_rows}
         amounts = {}
-
-        # If realisation booking has budget amount(s): Add budget amount(s) next to realisation amount
+        amounts_realisation = {BCM.get_lk(r[0], r[1], r[2]): r for r in realisation_rows}
         a1 = self._c_first_amount
-        for lk, v in amounts_realisation.items():
-            budget_amounts = amounts_budget[lk][a1:] if lk in amounts_budget else []
-            amounts[lk] = self._get_budget_amounts(v[a1], budget_amounts)
 
-        # If budget-booking not in realisation-bookings: Add budget booking and amount(s) with realisation amount = 0.0
-        for lk, v in amounts_budget.items():
-            if lk not in amounts_realisation:
-                amounts[lk] = self._get_budget_amounts(0.0, amounts_budget[lk][a1:])
+        if is_overbooking:
+            # Overbooking types do have no budget amount(s)
+            for lk, v in amounts_realisation.items():
+                amounts[lk] = self._get_budget_amounts(v[a1], [])
+        else:
+            budget_rows = self._annual_account_io.get_annual_budget_data(self._year - 1)
+            self._budget_years = max(len(budget_rows[0]) - self._c_first_amount, 0) if budget_rows else 0
+            amounts_budget = {BCM.get_lk(r[0], r[1], r[2]): r for r in budget_rows}
+
+            # If realisation booking has budget amount(s): Add budget amount(s) next to realisation amount
+            a1 = self._c_first_amount
+            for lk, v in amounts_realisation.items():
+                budget_amounts = amounts_budget[lk][a1:] if lk in amounts_budget else []
+                amounts[lk] = self._get_budget_amounts(v[a1], budget_amounts)
+
+            # If budget-booking not in realisation-bookings:
+            #   Add budget booking and amount(s) with realisation amount = 0.0
+            for lk, v in amounts_budget.items():
+                if lk not in amounts_realisation:
+                    amounts[lk] = self._get_budget_amounts(0.0, amounts_budget[lk][a1:])
 
         # Sort bookings by booking seqno
         lk_by_seqno = [item[0] for item in sorted(
@@ -127,12 +146,12 @@ class AnnualAccount(TemplateBase):
         row.extend(budget_amounts)
         return row
 
-    def _construct(self, sorted_bookings):
+    def _add_block(self, sorted_bookings, is_overbooking=False):
         """
         N.B. Out rows are already been filled with title.
         fields = {seqNo: Field}
         """
-        super()._construct(sorted_bookings)
+        super()._add_block(sorted_bookings)
 
         col_count = len(sorted_bookings[0])
         if col_count != len(self._column_fields):
@@ -149,12 +168,12 @@ class AnnualAccount(TemplateBase):
         # Preparation
         self._total_amounts = {
             DetailTotalVars.General: self._initialize_totals(),
-            DetailVars.Types: self._initialize_totals(),
+            DetailVars.NormalTypes: self._initialize_totals(),
             DetailVars.Maingroups: self._initialize_totals()
         }
         self._level_no = {
             DetailTotalVars.General: 0,
-            DetailVars.Types: 1,
+            DetailVars.NormalTypes: 1,
             DetailVars.Maingroups: 2
         }
 
@@ -167,13 +186,11 @@ class AnnualAccount(TemplateBase):
         # Last time
         self._add_totals(last=True)
 
+    def _add_general_total(self):
         # General total
         # Format and add only the amounts.
         if self._format_and_add_total_row(DetailTotalVars.General):
             self._add_row(DetailTotalVars.TotalGeneral)
-
-        # Write CSV
-        csvm.write_rows(self._out_rows, data_path=self._out_path, open_mode='w')
 
         # Check-check-double-check
         if self._total_amounts[DetailTotalVars.General]:

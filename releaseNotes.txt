@@ -4,7 +4,7 @@ Release notes
                   Ini
 Date       Type   Rpt Description
 ---------- ------ --- ---------------------------------------------------------------------------------------
-
+1.4 --- Separate Overbookings. Total General without Overbooking.
 1.3 --- Now supports linking booking code to counter accounts without an iban.
 2024-12-11 Impr   PH   - "Base.py" as top class added with CM and Session.
 2024-11-29 Impr   PH   - No. of rows in combo boxes can be specified. Some new layout options.

@@ -53,7 +53,7 @@ class ResultsPerBookingCode(TemplateBase):
         self._out_path = f'{self._session.export_dir}{filename}'
 
         # Output naar CSV.
-        self._construct(transactions)
+        self._add_block(transactions)
 
         # Wrap up
         if self._result.OK:
@@ -67,12 +67,12 @@ class ResultsPerBookingCode(TemplateBase):
     Construction
     """
 
-    def _construct(self, te_sorted_on_booking_code):
+    def _add_block(self, te_sorted_on_booking_code):
         """
         N.B. Out rows are already been filled with header rows.
         fields = {seqNo: Field}
         """
-        super()._construct(te_sorted_on_booking_code)
+        super()._add_block(te_sorted_on_booking_code)
 
         # Preparation
         self._total_amounts = {DetailTotalVars.General: [0.0]}

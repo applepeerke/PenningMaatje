@@ -24,7 +24,6 @@ from src.GL.GeneralException import GeneralException
 from src.GL.Result import Result
 
 
-
 class SummaryDriver(Base):
 
     def __init__(self):

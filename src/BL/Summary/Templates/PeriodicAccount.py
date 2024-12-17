@@ -111,7 +111,7 @@ class PeriodicAccount(TemplateBase):
         self._out_path = f'{self._session.export_dir}{filename}'
 
         # Construct the report
-        self._construct(transactions)
+        self._add_block(transactions)
 
         # Write CSV
         csvm.write_rows(self._out_rows, data_path=self._out_path, open_mode='w')
@@ -159,12 +159,12 @@ class PeriodicAccount(TemplateBase):
     Construction
     """
 
-    def _construct(self, transactions):
+    def _add_block(self, transactions):
         """
         N.B. Out rows are already been filled with title rows. Added here are the transactions:
         [datum, Omschrijving, inkomsten, uitgaven, Grootboek]
         """
-        super()._construct(transactions)
+        super()._add_block(transactions)
 
         # Calculate total amount
         d = self._te_def

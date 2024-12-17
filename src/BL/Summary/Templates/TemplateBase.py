@@ -89,7 +89,7 @@ class TemplateBase(SummaryBase):
         if self._iban and self._iban not in  self._account_io.get_ibans():
             raise GeneralException(f'Rekeningnummer "{self._iban}" is niet gevonden in de database.')
 
-    def _construct(self, rows):
+    def _add_block(self, rows):
         if not rows:
             suffix = f'\nMogelijke remedie: gebruik parameter "-b" om {TRANSACTIONS} te importeren.' \
                 if self._CLI_mode else EMPTY

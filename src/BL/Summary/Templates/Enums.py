@@ -26,7 +26,8 @@ class HeaderVars(object):
 
 
 class DetailVars(object):
-    Types = 'TYPEN'
+    NormalTypes = 'TYPEN'
+    OverbookingTypes = 'KRUISPOSTEN'
     Maingroups = 'HOOFDGROEPEN'
     Subgroups = 'SUBGROEPEN'
     Amounts = 'BEDRAGEN'
@@ -38,11 +39,12 @@ class DetailVars(object):
     Costs = 'UITGAVEN'
 
     values = [
-        Types, Maingroups, Subgroups, Amounts, Dates, Descriptions, Revenues, Costs, BookingCodes,
-        BookingDescriptions
+        NormalTypes, OverbookingTypes, Maingroups, Subgroups, Amounts, Dates, Descriptions, Revenues, Costs,
+        BookingCodes, BookingDescriptions
     ]
     mapping = {
-        Types: FD.Booking_type,
+        NormalTypes: FD.Booking_type,
+        OverbookingTypes: FD.Booking_type,
         Maingroups: FD.Booking_maingroup,
         Subgroups: FD.Booking_subgroup,
         Amounts: FD.Amount_signed,
@@ -59,7 +61,7 @@ class DetailTotalVars(object):
     General = 'GENERAAL'
     Total = 'TOTAAL'
     TotalGeneral = f'TOTAAL {General}'
-    TotalType = f'TOTAAL {DetailVars.Types}'
+    TotalNormalType = f'TOTAAL {DetailVars.NormalTypes}'
     TotalMaingroup = f'TOTAAL {DetailVars.Maingroups}'
 
-    values = [TotalType, TotalMaingroup, TotalGeneral]
+    values = [TotalNormalType, TotalMaingroup, TotalGeneral]

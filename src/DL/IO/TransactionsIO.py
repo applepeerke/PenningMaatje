@@ -9,6 +9,7 @@ from src.DL.Config import CF_SEARCH_AMOUNT, CF_SEARCH_AMOUNT_TO, \
 from src.DL.DBDriver.Att import Att
 from src.DL.DBDriver.AttType import AttType
 from src.DL.DBDriver.SQLOperator import SQLOperator
+from src.DL.Enums.Enums import BookingType
 from src.DL.IO.BaseIO import BaseIO
 from src.DL.Lexicon import TRANSACTIONS
 from src.DL.Model import FD, Model
@@ -218,7 +219,7 @@ class TransactionsIO(BaseIO, ABC):
     """
     Summary
     """
-    def get_realisation_data(self, iban, year) -> list:
+    def get_realisation_data(self, iban, year, is_overbooking=False) -> list:
         """ @return: [type, maingroup, subgroup, amount] """
         self._total_amount = 0.0
         d = {}
@@ -228,6 +229,8 @@ class TransactionsIO(BaseIO, ABC):
         mutations = self._db.select(TABLE, where=where)
         for m_row in mutations:
             self._month_max = max(self._month_max, m_row[self._te_dict[FD.Month]])
+
+            # Get the booking_id
             booking_id = m_row[self._te_dict[FD.Booking_id]]
             if not booking_id:
                 booking_maingroup = OTHER_COSTS if m_row[self._te_dict[FD.Amount_signed]] < 0 else OTHER_REVENUES
@@ -236,7 +239,16 @@ class TransactionsIO(BaseIO, ABC):
                     raise GeneralException(
                         f'{PGM}: Gereserveerde boeking {booking_maingroup} is niet gevonden '
                         f'in tabel {Table.BookingCode}.')
+
             b_row = self._db.fetch_one(Table.BookingCode, where=[Att(FD.ID, booking_id)])
+
+            # Filter on Booking type Overbooking
+            booking_type = b_row[b_def[FD.Booking_type]]
+            if (is_overbooking and booking_type != BookingType.Overbookings or
+                    not is_overbooking and booking_type == BookingType.Overbookings):
+                continue
+
+            # Total amount and add to dict
             amount = m_row[self._te_dict[FD.Amount_signed]]
             self._total_amount += amount
             key = (f'{b_row[b_def[FD.Booking_type]]}|'
