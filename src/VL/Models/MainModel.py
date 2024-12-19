@@ -150,6 +150,8 @@ class MainModel(BaseModelTable):
         # - Months
         if not pane or pane == Pane.YS:
             self._refresh_target_table_rows(Pane.YS, pane_target=Pane.MS, current_row_no=year_row_no)
+            if not self._result.OK:
+                return self._result
 
         # - Transactions
         if not pane or (pane in (Pane.YS, Pane.MS, Pane.TE) and not TX_only):
@@ -234,7 +236,9 @@ class MainModel(BaseModelTable):
         # Set view model
         count = view_target.set_data(rows)
         if count == 0:
-            self._result.add_message('Geen gegevens gevonden.')
+            message = f'Geen gegevens gevonden voor {pk_target[0].colhdg_report} {pk_target[0].value}.' \
+                if pk_target else 'Geen gegevens gevonden.'
+            self._result.add_message(message, severity=MessageSeverity.Error)
         return count
 
     def _get_table_rows(self, table_name, pk) -> list:

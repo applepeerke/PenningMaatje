@@ -282,15 +282,15 @@ class MainController(BaseController):
                 self._diag_message(f'{diag_prefix}Year')
                 self._search_mode = False
                 self._CM.initialize_search_criteria()  # Deactivate search empty_booking mode.
-                self._main_model.refresh_dashboard(Pane.YS, pane_row_no=event[2][0])
+                self._result = self._main_model.refresh_dashboard(Pane.YS, pane_row_no=event[2][0])
             elif event[0] == Table.Month:
                 self._diag_message(f'{diag_prefix}Month')
                 self._search_mode = False
                 self._CM.initialize_search_criteria()  # Deactivate search empty_booking mode.
-                self._main_model.refresh_dashboard(Pane.MS, pane_row_no=event[2][0])
+                self._result = self._main_model.refresh_dashboard(Pane.MS, pane_row_no=event[2][0])
             elif event[0] == Table.TransactionEnriched:
                 self._diag_message(f'{diag_prefix}Transactions enriched')
-                self._main_model.refresh_dashboard(Pane.TE, pane_row_no=event[2][0], TX_only=True)
+                self._result = self._main_model.refresh_dashboard(Pane.TE, pane_row_no=event[2][0], TX_only=True)
             elif event[0] == Table.Log:
                 self._diag_message('Handling event - Log row selected')
                 self._show_log_row(self._main_model.models[Pane.LG], event[2][0])
