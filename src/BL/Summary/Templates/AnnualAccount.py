@@ -58,18 +58,24 @@ class AnnualAccount(TemplateBase):
         self._analyze_template()
 
         # Merge generated realisation from db with annual budgets from 'Jaarrekening.csv'
-        # Exclude overbookings.
+        #  Validate.
         realisation_rows = self._transactions_io.get_realisation_data(self._iban, self._year)
+        overbooking_rows = self._transactions_io.get_realisation_data(self._iban, self._year, is_overbooking=True)
+        if not realisation_rows and not overbooking_rows:
+            self._add_block([])  # Force exception
+
+        # Exclude overbookings Re-select data to get the total.
+        rows = self._transactions_io.get_realisation_data(self._iban, self._year)
         sorted_bookings = self._get_merged_bookings(
-            [row for row in realisation_rows if row[0] != BookingType.Overbookings])
-        self._add_block(sorted_bookings)
+            [row for row in rows if row[0] != BookingType.Overbookings])
+        self._add_block(sorted_bookings, allow_empty=True)
         self._add_general_total()
 
-        # Overbookings (no general total)
-        realisation_rows = self._transactions_io.get_realisation_data(self._iban, self._year, is_overbooking=True)
+        # Overbookings (no general total). Re-select data to get the total.
+        rows = self._transactions_io.get_realisation_data(self._iban, self._year, is_overbooking=True)
         sorted_bookings = self._get_merged_bookings(
-            [row for row in realisation_rows if row[0] == BookingType.Overbookings], is_overbooking=True)
-        self._add_block(sorted_bookings)
+            [row for row in rows if row[0] == BookingType.Overbookings], is_overbooking=True)
+        self._add_block(sorted_bookings, allow_empty=True)
 
         # Write CSV
         csvm.write_rows(self._out_rows, data_path=out_path, open_mode='w')
@@ -146,12 +152,14 @@ class AnnualAccount(TemplateBase):
         row.extend(budget_amounts)
         return row
 
-    def _add_block(self, sorted_bookings, is_overbooking=False):
+    def _add_block(self, sorted_bookings, is_overbooking=False, allow_empty=False):
         """
         N.B. Out rows are already been filled with title.
         fields = {seqNo: Field}
         """
-        super()._add_block(sorted_bookings)
+        super()._add_block(sorted_bookings, allow_empty=allow_empty)
+        if not sorted_bookings:
+            return
 
         col_count = len(sorted_bookings[0])
         if col_count != len(self._column_fields):

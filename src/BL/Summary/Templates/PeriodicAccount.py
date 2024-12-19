@@ -159,7 +159,7 @@ class PeriodicAccount(TemplateBase):
     Construction
     """
 
-    def _add_block(self, transactions):
+    def _add_block(self, transactions, is_overbooking=False, allow_empty=False):
         """
         N.B. Out rows are already been filled with title rows. Added here are the transactions:
         [datum, Omschrijving, inkomsten, uitgaven, Grootboek]

@@ -67,7 +67,7 @@ class ResultsPerBookingCode(TemplateBase):
     Construction
     """
 
-    def _add_block(self, te_sorted_on_booking_code):
+    def _add_block(self, te_sorted_on_booking_code, is_overbooking=False, allow_empty=False):
         """
         N.B. Out rows are already been filled with header rows.
         fields = {seqNo: Field}
