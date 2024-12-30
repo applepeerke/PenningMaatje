@@ -24,11 +24,11 @@ class Input(BaseView):
     def get_view(self) -> list:
         pass
 
-    def __init__(self, relative_location=None):
+    def __init__(self, relative_location=(None, None)):
         super().__init__()
         self._selected_folder = None
         self._selected_path = None
-        if relative_location:
+        if relative_location != (None, None):
             self._relative_location = relative_location
 
     def get_input(self, label, title='Specificeer', dft=None, unit_test=False) -> str:
@@ -122,7 +122,7 @@ class Input(BaseView):
 
         window.close()
         # Reset location
-        self._relative_location = None
+        self._relative_location = (None, None)
         return input_value
 
     @staticmethod

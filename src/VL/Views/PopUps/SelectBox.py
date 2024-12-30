@@ -10,9 +10,9 @@ class SelectBox(BaseView):
     def get_view(self) -> list:
         pass
 
-    def __init__(self, relative_location=None):
+    def __init__(self, relative_location=(None, None)):
         super().__init__()
-        if relative_location:
+        if relative_location != (None, None):
             self._relative_location = relative_location
         self._trial_count = 0
 
@@ -40,7 +40,7 @@ class SelectBox(BaseView):
 
         window.close()
         # Reset location
-        self._relative_location = None
+        self._relative_location = (None, None)
         return input_value
 
     def _get_window(self, key, items, dft=None) -> list:
