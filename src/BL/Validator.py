@@ -73,7 +73,7 @@ class Validator(Base):
                 bullets = '\n    o  '.join([f for f in self._invalid_input_filenames])
                 problem = f'Probleem:\nDe folder bevat ongeldige items zoals:\n    o  {bullets}'
 
-            if not problem:
+            if problem:
                 # Analyze bank transaction csv files
                 try:
                     # Create sorted dir-list of valid files (only header-check, not in-depth)
